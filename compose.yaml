@@ -1,0 +1,7 @@
+﻿services:
+  drivingschoolapi:
+    image: drivingschoolapi
+    build:
+      context: .
+      dockerfile: DrivingSchoolApi/Dockerfile
+
