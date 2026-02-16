@@ -17,4 +17,9 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DrivingSchoolApi.Application\DrivingSchoolApi.Application.csproj" />
+      <ProjectReference Include="..\DrivingSchoolApi.Infrastructure\DrivingSchoolApi.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>
