@@ -16,7 +16,7 @@ internal class TheoryLessonConfiguration : IEntityTypeConfiguration<TheoryLesson
             .Property(x => x.Currency);
         
         builder.HasOne<DrivingSchool>()
-            .WithMany(x => x.TheoryLessons)
+            .WithMany()
             .HasForeignKey(x => x.SchoolId);
         
         builder.HasOne<Instructor>()

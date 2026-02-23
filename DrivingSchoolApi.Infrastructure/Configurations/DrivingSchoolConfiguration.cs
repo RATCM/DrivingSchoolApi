@@ -41,12 +41,12 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
             .HasForeignKey(x => x.SchoolId);
 
         builder
-            .HasMany(x => x.DrivingLessons)
+            .HasMany<DrivingLesson>()
             .WithOne()
             .HasForeignKey(x => x.SchoolId);
 
         builder
-            .HasMany(x => x.TheoryLessons)
+            .HasMany<TheoryLesson>()
             .WithOne()
             .HasForeignKey(x => x.SchoolId);
 

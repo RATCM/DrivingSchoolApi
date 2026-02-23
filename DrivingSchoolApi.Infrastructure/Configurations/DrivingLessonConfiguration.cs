@@ -39,7 +39,7 @@ internal class DrivingLessonConfiguration : IEntityTypeConfiguration<DrivingLess
             .Property(x => x.Currency);
         
         builder.HasOne<DrivingSchool>()
-            .WithMany(x => x.DrivingLessons)
+            .WithMany()
             .HasForeignKey(x => x.SchoolId);
         
         builder.HasOne<Instructor>()

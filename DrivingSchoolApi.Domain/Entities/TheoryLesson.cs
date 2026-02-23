@@ -21,10 +21,10 @@ public sealed class TheoryLesson : Entity
         DateTime lessonDateTime, 
         Money price, 
         Guid instructorId,
-        IEnumerable<Student> studentIds) : base(id)
+        IEnumerable<Student> students) : base(id)
     {
         // I don't know if it's right to do validation here
-        var temp = studentIds as Student[] ?? studentIds.ToArray();
+        var temp = students as Student[] ?? students.ToArray();
         if (temp.Distinct().Count() != temp.Length)
             throw new InvalidInputException("Cannot add duplicates of students to theory lesson");
 
