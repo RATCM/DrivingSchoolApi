@@ -16,7 +16,7 @@ public record DrivingRoute : ValueObject
         HashSet<int> orderSet = routeCoordinates.Select(x => x.Order).ToHashSet();
         if (orderSet.Count < routeCoordinates.Length)
             throw new InvalidInputException("Route coordinates cannot contain order duplicates");
-        if (orderSet.Max() != routeCoordinates.Length)
+        if (orderSet.Max() - orderSet.Min() + 1 != routeCoordinates.Length)
             throw new InvalidInputException("Route coordinates order cannot have gaps");
         if (orderSet.Min() != 1)
             throw new InvalidInputException("Route coordinates must start at 1");
