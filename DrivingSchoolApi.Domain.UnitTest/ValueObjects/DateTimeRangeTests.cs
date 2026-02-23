@@ -13,7 +13,7 @@ public class DateTimeRangeTests
                 new DateTime(2001, 01, 01), 
                 new DateTime(2000, 01, 01)));
         
-        Assert.That(exception.Message, Is.EqualTo("StartDateTime must be before EndDateTime\""));
+        Assert.That(exception.Message, Is.EqualTo("StartDateTime must be before EndDateTime"));
     }
 
     [Test]
