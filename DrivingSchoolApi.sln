@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrivingSchoolApi.Infrastruc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrivingSchoolApi.Domain.UnitTest", "DrivingSchoolApi.Domain.UnitTest\DrivingSchoolApi.Domain.UnitTest.csproj", "{123F76A2-73E9-4A79-BEEE-09B9C9534018}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrivingSchoolApi.Application.UnitTest", "DrivingSchoolApi.Application.UnitTest\DrivingSchoolApi.Application.UnitTest.csproj", "{D5409805-F023-4A04-8643-205DF455CEDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{123F76A2-73E9-4A79-BEEE-09B9C9534018}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{123F76A2-73E9-4A79-BEEE-09B9C9534018}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{123F76A2-73E9-4A79-BEEE-09B9C9534018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5409805-F023-4A04-8643-205DF455CEDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5409805-F023-4A04-8643-205DF455CEDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5409805-F023-4A04-8643-205DF455CEDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5409805-F023-4A04-8643-205DF455CEDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7684E633-13F4-40AF-B726-6AAEEE0DACA8} = {2CCA1764-B0CC-499C-B1C7-E02DD6008C50}
@@ -52,5 +58,6 @@ Global
 		{99B40FCA-4E95-440E-8D9D-D3F1B0103391} = {2CCA1764-B0CC-499C-B1C7-E02DD6008C50}
 		{7C968A74-7F38-4180-AC16-8CBA8F16297F} = {2CCA1764-B0CC-499C-B1C7-E02DD6008C50}
 		{123F76A2-73E9-4A79-BEEE-09B9C9534018} = {54AB7CF7-2846-435B-980B-65A05D9E0390}
+		{D5409805-F023-4A04-8643-205DF455CEDE} = {54AB7CF7-2846-435B-980B-65A05D9E0390}
 	EndGlobalSection
 EndGlobal
