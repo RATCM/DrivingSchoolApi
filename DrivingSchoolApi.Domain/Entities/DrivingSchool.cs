@@ -8,6 +8,7 @@ public sealed class DrivingSchool : Entity
     private List<Student> _students = [];
     private List<Instructor> _instructors = [];
     
+    public DrivingSchoolName DrivingSchoolName { get; private set; }
     public Address SchoolAddress { get; private set; }
     public PhoneNumber PhoneNumber { get; private set; }
     public WebAddress WebAddress { get; private set; }
@@ -16,11 +17,21 @@ public sealed class DrivingSchool : Entity
     
     private DrivingSchool() : base(Guid.Empty) {} // EF
     
-    public DrivingSchool(Guid id, Address schoolAddress, PhoneNumber phoneNumber, WebAddress webAddress) : base(id)
+    public DrivingSchool(Guid id, DrivingSchoolName drivingSchoolName, Address schoolAddress, PhoneNumber phoneNumber, WebAddress webAddress) : base(id)
     {
+        DrivingSchoolName = drivingSchoolName;
         SchoolAddress = schoolAddress;
         PhoneNumber = phoneNumber;
         WebAddress = webAddress;
+    }
+
+    public void ChangeName(DrivingSchoolName newName)
+    {
+        if (newName == this.DrivingSchoolName)
+        {
+            throw new InvalidOperationException("Can't change name to the same name");
+        }
+        this.DrivingSchoolName = newName;
     }
 
     public void AddStudent(Student student)

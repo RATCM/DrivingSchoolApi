@@ -15,7 +15,8 @@ public class DrivingSchoolServiceTests
         var mock = Substitute.For<IDrivingSchoolRepository>();
         mock
             .Get(Guid.Empty)
-            .Returns(new DrivingSchool(Guid.Empty, 
+            .Returns(new DrivingSchool(Guid.Empty,
+                new DrivingSchoolName("Test School"),
                 new Address("a", "b", "c", "d"),
                 new PhoneNumber("1234"), 
                 new WebAddress("url.com")));
@@ -26,7 +27,8 @@ public class DrivingSchoolServiceTests
         var drivingSchool = await sut.GetDrivingSchoolById(Guid.Empty);
 
         // Assert
-        Assert.That(drivingSchool, Is.EqualTo(new DrivingSchool(Guid.Empty, 
+        Assert.That(drivingSchool, Is.EqualTo(new DrivingSchool(Guid.Empty,
+            new DrivingSchoolName("Test School"),
             new Address("a", "b", "c", "d"),
             new PhoneNumber("1234"), 
             new WebAddress("url.com"))));
