@@ -8,10 +8,10 @@ namespace DrivingSchoolApi.Domain.Entities;
 public sealed class TheoryLesson : Entity
 {
     public Guid SchoolId { get; }
-    public DateTime LessonDateTime { get; }
-    public Money Price { get; }
     public Guid InstructorId { get; }
     public ImmutableArray<Student> Students { get; }
+    public DateTime LessonDateTime { get; }
+    public Money Price { get; }
 
     private TheoryLesson() : base(Guid.Empty) {} // EF
     
