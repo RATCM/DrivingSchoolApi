@@ -9,11 +9,11 @@ public class DrivingRouteTests
     public void RouteCoordinates_CannotContainOrderDuplicates()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new DrivingRoute(
-                new DateTimeRange(
+            () => DrivingRoute.Create(
+                DateTimeRange.Create(
                     new DateTime(2000, 01, 01), 
                     new DateTime(2001, 01, 01)), 
-                [new CoordinatePoint(1, 1, 2), new CoordinatePoint(1, 2, 3)]
+                [CoordinatePoint.Create(1, 1, 2), CoordinatePoint.Create(1, 2, 3)]
         ));
         
         Assert.That(exception.Message, Is.EqualTo("Route coordinates cannot contain order duplicates"));
@@ -23,11 +23,11 @@ public class DrivingRouteTests
     public void RouteCoordinates_CannotContainOrderGaps()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new DrivingRoute(
-                new DateTimeRange(
+            () => DrivingRoute.Create(
+                DateTimeRange.Create(
                     new DateTime(2000, 01, 01), 
                     new DateTime(2001, 01, 01)), 
-                [new CoordinatePoint(1, 1, 2), new CoordinatePoint(3, 2, 3)]
+                [CoordinatePoint.Create(1, 1, 2), CoordinatePoint.Create(3, 2, 3)]
             ));
         
         Assert.That(exception.Message, Is.EqualTo("Route coordinates order cannot have gaps"));
@@ -37,11 +37,11 @@ public class DrivingRouteTests
     public void RouteCoordinates_MustStartFromOrder1()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new DrivingRoute(
-                new DateTimeRange(
+            () => DrivingRoute.Create(
+                DateTimeRange.Create(
                     new DateTime(2000, 01, 01), 
                     new DateTime(2001, 01, 01)), 
-                [new CoordinatePoint(2, 1, 2), new CoordinatePoint(3, 2, 3)]
+                [CoordinatePoint.Create(2, 1, 2), CoordinatePoint.Create(3, 2, 3)]
             ));
         
         Assert.That(exception.Message, Is.EqualTo("Route coordinates must start at 1"));
@@ -51,11 +51,11 @@ public class DrivingRouteTests
     public void RouteCoordinates_SucceedsWhenValid()
     {
         Assert.DoesNotThrow(
-            () => new DrivingRoute(
-                new DateTimeRange(
+            () => DrivingRoute.Create(
+                DateTimeRange.Create(
                     new DateTime(2000, 01, 01), 
                     new DateTime(2001, 01, 01)), 
-                [new CoordinatePoint(1, 1, 2), new CoordinatePoint(2, 2, 3)]
+                [CoordinatePoint.Create(1, 1, 2), CoordinatePoint.Create(2, 2, 3)]
             ));
     }
 }

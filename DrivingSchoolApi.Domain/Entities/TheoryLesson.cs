@@ -1,37 +1,42 @@
 using System.Collections.Immutable;
 using DrivingSchoolApi.Domain.Exceptions;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Domain.Entities;
 
-public sealed class TheoryLesson : Entity
+public sealed class TheoryLesson : Entity<TheoryLessonKey>
 {
-    public Guid SchoolId { get; }
-    public Guid InstructorId { get; }
-    public ImmutableArray<Student> Students { get; }
-    public DateTime LessonDateTime { get; }
-    public Money Price { get; }
+    public required DrivingSchoolKey SchoolId { get; init; }
+    public required InstructorKey InstructorId { get; init; }
+    public required ImmutableArray<StudentKey> StudentIds { get; init; }
+    public required DateTime LessonDateTime { get; init; }
+    public required Money Price { get; init; }
 
-    private TheoryLesson() : base(Guid.Empty) {} // EF
+    private TheoryLesson() {} // EF
     
-    public TheoryLesson(
-        Guid id, 
-        Guid schoolId, 
-        DateTime lessonDateTime, 
-        Money price, 
-        Guid instructorId,
-        IEnumerable<Student> students) : base(id)
+    public static TheoryLesson Create(
+        TheoryLessonKey id,
+        DrivingSchoolKey schoolId,
+        DateTime lessonDateTime,
+        Money price,
+        InstructorKey instructorId,
+        IEnumerable<StudentKey> studentIds)
     {
         // I don't know if it's right to do validation here
-        var temp = students as Student[] ?? students.ToArray();
+        var temp = studentIds as StudentKey[] ?? studentIds.ToArray();
         if (temp.Distinct().Count() != temp.Length)
             throw new InvalidInputException("Cannot add duplicates of students to theory lesson");
 
-        SchoolId = schoolId;
-        LessonDateTime = lessonDateTime;
-        Price = price;
-        InstructorId = instructorId;
-        Students = [..temp];
+        return new TheoryLesson
+        {
+            Id = id,
+            SchoolId = schoolId,
+            LessonDateTime = lessonDateTime,
+            Price = price,
+            InstructorId = instructorId,
+            StudentIds = [..temp]
+        };
     }
 }

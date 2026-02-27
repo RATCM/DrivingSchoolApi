@@ -1,15 +1,15 @@
 namespace DrivingSchoolApi.Domain.Primitives;
 
-public abstract class Entity : IEquatable<Entity>
+public abstract class Entity<T> : IEquatable<Entity<T>> where T : EntityKey<T>
 {
-    public Guid Id { get; private init; }
+    public required T Id { get; init; }
 
-    protected Entity(Guid id)
-    {
-        Id = id;
-    }
+    //protected Entity(T id)
+    //{
+    //    Id = id;
+    //}
 
-    public bool Equals(Entity? other)
+    public bool Equals(Entity<T>? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -21,7 +21,7 @@ public abstract class Entity : IEquatable<Entity>
         if (obj is null) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((Entity)obj);
+        return Equals((Entity<T>)obj);
     }
 
     public override int GetHashCode()

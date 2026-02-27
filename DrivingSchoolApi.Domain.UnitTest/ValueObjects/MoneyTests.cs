@@ -9,7 +9,7 @@ public class MoneyTests
     public void Amount_CannotBeNegative()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new Money(-1, "USD"));
+            () => Money.Create(-1, "USD"));
         
         Assert.That(exception.Message, Is.EqualTo("Money amount cannot be negative"));
     }
@@ -18,7 +18,7 @@ public class MoneyTests
     public void Currency_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new Money(1, ""));
+            () => Money.Create(1, ""));
         
         Assert.That(exception.Message, Is.EqualTo("Currency cannot be null or empty"));
     }
@@ -26,6 +26,6 @@ public class MoneyTests
     [Test]
     public void Money_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => new Money(1, "USD"));
+        Assert.DoesNotThrow(() => Money.Create(1, "USD"));
     }
 }

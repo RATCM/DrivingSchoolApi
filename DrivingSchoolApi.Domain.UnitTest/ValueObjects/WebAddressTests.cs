@@ -9,7 +9,7 @@ public class WebAddressTests
     public void Url_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new WebAddress(""));
+            () => WebAddress.Create(""));
         
         Assert.That(exception.Message, Is.EqualTo("Url cannot be empty"));
     }
@@ -18,7 +18,7 @@ public class WebAddressTests
     public void Url_CannotBeInvalid()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new WebAddress("invalid url"));
+            () => WebAddress.Create("invalid url"));
         
         Assert.That(exception.Message, Is.EqualTo("Url must be valid"));
     }

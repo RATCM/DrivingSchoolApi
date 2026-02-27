@@ -1,6 +1,7 @@
 using DrivingSchoolApi.Application.Repositories;
-using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Application.Services.Implementation;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using NSubstitute;
 
@@ -14,23 +15,25 @@ public class DrivingSchoolServiceTests
         // Arrange
         var mock = Substitute.For<IDrivingSchoolRepository>();
         mock
-            .Get(Guid.Empty)
-            .Returns(new DrivingSchool(Guid.Empty,
-                new DrivingSchoolName("Test School"),
-                new Address("a", "b", "c", "d"),
-                new PhoneNumber("1234"), 
-                new WebAddress("url.com")));
+            .Get(DrivingSchoolKey.Create(Guid.Empty))
+            .Returns(DrivingSchool.Create(
+                DrivingSchoolKey.Create(Guid.Empty),
+                DrivingSchoolName.Create("Test School"),
+                Address.Create("a", "b", "c", "d"),
+                PhoneNumber.Create("1234"), 
+                WebAddress.Create("url.com")));
         
-        var sut = new DrivingSchoolService(mock);
+        var sut = new DrivingSchoolService(new GuidGeneratorService(), mock);
 
         // Act
-        var drivingSchool = await sut.GetDrivingSchoolById(Guid.Empty);
+        var drivingSchool = await sut.GetDrivingSchoolById(DrivingSchoolKey.Create(Guid.Empty));
 
         // Assert
-        Assert.That(drivingSchool, Is.EqualTo(new DrivingSchool(Guid.Empty,
-            new DrivingSchoolName("Test School"),
-            new Address("a", "b", "c", "d"),
-            new PhoneNumber("1234"), 
-            new WebAddress("url.com"))));
+        Assert.That(drivingSchool, Is.EqualTo(DrivingSchool.Create(
+            DrivingSchoolKey.Create(Guid.Empty),
+            DrivingSchoolName.Create("Test School"),
+            Address.Create("a", "b", "c", "d"),
+            PhoneNumber.Create("1234"), 
+            WebAddress.Create("url.com"))));
     }
 }

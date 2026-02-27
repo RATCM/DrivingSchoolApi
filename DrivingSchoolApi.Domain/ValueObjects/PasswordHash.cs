@@ -5,14 +5,18 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record PasswordHash : ValueObject
 {
-    public string Hash { get; }
+    public required string Hash { get; init; }
 
     private PasswordHash() {} // EF
-    public PasswordHash(string hash)
+    
+    public static PasswordHash Create(string hash)
     {
         if (string.IsNullOrEmpty(hash))
             throw new InvalidInputException("Password hash cannot be empty");
-        
-        Hash = hash;
+
+        return new PasswordHash
+        {
+            Hash = hash
+        };
     }
 }

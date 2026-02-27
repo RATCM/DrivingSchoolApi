@@ -5,17 +5,20 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record Email : ValueObject
 {
-    public string Address { get; }
+    public required string Address { get; init; }
     
     private Email() {} // EF
-
-    public Email(string address)
+    
+    public static Email Create(string address)
     {
         if (string.IsNullOrEmpty(address))
             throw new InvalidInputException("Email cannot be empty");
         if (!address.Contains('@'))
             throw new InvalidInputException("Email must be valid");
 
-        Address = address;
+        return new Email
+        {
+            Address = address
+        };
     }
 }

@@ -5,14 +5,18 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record DrivingSchoolName : ValueObject
 {
-    public string Name { get; }
+    public required string Name { get; init; }
     
     private DrivingSchoolName() {} // EF
 
-    public DrivingSchoolName(string name)
+    public static DrivingSchoolName Create(string name)
     {
         if (string.IsNullOrEmpty(name))
             throw new InvalidInputException("Driving School name cannot be empty");
-        Name = name;
+        
+        return new DrivingSchoolName
+        {
+            Name = name
+        };
     }
 }

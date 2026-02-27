@@ -5,17 +5,20 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record WebAddress : ValueObject
 {
-    public string Url { get; }
+    public required string Url { get; init; }
     
     private WebAddress() {} // EF
 
-    public WebAddress(string url)
+    public static WebAddress Create(string url)
     {
         if (string.IsNullOrEmpty(url))
             throw new InvalidInputException("Url cannot be empty");
         if (!url.Contains('.')) // Very basic Url validation
             throw new InvalidInputException("Url must be valid");
-        
-        Url = url;
+
+        return new WebAddress
+        {
+            Url = url
+        };
     }
 }

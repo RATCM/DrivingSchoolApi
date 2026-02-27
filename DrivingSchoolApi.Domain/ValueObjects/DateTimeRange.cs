@@ -5,16 +5,19 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record DateTimeRange : ValueObject
 {
-    public DateTime StartDateTime { get; }
-    public DateTime EndDateTime { get; }
+    public required DateTime StartDateTime { get; init; }
+    public required DateTime EndDateTime { get; init; }
     
     private DateTimeRange() {} // EF
-
-    public DateTimeRange(DateTime startDateTime, DateTime endDateTime)
+    
+    public static DateTimeRange Create(DateTime startDateTime, DateTime endDateTime)
     {
         if (endDateTime < startDateTime) throw new InvalidInputException("StartDateTime must be before EndDateTime");
 
-        StartDateTime = startDateTime;
-        EndDateTime = endDateTime;
+        return new DateTimeRange
+        {
+            StartDateTime = startDateTime,
+            EndDateTime = endDateTime
+        };
     }
 }

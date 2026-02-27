@@ -1,12 +1,13 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Services;
 
 public interface IDrivingSchoolService
 {
-    Task<DrivingSchool> CreateDrivingSchool(Address address, PhoneNumber phoneNumber, WebAddress webAddress);
-    Task<DrivingSchool> GetDrivingSchoolById(Guid id);
+    Task<DrivingSchool> CreateDrivingSchool(DrivingSchoolName name, Address address, PhoneNumber phoneNumber, WebAddress webAddress);
+    Task<DrivingSchool> GetDrivingSchoolById(DrivingSchoolKey id);
     Task<IEnumerable<DrivingSchool>> GetAllDrivingSchools();
-    Task DeleteDrivingSchool(Guid id);
+    Task DeleteDrivingSchool(DrivingSchoolKey id);
 }
