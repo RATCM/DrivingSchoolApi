@@ -13,7 +13,7 @@ public class DrivingSchoolService : IDrivingSchoolService
         _drivingSchoolRepository = drivingSchoolRepository;
     }
     
-    public async Task<DrivingSchool> CreateDrivingSchool(Address address, PhoneNumber phoneNumber, WebAddress webAddress)
+    public async Task<DrivingSchool> CreateDrivingSchool(StreetAddress streetAddress, PhoneNumber phoneNumber, WebAddress webAddress)
     {
         throw new NotImplementedException();
     }

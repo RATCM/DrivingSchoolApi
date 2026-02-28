@@ -11,14 +11,14 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
     {
         builder.HasKey(x => x.Id);
 
-        // Address
-        builder.OwnsOne(x => x.SchoolAddress)
+        // StreetAddress
+        builder.OwnsOne(x => x.SchoolStreetAddress)
             .Property(x => x.AddressLine);
-        builder.OwnsOne(x => x.SchoolAddress)
+        builder.OwnsOne(x => x.SchoolStreetAddress)
             .Property(x => x.City);
-        builder.OwnsOne(x => x.SchoolAddress)
+        builder.OwnsOne(x => x.SchoolStreetAddress)
             .Property(x => x.PostalCode);
-        builder.OwnsOne(x => x.SchoolAddress)
+        builder.OwnsOne(x => x.SchoolStreetAddress)
             .Property(x => x.Region);
         
         builder.Property(x => x.PhoneNumber)

@@ -12,6 +12,8 @@ public sealed class TheoryLesson : Entity
     public ImmutableArray<Student> Students { get; }
     public DateTime LessonDateTime { get; }
     public Money Price { get; }
+    
+    //TODO Instructor signature
 
     private TheoryLesson() : base(Guid.Empty) {} // EF
     

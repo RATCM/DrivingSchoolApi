@@ -9,20 +9,21 @@ public sealed class DrivingSchool : Entity
     private List<Instructor> _instructors = [];
     
     public DrivingSchoolName DrivingSchoolName { get; private set; }
-    public Address SchoolAddress { get; private set; }
+    public StreetAddress SchoolStreetAddress { get; private set; }
     public PhoneNumber PhoneNumber { get; private set; }
     public WebAddress WebAddress { get; private set; }
+    public Money PackagePrice { get; private set; }
     public IReadOnlyList<Student> Students => _students.AsReadOnly();
     public IReadOnlyList<Instructor> Instructors => _instructors.AsReadOnly();
-    
     private DrivingSchool() : base(Guid.Empty) {} // EF
     
-    public DrivingSchool(Guid id, DrivingSchoolName drivingSchoolName, Address schoolAddress, PhoneNumber phoneNumber, WebAddress webAddress) : base(id)
+    public DrivingSchool(Guid id, DrivingSchoolName drivingSchoolName, StreetAddress schoolStreetAddress, PhoneNumber phoneNumber, WebAddress webAddress, Money packagePrice) : base(id)
     {
         DrivingSchoolName = drivingSchoolName;
-        SchoolAddress = schoolAddress;
+        SchoolStreetAddress = schoolStreetAddress;
         PhoneNumber = phoneNumber;
         WebAddress = webAddress;
+        PackagePrice = packagePrice;
     }
 
     public void ChangeName(DrivingSchoolName newName)

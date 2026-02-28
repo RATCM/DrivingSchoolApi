@@ -3,16 +3,16 @@ using DrivingSchoolApi.Domain.Primitives;
 
 namespace DrivingSchoolApi.Domain.ValueObjects;
 
-public record Address : ValueObject
+public record StreetAddress : ValueObject
 {
     public string PostalCode { get; }
     public string City { get; }
     public string Region { get; }
     public string AddressLine { get; }
     
-    private Address() {} // EF
+    private StreetAddress() {} // EF
 
-    public Address(string postalCode, string city, string region, string addressLine)
+    public StreetAddress(string postalCode, string city, string region, string addressLine)
     {
         if (string.IsNullOrEmpty(postalCode))
             throw new InvalidInputException("Postal code cannot be empty");
@@ -21,7 +21,7 @@ public record Address : ValueObject
         if (string.IsNullOrEmpty(region))
             throw new InvalidInputException("Region cannot be empty");
         if (string.IsNullOrEmpty(addressLine))
-            throw new InvalidInputException("Address line cannot be empty");
+            throw new InvalidInputException("Street Address line cannot be empty");
         
         PostalCode = postalCode;
         City = city;

@@ -5,5 +5,5 @@ public record TheoryLessonDto(
     Guid SchoolId,
     Guid InstructorId,
     DateTime LessonDateTime,
-    string Price,
-    List<Guid> Students);
+    MoneyDto Price,
+    List<StudentDto>? Students);

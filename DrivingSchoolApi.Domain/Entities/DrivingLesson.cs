@@ -6,10 +6,13 @@ namespace DrivingSchoolApi.Domain.Entities;
 public sealed class DrivingLesson : Entity
 {
     public Guid SchoolId { get; }
-    public DrivingRoute Route { get; }
-    public Money Price { get; }
     public Guid InstructorId { get; }
     public Guid StudentId { get; }
+    public DrivingRoute Route { get; }
+    public Money Price { get; }
+    
+    //TODO Instructor signature
+    //TODO Student signature
 
     private DrivingLesson() : base(Guid.Empty) {}  // EF
     public DrivingLesson(

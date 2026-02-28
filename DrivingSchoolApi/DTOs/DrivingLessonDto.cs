@@ -2,9 +2,9 @@
 
 public record DrivingLessonDto(
     Guid Id,
+    Guid SchoolId,
     Guid InstructorId,
     Guid StudentId,
-    DateTime StartDateTime,
-    DateTime EndDateTime,
-    List<CoordinateDto> Route,
-    string Price);
+    DrivingRouteDto Route,
+    MoneyDto Price);
+

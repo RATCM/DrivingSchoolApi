@@ -17,9 +17,10 @@ public class DrivingSchoolServiceTests
             .Get(Guid.Empty)
             .Returns(new DrivingSchool(Guid.Empty,
                 new DrivingSchoolName("Test School"),
-                new Address("a", "b", "c", "d"),
+                new StreetAddress("a", "b", "c", "d"),
                 new PhoneNumber("1234"), 
-                new WebAddress("url.com")));
+                new WebAddress("url.com"),
+                new Money(100, "DKK")));
         
         var sut = new DrivingSchoolService(mock);
 
@@ -29,8 +30,9 @@ public class DrivingSchoolServiceTests
         // Assert
         Assert.That(drivingSchool, Is.EqualTo(new DrivingSchool(Guid.Empty,
             new DrivingSchoolName("Test School"),
-            new Address("a", "b", "c", "d"),
+            new StreetAddress("a", "b", "c", "d"),
             new PhoneNumber("1234"), 
-            new WebAddress("url.com"))));
+            new WebAddress("url.com"),
+            new Money(100, "DKK"))));
     }
 }
