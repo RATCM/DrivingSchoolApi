@@ -1,0 +1,19 @@
+﻿using DrivingSchoolApi.Domain.ValueObjects;
+using DrivingSchoolApi.DTOs;
+
+namespace DrivingSchoolApi.Mappers.ValueObjectMappers;
+
+public static class DateTimeRangeMapper
+{
+    extension (DateTimeRange entity)
+    {
+        public DateTimeRangeDto ToDto()
+        {
+            return new DateTimeRangeDto
+            (
+                entity.StartDateTime,
+                entity.EndDateTime
+            );
+        }
+    }
+}
