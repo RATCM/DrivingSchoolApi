@@ -1,6 +1,7 @@
 using DrivingSchoolApi.Application.Repositories;
-using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Application.Services.Implementation;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using NSubstitute;
 
@@ -14,25 +15,27 @@ public class DrivingSchoolServiceTests
         // Arrange
         var mock = Substitute.For<IDrivingSchoolRepository>();
         mock
-            .Get(Guid.Empty)
-            .Returns(new DrivingSchool(Guid.Empty,
-                new DrivingSchoolName("Test School"),
-                new StreetAddress("a", "b", "c", "d"),
-                new PhoneNumber("1234"), 
-                new WebAddress("url.com"),
-                new Money(100, "DKK")));
+            .Get(DrivingSchoolKey.Create(Guid.Empty))
+            .Returns(DrivingSchool.Create(
+                DrivingSchoolKey.Create(Guid.Empty),
+                new DrivingSchoolName.Create("Test School"),
+                new StreetAddress.Create("a", "b", "c", "d"),
+                new PhoneNumber.Create("1234"), 
+                new WebAddress.Create("url.com"),
+                new Money.Create(100,"DKK")));
         
-        var sut = new DrivingSchoolService(mock);
+        var sut = new DrivingSchoolService(new GuidGeneratorService(), mock);
 
         // Act
-        var drivingSchool = await sut.GetDrivingSchoolById(Guid.Empty);
+        var drivingSchool = await sut.GetDrivingSchoolById(DrivingSchoolKey.Create(Guid.Empty));
 
         // Assert
-        Assert.That(drivingSchool, Is.EqualTo(new DrivingSchool(Guid.Empty,
-            new DrivingSchoolName("Test School"),
-            new StreetAddress("a", "b", "c", "d"),
-            new PhoneNumber("1234"), 
-            new WebAddress("url.com"),
-            new Money(100, "DKK"))));
+        Assert.That(drivingSchool, Is.EqualTo(DrivingSchool.Create(
+            DrivingSchoolKey.Create(Guid.Empty),
+            DrivingSchoolName.Create("Test School"),
+            StreetAddress.Create("a", "b", "c", "d"),
+            PhoneNumber.Create("1234"), 
+            WebAddress.Create("url.com"),
+            new Money.Create(100,"DKK"))));
     }
 }

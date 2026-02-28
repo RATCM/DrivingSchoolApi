@@ -1,4 +1,5 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -10,6 +11,11 @@ internal class DrivingLessonConfiguration : IEntityTypeConfiguration<DrivingLess
     public void Configure(EntityTypeBuilder<DrivingLesson> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+            .HasConversion(
+                key => key.Value,
+                value => DrivingLessonKey.Create(value));
+
 
         builder.OwnsOne(x => x.Route, route =>
         {
@@ -42,12 +48,9 @@ internal class DrivingLessonConfiguration : IEntityTypeConfiguration<DrivingLess
             .WithMany()
             .HasForeignKey(x => x.SchoolId);
         
-        builder.HasOne<Instructor>()
-            .WithMany(x => x.DrivingLessons)
+        builder
+            .HasOne<Instructor>()
+            .WithMany()
             .HasForeignKey(x => x.InstructorId);
-
-        builder.HasOne<Student>()
-            .WithMany(x => x.DrivingLessons)
-            .HasForeignKey(x => x.StudentId);
     }
 }

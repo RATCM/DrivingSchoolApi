@@ -5,14 +5,18 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record StreetAddress : ValueObject
 {
-    public string PostalCode { get; }
-    public string City { get; }
-    public string Region { get; }
-    public string AddressLine { get; }
+    public required string PostalCode { get; init; }
+    public required string City { get; init; }
+    public required string Region { get; init; }
+    public required string AddressLine { get; init; }
     
     private StreetAddress() {} // EF
-
-    public StreetAddress(string postalCode, string city, string region, string addressLine)
+    
+    public static StreetAddress Create(
+        string postalCode, 
+        string city, 
+        string region, 
+        string addressLine)
     {
         if (string.IsNullOrEmpty(postalCode))
             throw new InvalidInputException("Postal code cannot be empty");
@@ -22,10 +26,13 @@ public record StreetAddress : ValueObject
             throw new InvalidInputException("Region cannot be empty");
         if (string.IsNullOrEmpty(addressLine))
             throw new InvalidInputException("Street Address line cannot be empty");
-        
-        PostalCode = postalCode;
-        City = city;
-        Region = region;
-        AddressLine = addressLine;
+
+        return new StreetAddress
+        {
+            PostalCode = postalCode,
+            City = city,
+            Region = region,
+            AddressLine = addressLine
+        };
     }
 }

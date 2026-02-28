@@ -9,7 +9,7 @@ public class PasswordHashTests
     public void Hash_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new PasswordHash(""));
+            () => PasswordHash.Create(""));
         
         Assert.That(exception.Message, Is.EqualTo("Password hash cannot be empty"));
     }
@@ -17,6 +17,6 @@ public class PasswordHashTests
     [Test]
     public void PasswordHash_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => new PasswordHash("SOME_HASHED_PASSWORD"));
+        Assert.DoesNotThrow(() => PasswordHash.Create("SOME_HASHED_PASSWORD"));
     }
 }

@@ -1,14 +1,20 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Services;
 
 public interface IDrivingLessonService
 {
-    Task<DrivingLesson> CreateDrivingLesson(Guid schoolId, DrivingRoute route, Money price, Guid instructorId, Guid studentId);
+    Task<DrivingLesson> CreateDrivingLesson(
+        DrivingSchoolKey schoolId, 
+        DrivingRoute route, 
+        Money price, 
+        InstructorKey instructorId, 
+        StudentKey studentId);
     Task<DrivingLesson> GetDrivingLessonById(Guid id);
-    Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromSchool(Guid schoolId);
-    Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromStudent(Guid studentId);
-    Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromInstructor(Guid instructorId);
-    Task DeleteDrivingLesson(Guid id);
+    Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromSchool(DrivingSchoolKey schoolId);
+    Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromStudent(StudentKey studentId);
+    Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromInstructor(InstructorKey instructorId);
+    Task DeleteDrivingLesson(DrivingLessonKey id);
 }

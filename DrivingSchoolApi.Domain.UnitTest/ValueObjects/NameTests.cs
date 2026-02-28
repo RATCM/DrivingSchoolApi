@@ -9,7 +9,7 @@ public class NameTests
     public void FirstName_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new Name("", "Last"));
+            () => Name.Create("", "Last"));
         
         Assert.That(exception.Message, Is.EqualTo("First name cannot be empty"));
     }
@@ -18,7 +18,7 @@ public class NameTests
     public void LastName_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new Name("First", ""));
+            () => Name.Create("First", ""));
         
         Assert.That(exception.Message, Is.EqualTo("Last name cannot be empty"));
     }
@@ -26,6 +26,6 @@ public class NameTests
     [Test]
     public void Name_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => new Name("First", "Last"));
+        Assert.DoesNotThrow(() => Name.Create("First", "Last"));
     }
 }

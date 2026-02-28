@@ -1,29 +1,38 @@
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Domain.Entities;
 
-public sealed class DrivingSchool : Entity
+public sealed class DrivingSchool : Entity<DrivingSchoolKey>
 {
-    private List<Student> _students = [];
-    private List<Instructor> _instructors = [];
+    public DrivingSchoolName DrivingSchoolName { get; private set; } = null!;
+    public Address SchoolAddress { get; private set; } = null!;
+    public PhoneNumber PhoneNumber { get; private set; } = null!;
+    public WebAddress WebAddress { get; private set; } = null!;
+    public Money PackagePrice { get; private set; } = null!;
     
-    public DrivingSchoolName DrivingSchoolName { get; private set; }
-    public StreetAddress SchoolStreetAddress { get; private set; }
-    public PhoneNumber PhoneNumber { get; private set; }
-    public WebAddress WebAddress { get; private set; }
-    public Money PackagePrice { get; private set; }
-    public IReadOnlyList<Student> Students => _students.AsReadOnly();
-    public IReadOnlyList<Instructor> Instructors => _instructors.AsReadOnly();
-    private DrivingSchool() : base(Guid.Empty) {} // EF
+    private DrivingSchool() {} // EF
     
-    public DrivingSchool(Guid id, DrivingSchoolName drivingSchoolName, StreetAddress schoolStreetAddress, PhoneNumber phoneNumber, WebAddress webAddress, Money packagePrice) : base(id)
+    public static DrivingSchool Create(
+        DrivingSchoolKey id,
+        DrivingSchoolName drivingSchoolName,
+        StreetAddress schoolStreetAddress,
+        PhoneNumber phoneNumber,
+        WebAddress webAddress,
+        PackagePrice = packagePrice)
     {
-        DrivingSchoolName = drivingSchoolName;
-        SchoolStreetAddress = schoolStreetAddress;
-        PhoneNumber = phoneNumber;
-        WebAddress = webAddress;
-        PackagePrice = packagePrice;
+        return new DrivingSchool
+        {
+            Id = id,
+            DrivingSchoolName = drivingSchoolName,
+            SchoolAddress = schoolAddress,
+            PhoneNumber = phoneNumber,
+            WebAddress = webAddress,
+            PackagePrice = packagePrice
+        };
     }
 
     public void ChangeName(DrivingSchoolName newName)
@@ -35,31 +44,24 @@ public sealed class DrivingSchool : Entity
         this.DrivingSchoolName = newName;
     }
 
-    public void AddStudent(Student student)
+    public void ChangeAddress(StreetAddress newAddress)
     {
-        if(Students.Contains(student))
-            throw new InvalidOperationException("Student already exists in this school");
-        _students.Add(student);
+        if (SchoolAddress.Equals(newAddress))
+            throw new InvalidOperationException("Can't change address to the same address");
+        SchoolAddress = newAddress;
+    }
+    
+    public void ChangePhoneNumber(PhoneNumber newPhoneNumber)
+    {
+        if (PhoneNumber.Equals(newPhoneNumber))
+            throw new InvalidOperationException("Can't change the same phone number to the same phone number");
+        PhoneNumber = newPhoneNumber;
     }
 
-    public void RemoveStudent(Student student)
+    public void ChangeWebAddress(WebAddress newWebAddress)
     {
-        if(!_students.Remove(student))
-            throw new InvalidOperationException("Student is not part of this school");
+        if (WebAddress.Equals(newWebAddress))
+            throw new InvalidOperationException("Can't change teh same web address to the same web address");
+        WebAddress = newWebAddress;
     }
-
-    public void AddInstructor(Instructor instructor)
-    {
-        if(Instructors.Contains(instructor))
-            throw new InvalidOperationException("Instructor already exists in this school");
-        _instructors.Add(instructor);
-    }
-    
-    public void RemoveInstructor(Instructor instructor)
-    {
-        if(!_instructors.Remove(instructor))
-            throw new InvalidOperationException("Instructor is not part of this school");
-    }
-    
-    
 }

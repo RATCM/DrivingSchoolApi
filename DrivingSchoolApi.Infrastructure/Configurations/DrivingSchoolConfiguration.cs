@@ -1,4 +1,5 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -10,7 +11,16 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
     public void Configure(EntityTypeBuilder<DrivingSchool> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+            .HasConversion(
+                key => key.Value,
+                value => DrivingSchoolKey.Create(value));
 
+        builder.Property(x => x.DrivingSchoolName)
+            .HasConversion(
+                name => name.Name,
+                name => DrivingSchoolName.Create(name));
+        
         // StreetAddress
         builder.OwnsOne(x => x.SchoolStreetAddress)
             .Property(x => x.AddressLine);
@@ -24,22 +34,12 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
         builder.Property(x => x.PhoneNumber)
             .HasConversion(
                 number => number.Number,
-                number => new PhoneNumber(number));
+                number => PhoneNumber.Create(number));
         
         builder.Property(x => x.WebAddress).HasConversion(
             address => address.Url,
-            url => new WebAddress(url));
-
-        builder
-            .HasMany(x => x.Students)
-            .WithOne()
-            .HasForeignKey(x => x.SchoolId);
+            url => WebAddress.Create(url));
         
-        builder
-            .HasMany(x => x.Instructors)
-            .WithOne()
-            .HasForeignKey(x => x.SchoolId);
-
         builder
             .HasMany<DrivingLesson>()
             .WithOne()
@@ -49,6 +49,6 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
             .HasMany<TheoryLesson>()
             .WithOne()
             .HasForeignKey(x => x.SchoolId);
-
     }
+
 }

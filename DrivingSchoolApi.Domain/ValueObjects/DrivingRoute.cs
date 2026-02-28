@@ -6,12 +6,12 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record DrivingRoute : ValueObject
 {
-    public DateTimeRange DateTimeRange { get; }
-    public ImmutableArray<CoordinatePoint> RouteCoordinates { get; }
+    public required DateTimeRange DateTimeRange { get; init; }
+    public required ImmutableArray<CoordinatePoint> RouteCoordinates { get; init; }
 
     private DrivingRoute() {} // EF
     
-    public DrivingRoute(DateTimeRange dateTimeRange, CoordinatePoint[] routeCoordinates)
+    public static DrivingRoute Create(DateTimeRange dateTimeRange, CoordinatePoint[] routeCoordinates)
     {
         HashSet<int> orderSet = routeCoordinates.Select(x => x.Order).ToHashSet();
         if (orderSet.Count < routeCoordinates.Length)
@@ -21,7 +21,10 @@ public record DrivingRoute : ValueObject
         if (orderSet.Min() != 1)
             throw new InvalidInputException("Route coordinates must start at 1");
 
-        DateTimeRange = dateTimeRange;
-        RouteCoordinates = [..routeCoordinates];
+        return new DrivingRoute
+        {
+            DateTimeRange = dateTimeRange,
+            RouteCoordinates = [..routeCoordinates]
+        };
     }
 }

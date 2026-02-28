@@ -9,7 +9,7 @@ public class StreetAddressTests
     public void PostalCode_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new StreetAddress("", "city", "region", "addressLine"));
+            () => StreetAddress.Create("", "city", "region", "addressLine"));
         
         Assert.That(exception.Message, Is.EqualTo("Postal code cannot be empty"));
     }
@@ -18,7 +18,7 @@ public class StreetAddressTests
     public void City_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new StreetAddress("postalCode", "", "region", "addressLine"));
+            () => StreetAddress.Create("postalCode", "", "region", "addressLine"));
         
         Assert.That(exception.Message, Is.EqualTo("City cannot be empty"));
     }
@@ -27,7 +27,7 @@ public class StreetAddressTests
     public void Region_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new StreetAddress("postalCode", "city", "", "addressLine"));
+            () => StreetAddress.Create("postalCode", "city", "", "addressLine"));
 
         Assert.That(exception.Message, Is.EqualTo("Region cannot be empty"));
     }
@@ -36,7 +36,7 @@ public class StreetAddressTests
     public void AddressLine_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new StreetAddress("postalCode", "city", "region", ""));
+            () => StreetAddress.Create("postalCode", "city", "region", ""));
         
         Assert.That(exception.Message, Is.EqualTo("StreetAddress line cannot be empty"));
     }
@@ -44,6 +44,6 @@ public class StreetAddressTests
     [Test]
     public void Address_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => new StreetAddress("postalCode", "city", "region", "addressLine"));
+        Assert.DoesNotThrow(() => StreetAddress.Create("postalCode", "city", "region", "addressLine"));
     }
 }

@@ -9,7 +9,7 @@ public class EmailTests
     public void Address_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new Email(""));
+            () => Email.Create(""));
         
         Assert.That(exception.Message, Is.EqualTo("Email cannot be empty"));
     }
@@ -18,7 +18,7 @@ public class EmailTests
     public void Address_CannotBeInvalid()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new Email("invalidEmail.com"));
+            () => Email.Create("invalidEmail.com"));
         
         Assert.That(exception.Message, Is.EqualTo("Email must be valid"));
     }
@@ -26,6 +26,6 @@ public class EmailTests
     [Test]
     public void Email_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => new Email("valid@Email.com"));
+        Assert.DoesNotThrow(() => Email.Create("valid@Email.com"));
     }
 }

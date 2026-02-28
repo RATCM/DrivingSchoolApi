@@ -3,5 +3,28 @@
     image: drivingschoolapi
     build:
       context: .
-      dockerfile: DrivingSchoolApi/Dockerfile
+      dockerfile: DrivingSchoolApi/Dockerfile      
+    depends_on: # Ensure that the database is created first
+      driving-school-db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT_HOST}:${API_PORT_CONTAINER}"
+    environment:
+      - ConnectionStrings__Database=host=driving-school-db; port=${DB_PORT_HOST}; database=DrivingSchoolDb; username=${DB_USER}; password=${DB_PASSWD}
+      - ASPNETCORE_URLS=http://0.0.0.0:${API_PORT_HOST}
 
+  driving-school-db:
+    container_name: "driving-school-db"
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWD}
+      POSTGRES_DB: DrivingSchoolDb
+      PGPORT: ${DB_PORT_HOST}
+    ports:
+      - "${DB_PORT_HOST}:${DB_PORT_CONTAINER}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d DrivingSchoolDb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5

@@ -9,7 +9,7 @@ public class PhoneNumberTests
     public void Number_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new PhoneNumber(""));
+            () => PhoneNumber.Create(""));
         
         Assert.That(exception.Message, Is.EqualTo("Phone number cannot be empty"));
     }
@@ -17,6 +17,6 @@ public class PhoneNumberTests
     [Test]
     public void PhoneNumber_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => new PhoneNumber("12345678"));
+        Assert.DoesNotThrow(() => PhoneNumber.Create("12345678"));
     }
 }

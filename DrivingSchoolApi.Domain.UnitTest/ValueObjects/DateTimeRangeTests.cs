@@ -9,7 +9,7 @@ public class DateTimeRangeTests
     public void EndDateTime_CannotComeBefore_StartDateTime()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => new DateTimeRange(
+            () => DateTimeRange.Create(
                 new DateTime(2001, 01, 01), 
                 new DateTime(2000, 01, 01)));
         
@@ -20,7 +20,7 @@ public class DateTimeRangeTests
     public void DateTimeRange_SucceedsWhenValid()
     { 
         Assert.DoesNotThrow(
-            () => new DateTimeRange(
+            () => DateTimeRange.Create(
                 new DateTime(2000, 01, 01), 
                 new DateTime(2001, 01, 01)));
     }

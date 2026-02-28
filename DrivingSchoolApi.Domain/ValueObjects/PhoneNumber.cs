@@ -5,15 +5,18 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 
 public record PhoneNumber : ValueObject
 {
-    public string Number { get; }
+    public required string Number { get; init; }
     
     private PhoneNumber() {} // EF
-
-    public PhoneNumber(string number)
+    
+    public static PhoneNumber Create(string number)
     {
         if (string.IsNullOrEmpty(number))
-            throw new InvalidInputException("Phone number cannot be empty"); 
-        
-        Number = number;
+            throw new InvalidInputException("Phone number cannot be empty");
+
+        return new PhoneNumber
+        {
+            Number = number
+        };
     }
 }

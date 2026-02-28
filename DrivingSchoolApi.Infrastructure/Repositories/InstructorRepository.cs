@@ -1,32 +1,45 @@
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace DrivingSchoolApi.Infrastructure.Repositories;
 
-internal class InstructorRepository : IInstructorRepository
+internal class InstructorRepository : Repository, IInstructorRepository
 {
+    public InstructorRepository(IDrivingSchoolDbContext dbContext) : base(dbContext) { }
+
     public async Task<bool> Create(Instructor instructor)
     {
-        throw new NotImplementedException();
+        var entry = await DbContext.Instructors.AddAsync(instructor);
+
+        return entry.State == EntityState.Added;
     }
 
-    public async Task<Instructor?> Get(Guid id)
+    public async Task<Instructor?> Get(InstructorKey id)
     {
-        throw new NotImplementedException();
+        return await DbContext.Instructors.FindAsync(id);
     }
-
+    
     public async Task<IEnumerable<Instructor>> GetAll()
     {
-        throw new NotImplementedException();
+        return DbContext.Instructors;
     }
 
     public async Task<bool> Update(Instructor instructor)
     {
-        throw new NotImplementedException();
+        var temp = await DbContext.Instructors.FindAsync(instructor.Id);
+        if (temp is null) return false;
+        var entry = DbContext.Instructors.Update(instructor);
+        return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
 
-    public async Task<bool> Delete(Guid id)
+    public async Task<bool> Delete(InstructorKey id)
     {
-        throw new NotImplementedException();
+        var temp = await DbContext.Instructors.FindAsync(id);
+        if (temp is null) return false;
+        var entry = DbContext.Instructors.Remove(temp);
+        return entry.State == EntityState.Deleted;
     }
 }
