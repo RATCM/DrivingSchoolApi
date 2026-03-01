@@ -11,7 +11,7 @@ public interface ITheoryLessonService
         Money price, 
         InstructorKey instructorId, 
         IEnumerable<StudentKey> studentIds);
-    Task<TheoryLesson> GetTheoryLessonById(Guid id);
+    Task<TheoryLesson> GetTheoryLessonById(TheoryLessonKey id);
     Task<IEnumerable<TheoryLesson>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId);
     Task<IEnumerable<TheoryLesson>> GetAllTheoryLessonsFromStudent(StudentKey studentId);
     Task<IEnumerable<TheoryLesson>> GetAllTheoryLessonsFromInstructor(InstructorKey instructorId);

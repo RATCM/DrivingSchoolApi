@@ -21,7 +21,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
     public async Task<DrivingSchool> CreateDrivingSchool(DrivingSchoolName name, Address address, PhoneNumber phoneNumber, WebAddress webAddress)
     {
         var drivingSchool = DrivingSchool.Create(
-             DrivingSchoolKey.Create(Guid.NewGuid()),
+             DrivingSchoolKey.Create(_guidGeneratorService.NewGuid()),
             name,
             address,
             phoneNumber,
@@ -48,6 +48,9 @@ internal class DrivingSchoolService : IDrivingSchoolService
 
     public async Task DeleteDrivingSchool(DrivingSchoolKey id)
     {
-        throw new NotImplementedException();
+        var deleted = await _drivingSchoolRepository.Delete(id);
+        if (!deleted)
+            throw new DrivingSchoolNotFoundException();
+        await _drivingSchoolRepository.Save();
     }
 }
