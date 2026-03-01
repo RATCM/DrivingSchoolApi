@@ -10,10 +10,10 @@ public static class DrivingLessonMapper
         public DrivingLessonDto ToDto()
         {
             return new DrivingLessonDto(
-                entity.Id,
-                entity.SchoolId,
-                entity.InstructorId,
-                entity.StudentId,
+                entity.Id.Value,
+                entity.SchoolId.Value,
+                entity.InstructorId.Value,
+                entity.StudentId.Value,
                 entity.Route.ToDto(),
                 entity.Price.ToDto()
                 );

@@ -11,8 +11,8 @@ public static class InstructorMapper
         public InstructorDto ToDto()
         {
             return new InstructorDto(
-                entity.Id,
-                entity.SchoolId,
+                entity.Id.Value,
+                entity.SchoolId.Value,
                 entity.InstructorName.ToDto(),
                 entity.EmailAddress.ToDto(),
                 entity.PhoneNumber.ToDto(),

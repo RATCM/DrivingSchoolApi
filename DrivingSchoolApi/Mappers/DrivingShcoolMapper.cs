@@ -11,9 +11,9 @@ public static class DrivingShcoolMapper
         public DrivingSchoolDto ToDtoUnprivileged()
         {
             return new DrivingSchoolDto(
-                entity.Id,
+                entity.Id.Value,
                 entity.DrivingSchoolName.ToDto(),
-                entity.SchoolStreetAddress.ToDto(),
+                entity.StreetAddress.ToDto(),
                 entity.PhoneNumber.ToDto(),
                 entity.WebAddress.ToDto(),
                 entity.PackagePrice.ToDto(),
@@ -25,9 +25,9 @@ public static class DrivingShcoolMapper
         //public DrivingSchoolDto ToDtoPrivileged()
         //{
         //    return new DrivingSchoolDto(
-        //        entity.Id,
+        //        entity.Id.Value,
         //        entity.DrivingSchoolName.ToDto(),
-        //        entity.SchoolStreetAddress.ToDto(),
+        //        entity.StreetAddress.ToDto(),
         //        entity.PhoneNumber.ToDto(),
         //        entity.WebAddress.ToDto(),
         //        entity.PackagePrice.ToDto(),

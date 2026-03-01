@@ -6,6 +6,6 @@ public sealed record StudentDto(
     NameDto StudentName, 
     EmailDto EmailAddress, 
     PhoneNumberDto PhoneNumber, 
-    List<TheoryLessonDto> TheoryLessons, 
-    List<DrivingLessonDto> DrivingLessons);
+    List<TheoryLessonDto>? TheoryLessons, 
+    List<DrivingLessonDto>? DrivingLessons);
  

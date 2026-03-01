@@ -11,8 +11,8 @@ public static class StudentMapper
         public StudentDto ToDtoUnprivileged()
         {
             return new StudentDto(
-                entity.Id,
-                entity.SchoolId,
+                entity.Id.Value,
+                entity.SchoolId.Value,
                 entity.StudentName.ToDto(),
                 entity.EmailAddress.ToDto(),
                 entity.PhoneNumber.ToDto(),
@@ -21,18 +21,18 @@ public static class StudentMapper
             );
         }
         
-        public StudentDto ToDtoPrivileged()
-        {
-            return new StudentDto(
-                entity.Id,
-                entity.SchoolId,
-                entity.StudentName.ToDto(),
-                entity.EmailAddress.ToDto(),
-                entity.PhoneNumber.ToDto(),
-                entity.TheoryLessons.Select(t => t.ToDtoPrivileged()).ToList(),
-                entity.DrivingLessons.Select(d => d.ToDto()).ToList()
-            );
-        }
+        //public StudentDto ToDtoPrivileged()
+        //{
+        //    return new StudentDto(
+        //        entity.Id.Value,
+        //        entity.SchoolId.Value,
+        //        entity.StudentName.ToDto(),
+        //        entity.EmailAddress.ToDto(),
+        //        entity.PhoneNumber.ToDto(),
+        //        entity.TheoryLessons.Select(t => t.ToDtoPrivileged()).ToList(),
+        //        entity.DrivingLessons.Select(d => d.ToDto()).ToList()
+        //    );
+        //}
         
     }
 }

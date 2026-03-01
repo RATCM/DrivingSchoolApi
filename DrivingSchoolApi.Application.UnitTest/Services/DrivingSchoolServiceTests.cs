@@ -18,11 +18,11 @@ public class DrivingSchoolServiceTests
             .Get(DrivingSchoolKey.Create(Guid.Empty))
             .Returns(DrivingSchool.Create(
                 DrivingSchoolKey.Create(Guid.Empty),
-                new DrivingSchoolName.Create("Test School"),
-                new StreetAddress.Create("a", "b", "c", "d"),
-                new PhoneNumber.Create("1234"), 
-                new WebAddress.Create("url.com"),
-                new Money.Create(100,"DKK")));
+                DrivingSchoolName.Create("Test School"),
+                StreetAddress.Create("a", "b", "c", "d"),
+                PhoneNumber.Create("1234"), 
+                WebAddress.Create("url.com"),
+                Money.Create(100,"DKK")));
         
         var sut = new DrivingSchoolService(new GuidGeneratorService(), mock);
 
@@ -36,6 +36,6 @@ public class DrivingSchoolServiceTests
             StreetAddress.Create("a", "b", "c", "d"),
             PhoneNumber.Create("1234"), 
             WebAddress.Create("url.com"),
-            new Money.Create(100,"DKK"))));
+            Money.Create(100,"DKK"))));
     }
 }

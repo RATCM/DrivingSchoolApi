@@ -9,7 +9,7 @@ namespace DrivingSchoolApi.Domain.Entities;
 public sealed class DrivingSchool : Entity<DrivingSchoolKey>
 {
     public DrivingSchoolName DrivingSchoolName { get; private set; } = null!;
-    public Address SchoolAddress { get; private set; } = null!;
+    public StreetAddress StreetAddress { get; private set; } = null!;
     public PhoneNumber PhoneNumber { get; private set; } = null!;
     public WebAddress WebAddress { get; private set; } = null!;
     public Money PackagePrice { get; private set; } = null!;
@@ -22,13 +22,13 @@ public sealed class DrivingSchool : Entity<DrivingSchoolKey>
         StreetAddress schoolStreetAddress,
         PhoneNumber phoneNumber,
         WebAddress webAddress,
-        PackagePrice = packagePrice)
+        Money packagePrice)
     {
         return new DrivingSchool
         {
             Id = id,
             DrivingSchoolName = drivingSchoolName,
-            SchoolAddress = schoolAddress,
+            StreetAddress = schoolStreetAddress,
             PhoneNumber = phoneNumber,
             WebAddress = webAddress,
             PackagePrice = packagePrice
@@ -46,9 +46,9 @@ public sealed class DrivingSchool : Entity<DrivingSchoolKey>
 
     public void ChangeAddress(StreetAddress newAddress)
     {
-        if (SchoolAddress.Equals(newAddress))
+        if (StreetAddress.Equals(newAddress))
             throw new InvalidOperationException("Can't change address to the same address");
-        SchoolAddress = newAddress;
+        StreetAddress = newAddress;
     }
     
     public void ChangePhoneNumber(PhoneNumber newPhoneNumber)

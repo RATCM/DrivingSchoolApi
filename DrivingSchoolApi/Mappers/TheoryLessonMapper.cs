@@ -11,25 +11,25 @@ public static class TheoryLessonMapper
         public TheoryLessonDto ToDtoUnprivileged()
         {
             return new TheoryLessonDto(
-                entity.Id,
-                entity.SchoolId,
-                entity.InstructorId,
+                entity.Id.Value,
+                entity.SchoolId.Value,
+                entity.InstructorId.Value,
                 entity.LessonDateTime,
                 entity.Price.ToDto(),
                 null
             );
         }
         
-        public TheoryLessonDto ToDtoPrivileged()
-        {
-            return new TheoryLessonDto(
-                entity.Id,
-                entity.SchoolId,
-                entity.InstructorId,
-                entity.LessonDateTime,
-                entity.Price.ToDto(),
-                entity.Students.Select(s => s.ToDtoUnprivileged()).ToList()
-            );
-        }
+        //public TheoryLessonDto ToDtoPrivileged()
+        //{
+        //    return new TheoryLessonDto(
+        //        entity.Id.Value,
+        //        entity.SchoolId.Value,
+        //        entity.InstructorId.Value,
+        //        entity.LessonDateTime,
+        //        entity.Price.ToDto(),
+        //        entity.Students.Select(s => s.ToDtoUnprivileged()).ToList()
+        //    );
+        //}
     }
 }
