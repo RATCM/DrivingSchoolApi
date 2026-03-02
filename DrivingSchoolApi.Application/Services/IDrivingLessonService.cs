@@ -12,7 +12,7 @@ public interface IDrivingLessonService
         Money price, 
         InstructorKey instructorId, 
         StudentKey studentId);
-    Task<DrivingLesson> GetDrivingLessonById(Guid id);
+    Task<DrivingLesson> GetDrivingLessonById(DrivingLessonKey id);
     Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromSchool(DrivingSchoolKey schoolId);
     Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromStudent(StudentKey studentId);
     Task<IEnumerable<DrivingLesson>> GetAllDrivingLessonsFromInstructor(InstructorKey instructorId);

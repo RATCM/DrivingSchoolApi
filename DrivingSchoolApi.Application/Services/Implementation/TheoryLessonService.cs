@@ -1,3 +1,4 @@
+using DrivingSchoolApi.Application.Exceptions.TheoryLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
@@ -18,34 +19,61 @@ internal class TheoryLessonService : ITheoryLessonService
         _theoryLessonRepository = theoryLessonRepository;
     }
     
-    public async Task<TheoryLesson> CreateTheoryLesson(DrivingSchoolKey schoolId, DateTime dateTime, Money price, InstructorKey instructorId,
+    public async Task<TheoryLesson> CreateTheoryLesson(
+        DrivingSchoolKey schoolId, 
+        DateTime dateTime, 
+        Money price, 
+        InstructorKey instructorId,
         IEnumerable<StudentKey> studentIds)
     {
-        throw new NotImplementedException();
+        var lesson = TheoryLesson.Create(
+            TheoryLessonKey.Create(_guidGeneratorService.NewGuid()),
+            schoolId,
+            dateTime,
+            price,
+            instructorId, 
+            studentIds);
+
+        var created = await _theoryLessonRepository.Create(lesson);
+
+        if (!created)
+            throw new Exception("Unable to create theory lesson");
+        
+        await  _theoryLessonRepository.Save();
+        return lesson;
     }
 
-    public async Task<TheoryLesson> GetTheoryLessonById(Guid id)
+    public async Task<TheoryLesson> GetTheoryLessonById(TheoryLessonKey id)
     {
-        throw new NotImplementedException();
+        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException();
     }
 
     public async Task<IEnumerable<TheoryLesson>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId)
     {
-        throw new NotImplementedException();
+        var lessons = await _theoryLessonRepository.GetAll();
+
+        return lessons.Where(x => x.SchoolId.Equals(schoolId));
     }
 
     public async Task<IEnumerable<TheoryLesson>> GetAllTheoryLessonsFromStudent(StudentKey studentId)
     {
-        throw new NotImplementedException();
+        var lessons = await _theoryLessonRepository.GetAll();
+
+        return lessons.Where(x => x.StudentIds.Contains(studentId));
     }
 
     public async Task<IEnumerable<TheoryLesson>> GetAllTheoryLessonsFromInstructor(InstructorKey instructorId)
     {
-        throw new NotImplementedException();
+        var lessons = await _theoryLessonRepository.GetAll();
+
+        return lessons.Where(x => x.InstructorId.Equals(instructorId));
     }
 
     public async Task DeleteTheoryLesson(TheoryLessonKey id)
     {
-        throw new NotImplementedException();
+        var deleted = await _theoryLessonRepository.Delete(id);
+        if (!deleted)
+            throw new TheoryLessonNotFoundException();
+        await _theoryLessonRepository.Save();
     }
 }

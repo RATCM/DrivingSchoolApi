@@ -1,3 +1,4 @@
+using DrivingSchoolApi.Application.Exceptions.Instructor;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
@@ -25,16 +26,21 @@ internal class InstructorService : IInstructorService
 
     public async Task<Instructor> GetInstructorById(InstructorKey id)
     {
-        throw new NotImplementedException();
+        return await _instructorRepository.Get(id) ?? throw new InstructorNotFoundException();
     }
 
     public async Task<IEnumerable<Instructor>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId)
     {
-        throw new NotImplementedException();
+        var instructors = await _instructorRepository.GetAll();
+        
+        return instructors.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
     public async Task DeleteInstructor(InstructorKey id)
     {
-        throw new NotImplementedException();
+        var deleted = await _instructorRepository.Delete(id);
+        if (!deleted)
+            throw new InstructorNotFoundException();
+        await _instructorRepository.Save();
     }
 }
