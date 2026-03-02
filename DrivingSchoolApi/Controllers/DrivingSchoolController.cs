@@ -2,6 +2,7 @@ using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrivingSchoolApi.Controllers;
@@ -33,6 +34,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistry drivingSchool)
     {
         var created = await _drivingSchoolService.CreateDrivingSchool(

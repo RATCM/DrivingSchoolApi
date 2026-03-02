@@ -12,7 +12,9 @@ internal class DrivingSchoolDbContext : DbContext, IDrivingSchoolDbContext
     public DbSet<Instructor> Instructors { get; set; }
     public DbSet<Student> Students { get; set; }
 
-    private readonly string _connectionString;
+    private readonly string? _connectionString;
+
+    internal DrivingSchoolDbContext(DbContextOptions<DrivingSchoolDbContext> options) : base(options) { }
     
     public DrivingSchoolDbContext(IConfiguration configuration)
     {
@@ -21,7 +23,8 @@ internal class DrivingSchoolDbContext : DbContext, IDrivingSchoolDbContext
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(_connectionString);
+        if(_connectionString is not null)
+            optionsBuilder.UseNpgsql(_connectionString);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
