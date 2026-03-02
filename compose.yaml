@@ -12,6 +12,8 @@
     environment:
       - ConnectionStrings__Database=host=driving-school-db; port=${DB_PORT_HOST}; database=DrivingSchoolDb; username=${DB_USER}; password=${DB_PASSWD}
       - ASPNETCORE_URLS=http://0.0.0.0:${API_PORT_HOST}
+      - Authentication__Schemes__Access__SigningKeys__0__Value=${JWT_ACCESS_SIGNING_KEY}
+      - Authentication__Schemes__Refresh__SigningKeys__0__Value=${JWT_REFRESH_SIGNING_KEY}
 
   driving-school-db:
     container_name: "driving-school-db"

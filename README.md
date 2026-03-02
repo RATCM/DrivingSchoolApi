@@ -121,13 +121,19 @@ In this file you need to define the following:
   - e.g. DB_PORT_HOST=5430
 - DB_PORT_CONTAINER
   - The port number within the container that's listening for connections for the database
-  - e.g. DB_PORT_CONTAINER=5431
+  - e.g. DB_PORT_CONTAINER=5430
 - API_PORT_HOST
     - The port number on your host machine where you want to receive traffic for the API
     - e.g. API_PORT_HOST=5259
 - API_PORT_CONTAINER 
   - The port number within the container that's listening for connections for the API
-  - e.g. API_PORT_HOST=5260
+  - e.g. API_PORT_HOST=5259
+- JWT_ACCESS_SIGNING_KEY
+  - The base64 signing key for access tokens
+  - e.g. JWT_ACCESS_SIGNING_KEY={some random and secure base64 string}
+- JWT_REFRESH_SIGNING_KEY
+  - The base64 signing key for refresh tokens
+  - e.g. JWT_REFRESH_SIGNING_KEY={some random and secure base64 string}
 
 #### Example
 Using the examples above, the .env file would look something like this
@@ -135,8 +141,11 @@ Using the examples above, the .env file would look something like this
 DB_USER=dev
 DB_PASSWD=dev
 DB_PORT_HOST=5430
-DB_PORT_CONTAINER=5431
+DB_PORT_CONTAINER=5430
 
 API_PORT_HOST=5259
-API_PORT_CONTAINER=5260
+API_PORT_CONTAINER=5259
+
+JWT_ACCESS_SIGNING_KEY=ZbE2F1j9kCpp/m7oK/4k26zjSyI14NfLkuF3QBsFk5xvx0M7J3jdpRpRI5AEecCVrpWC8e6/fRzYRRY0jleXJocz2LqniXdfc5QykK8UAoXFhIAaS04xKsApV+N8CJF3gWfl5U9t7+ozarhg+P8pvy2qbRr3Zs7/gh+02ZbAwR2Yyh/D4acNwMipusg6WCeRMKAlKe2cwq7EVymXDWz4h5jxHp4u2D/82lfaJNTiP7tmm8HlEHk2yxy0+m17wRhXRoATNUTJqioKEOvDQYTiWTdeCMd69KHclccWqq3B5eUsonE8/1YYQcQZfrz9D1g4CNMRnIxZi2cJxMPP7pfyAA==
+JWT_REFRESH_SIGNING_KEY=+t96aFoRNeWOCcbn035jDflLSbWVfVn06xXPpbApJtN2ZqTPdkbTiDu57PQ3GFcrQbfj2oQ5jteGYIGVpa/0xmeumDvrzM1qvyt1P0j2NU69jg1WGR6gb0p5RARSsJVTg17QJ61Z9bIzA43CbA9gXyHbk0kYEYBJimAlFt1gaKBEhD+9RTUDPDoIgTDUGRpiv0OzY+ISyB4spIVMGGMyvU5kOJTVGXbf/PaOod0lNBHKzxFLNR8FIfnz9Xon7H4Gpdvuq5hdAMbdH748uJNLKKoCU40+BbOyfTuLyUDJ3g/uKFcPCj9ZhvRtqiRnHmdhJa0KwTwZA7oG8wO7UXmelQ==
 ```
