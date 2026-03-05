@@ -41,5 +41,30 @@ internal class StudentConfiguration : IEntityTypeConfiguration<Student>
             .HasMany<DrivingLesson>()
             .WithOne()
             .HasForeignKey(x => x.StudentId);
+
+        // It's a bit weird that an entity is owned but,
+        // I don't really see a way around this
+        builder
+            .OwnsOne<StudentCalender>(x => x.Calender, calender =>
+            {
+                calender.WithOwner().HasForeignKey(x => x.Id);
+                calender.Property(x => x.Id)
+                    .HasConversion(
+                        x => x.Value,
+                        x => StudentKey.Create(x));
+
+                calender.OwnsMany(x => x.TimeSlots, timeSlot =>
+                {
+                    timeSlot.ToTable("StudentTimeSlots");
+                    timeSlot.WithOwner().HasForeignKey("StudentId");
+                    timeSlot.HasKey(
+                         "StudentId", 
+                         nameof(TimeSlot.StartDateTime),
+                         nameof(TimeSlot.EndDateTime));
+
+                     timeSlot.Property(x => x.StartDateTime);
+                    timeSlot.Property(x => x.EndDateTime);
+                });
+            });
     }
 }
