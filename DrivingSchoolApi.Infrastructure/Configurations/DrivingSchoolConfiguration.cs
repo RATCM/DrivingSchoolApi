@@ -49,6 +49,20 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
             .HasMany<TheoryLesson>()
             .WithOne()
             .HasForeignKey(x => x.SchoolId);
+
+        builder.OwnsMany(x => x.Packages, package =>
+        {
+            package.ToTable("SchoolPackage");
+            package.WithOwner().HasForeignKey("SchoolId");
+            package.HasKey("SchoolId", nameof(Package.Title));
+            
+            package.Property(x => x.Title);
+            package.Property(x => x.Description);
+            package.OwnsOne(x => x.Price)
+                .Property(x => x.Currency);
+            package.OwnsOne(x => x.Price)
+                .Property(x => x.Amount);
+        });
     }
 
 }

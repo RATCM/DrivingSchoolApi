@@ -8,10 +8,13 @@ namespace DrivingSchoolApi.Domain.Entities;
 
 public sealed class DrivingSchool : Entity<DrivingSchoolKey>
 {
+    private List<Package> _packages = [];
+    
     public DrivingSchoolName DrivingSchoolName { get; private set; } = null!;
     public Address SchoolAddress { get; private set; } = null!;
     public PhoneNumber PhoneNumber { get; private set; } = null!;
     public WebAddress WebAddress { get; private set; } = null!;
+    public IReadOnlyList<Package> Packages => _packages.AsReadOnly();
     
     private DrivingSchool() {} // EF
     
@@ -60,5 +63,15 @@ public sealed class DrivingSchool : Entity<DrivingSchoolKey>
         if (WebAddress.Equals(newWebAddress))
             throw new InvalidOperationException("Can't change teh same web address to the same web address");
         WebAddress = newWebAddress;
+    }
+
+    public void AddPackage(Package package)
+    {
+        _packages.Add(package);
+    }
+
+    public void RemovePackage(Package package)
+    {
+        _packages.Remove(package);
     }
 }
