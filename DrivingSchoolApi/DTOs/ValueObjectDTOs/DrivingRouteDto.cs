@@ -5,3 +5,4 @@ namespace DrivingSchoolApi.DTOs;
 public record DrivingRouteDto(
     DateTimeRangeDto DateTimeRange,
     ImmutableArray<CoordinatePointDto> RouteCoordinates);
+    

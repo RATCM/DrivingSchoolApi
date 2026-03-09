@@ -7,4 +7,4 @@ public record DrivingLessonDto(
     Guid StudentId,
     DrivingRouteDto Route,
     MoneyDto Price);
-
+    

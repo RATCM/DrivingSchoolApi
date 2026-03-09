@@ -7,3 +7,4 @@ public record TheoryLessonDto(
     DateTime LessonDateTime,
     MoneyDto Price,
     List<StudentDto>? Students);
+    

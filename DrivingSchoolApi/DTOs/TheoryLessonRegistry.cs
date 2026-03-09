@@ -8,3 +8,4 @@ public record TheoryLessonRegistry(
     List<Guid> Students
     //TODO Instructor Signature
     );
+    

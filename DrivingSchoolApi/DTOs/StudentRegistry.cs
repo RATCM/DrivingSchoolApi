@@ -6,3 +6,4 @@ public sealed record StudentDtoRegistry(
     EmailDto EmailAddress, 
     PhoneNumberDto PhoneNumber,
     string Password);
+    

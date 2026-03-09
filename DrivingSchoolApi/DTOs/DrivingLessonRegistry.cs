@@ -8,3 +8,4 @@ public record DrivingLessonRegistry(
     //TODO Instructor signature
     //TODO Student signature
     );
+    
