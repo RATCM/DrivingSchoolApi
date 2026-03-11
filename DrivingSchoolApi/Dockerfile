@@ -8,6 +8,9 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["DrivingSchoolApi/DrivingSchoolApi.csproj", "DrivingSchoolApi/"]
+COPY ["DrivingSchoolApi.Application/DrivingSchoolApi.Application.csproj", "DrivingSchoolApi.Application/"]
+COPY ["DrivingSchoolApi.Domain/DrivingSchoolApi.Domain.csproj", "DrivingSchoolApi.Domain/"]
+COPY ["DrivingSchoolApi.Infrastructure/DrivingSchoolApi.Infrastructure.csproj", "DrivingSchoolApi.Infrastructure/"]
 RUN dotnet restore "DrivingSchoolApi/DrivingSchoolApi.csproj"
 COPY . .
 WORKDIR "/src/DrivingSchoolApi"
