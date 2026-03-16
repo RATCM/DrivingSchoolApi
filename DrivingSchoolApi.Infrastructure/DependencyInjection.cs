@@ -31,7 +31,8 @@ public static class DependencyInjection
 
             services.AddAuthorizationBuilder()
                 .AddPolicy(AuthPolicies.AdminOnly, policy => policy.RequireRole("Admin"))
-                .AddPolicy(AuthPolicies.InstructorOnly, policy => policy.RequireRole("Instructor"));
+                .AddPolicy(AuthPolicies.InstructorOnly, policy => policy.RequireRole("Instructor"))
+                .AddPolicy(AuthPolicies.StudentOnly, policy => policy.RequireRole("Student"));
 
             return services;
         }

@@ -36,14 +36,14 @@ public class InstructorController : ControllerBase
         _studentService = studentService;
     }
 
-    [HttpPost]
+    [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] InstructorLoginRequestDto loginRequest)
     {
         //TODO
         throw new NotImplementedException();
     }
 
-    [HttpGet]
+    [HttpGet("all")]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<ActionResult<IEnumerable<InstructorDto>>> GetAllInstructors()
     {
@@ -51,19 +51,26 @@ public class InstructorController : ControllerBase
         throw new NotImplementedException();
     }
     
-    [HttpPost]
+    [HttpPost("/create/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<IActionResult> CreateTheoryLesson([FromBody] TheoryLessonRegistry theoryLessonRegistry)
+    public async Task<IActionResult> CreateTheoryLesson([FromBody] TheoryLessonRegistryDto theoryLessonRegistryDto)
     {
         
         //TODO Authorization: Instructor should only be able to create lessons for themselves and their own school
         
-        var created = await _theoryLessonService.CreateTheoryLesson(
-            DrivingSchoolKey.Create(theoryLessonRegistry.SchoolId),
-            theoryLessonRegistry.LessonDateTime,
-            Money.Create(theoryLessonRegistry.Price.Amount, theoryLessonRegistry.Price.Currency),
-            InstructorKey.Create(theoryLessonRegistry.InstructorId),
-            theoryLessonRegistry.StudentIds.Select(StudentKey.Create).ToList());
+        var result = await _theoryLessonService.CreateTheoryLesson(
+            DrivingSchoolKey.Create(theoryLessonRegistryDto.SchoolId),
+            theoryLessonRegistryDto.LessonDateTime,
+            Money.Create(theoryLessonRegistryDto.Price.Amount, theoryLessonRegistryDto.Price.Currency),
+            InstructorKey.Create(theoryLessonRegistryDto.InstructorId),
+            theoryLessonRegistryDto.StudentIds.Select(StudentKey.Create).ToList());
+
+        if (!result.IsSuccess)
+        {
+            BadRequest("Theory lesson creation failed.");
+        }
+        
+        var created = result.Value!;
         
         return Created($"theoryLesson/{created.Id}", new TheoryLessonDto(
             created.Id.Value,
@@ -75,14 +82,16 @@ public class InstructorController : ControllerBase
             ));
     }
     
-    [HttpGet("/theoryLessons/{instructorId:guid}")]
+    [HttpGet("/theoryLessons")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
+    public async Task<IActionResult> GetTheoryLessonsFromInstructor()
     {
+        // Check Jwt Token to ascertain Instructor ID
+        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
+        if (!result.IsSuccess) { return BadRequest("Failed to retrieve theory lessons."); }
+        var theoryLessons = result.Value!;
         
-        //TODO Authorization: Instructor should only be able to access their own lessons
-        
-        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(instructorId));
         return Ok(theoryLessons.Select(x => new TheoryLessonDto(
             x.Id.Value,
             x.SchoolId.Value,
@@ -93,47 +102,21 @@ public class InstructorController : ControllerBase
         )));
     }
     
-    [HttpGet]
-    public async Task<IActionResult> GetTheoryLessonsFromStudent(Guid studentId)
-    {
-        //TODO Authorization: Students should only be able to access their own lessons
-        
-        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(studentId));
-        return Ok(theoryLessons.Select(x => new TheoryLessonDto(
-            x.Id.Value,
-            x.SchoolId.Value,
-            x.InstructorId.Value,
-            x.LessonDateTime,
-            x.Price.ToDto(),
-            x.StudentIds.Select(studentKey => studentKey.Value).ToList()
-        )));
-     }
-
-    
-    [HttpPost]
+    [HttpPost("create/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<IActionResult> CreateDrivingLesson([FromBody] DrivingLessonRegistry registry)
+    public async Task<IActionResult> CreateDrivingLesson([FromBody] DrivingLessonRegistryDto registryDto)
     {
         // Check Jwt Token to ascertain Instructor ID
         // Enforces that Instructor can only create lessons for themselves
         var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        Instructor instructor;
-        Student student;
+        var instructorResult = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+        if (!instructorResult.IsSuccess) { return BadRequest("Failed to retrieve instructor."); }
+        var instructor = instructorResult.Value!;
         
-        // Check that instructor & student exists in DB
-        try
-        {
-            instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
-            student = await _studentService.GetStudentById(StudentKey.Create(registry.StudentId));
-        }
-        catch (InstructorNotFoundException e)
-        {
-            return NotFound("Instructor not found. " + e.Message);
-        }
-        catch (StudentNotFoundException e)
-        {
-            return NotFound("Student not found. " + e.Message);
-        }
+        var studentResult = await _studentService.GetStudentById(StudentKey.Create(registryDto.StudentId));
+        if (!studentResult.IsSuccess) { return BadRequest("Failed to retrieve student."); }
+        var student = studentResult.Value!;
+        
 
         // Check that student is from the same school as instructor
         if (student.SchoolId.Value != instructor.SchoolId.Value)
@@ -143,12 +126,13 @@ public class InstructorController : ControllerBase
         
         //TODO check that information is correct (e.g. price is not negative, route is valid etc.)
         
-        var created = await _drivingLessonService.CreateDrivingLesson(
+        var createdResult = await _drivingLessonService.CreateDrivingLesson(
             instructor.SchoolId,
-            registry.Route.ToDomain(),
-            registry.Price.ToDomain(),
+            registryDto.Route.ToDomain(),
+            registryDto.Price.ToDomain(),
             instructor.Id,
-            StudentKey.Create(registry.StudentId));
+            StudentKey.Create(registryDto.StudentId));
+        var created = createdResult.Value!;
         
         return Created($"drivingLesson/{created.Id}", new DrivingLessonDto(
             created.Id.Value,
@@ -164,27 +148,17 @@ public class InstructorController : ControllerBase
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> GetDrivingLessonFromInstructor()
     {
-        //TODO Authorization: Instructor should only be able to access their own lessons
-        
         // Check Jwt Token to ascertain Instructor ID
         // Enforces that Instructor can only see lessons belonging to them
         var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        Instructor instructor;
+        var instructorResult = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+        if (!instructorResult.IsSuccess) { return BadRequest("Failed to retrieve instructor."); }
+        var instructor = instructorResult.Value!;
         
-        // Check that instructor exists in DB
-        try
-        {
-            instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
-        }
-        catch (InstructorNotFoundException e)
-        {
-            return NotFound("Instructor not found. " + e.Message);
-        }
+        var dataResult = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(instructor.Id);
+        if (!dataResult.IsSuccess) { return BadRequest("Failed to retrieve driving lessons."); }
+        var data = dataResult.Value!;
         
-        
-        
-        
-        var data = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(instructor.Id);
         return Ok(data.Select(x => new DrivingLessonDto(
             x.Id.Value,
             x.SchoolId.Value,
@@ -194,7 +168,5 @@ public class InstructorController : ControllerBase
             x.Price.ToDto()
         )));
     }
-    
-    
     
 }

@@ -57,7 +57,7 @@ public class DrivingSchoolController : ControllerBase
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
-    public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistry drivingSchool)
+    public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistryDto drivingSchool)
     {
         var createdResult = await _drivingSchoolService.CreateDrivingSchool(
             DrivingSchoolName.Create(drivingSchool.Name),
