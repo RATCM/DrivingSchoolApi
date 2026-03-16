@@ -3,7 +3,7 @@ namespace DrivingSchoolApi.DTOs;
 /// <summary>
 /// Object containing JWT access and refresh tokens
 /// </summary>
-public record JwtToken
+public record JwtTokenDto
 {
     /// <summary>
     /// The JWT access token

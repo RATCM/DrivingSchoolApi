@@ -1,6 +1,6 @@
 ﻿namespace DrivingSchoolApi.DTOs;
 
-public sealed record InstructorRegistry(
+public sealed record InstructorRegistryDto(
     Guid SchoolId,
     NameDto Name,
     String EmailAddress,
