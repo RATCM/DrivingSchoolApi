@@ -3,13 +3,13 @@ using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Domain.UnitTest.ValueObjects;
 
-public class AddressTests
+public class StreetAddressTests
 {
     [Test]
     public void PostalCode_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => Address.Create("", "city", "region", "addressLine"));
+            () => StreetAddress.Create("", "city", "region", "addressLine"));
         
         Assert.That(exception.Message, Is.EqualTo("Postal code cannot be empty"));
     }
@@ -18,7 +18,7 @@ public class AddressTests
     public void City_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => Address.Create("postalCode", "", "region", "addressLine"));
+            () => StreetAddress.Create("postalCode", "", "region", "addressLine"));
         
         Assert.That(exception.Message, Is.EqualTo("City cannot be empty"));
     }
@@ -27,7 +27,7 @@ public class AddressTests
     public void Region_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => Address.Create("postalCode", "city", "", "addressLine"));
+            () => StreetAddress.Create("postalCode", "city", "", "addressLine"));
 
         Assert.That(exception.Message, Is.EqualTo("Region cannot be empty"));
     }
@@ -36,14 +36,14 @@ public class AddressTests
     public void AddressLine_CannotBeEmpty()
     {
         var exception = Assert.Throws<InvalidInputException>(
-            () => Address.Create("postalCode", "city", "region", ""));
+            () => StreetAddress.Create("postalCode", "city", "region", ""));
         
-        Assert.That(exception.Message, Is.EqualTo("Address line cannot be empty"));
+        Assert.That(exception.Message, Is.EqualTo("StreetAddress line cannot be empty"));
     }
 
     [Test]
     public void Address_SucceedsWhenValid()
     {
-        Assert.DoesNotThrow(() => Address.Create("postalCode", "city", "region", "addressLine"));
+        Assert.DoesNotThrow(() => StreetAddress.Create("postalCode", "city", "region", "addressLine"));
     }
 }

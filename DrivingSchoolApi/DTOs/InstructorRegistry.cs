@@ -2,6 +2,7 @@
 
 public sealed record InstructorRegistry(
     Guid SchoolId,
-    string Name,
-    string EmailAddress,
-    string PhoneNumber);
+    NameDto Name,
+    EmailDto EmailAddress,
+    PhoneNumberDto PhoneNumber,
+    string Password);

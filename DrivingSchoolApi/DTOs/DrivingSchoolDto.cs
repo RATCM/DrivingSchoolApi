@@ -2,8 +2,10 @@
 
 public sealed record DrivingSchoolDto(
     Guid Id,
-    string Name,
-    string Address,
-    string PhoneNumber,
-    string WebAddress,
-    string PackagePrice);
+    DrivingSchoolNameDto Name,
+    StreetAddressDto StreetAddress,
+    PhoneNumberDto PhoneNumber,
+    WebAddressDto WebAddress,
+    MoneyDto PackagePrice,
+    IReadOnlyList<StudentDto>? Students,
+    IReadOnlyList<InstructorDto>? Instructors);

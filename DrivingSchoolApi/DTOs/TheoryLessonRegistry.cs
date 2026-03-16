@@ -4,5 +4,8 @@ public record TheoryLessonRegistry(
     Guid SchoolId,
     Guid InstructorId,
     DateTime LessonDateTime,
-    string Price,
-    List<Guid> Students);
+    MoneyDto Price,
+    List<Guid> Students
+    //TODO Instructor Signature
+    );
+    

@@ -19,9 +19,10 @@ public class DrivingSchoolServiceTests
             .Returns(DrivingSchool.Create(
                 DrivingSchoolKey.Create(Guid.Empty),
                 DrivingSchoolName.Create("Test School"),
-                Address.Create("a", "b", "c", "d"),
+                StreetAddress.Create("a", "b", "c", "d"),
                 PhoneNumber.Create("1234"), 
-                WebAddress.Create("url.com")));
+                WebAddress.Create("url.com"),
+                Money.Create(100,"DKK")));
         
         var sut = new DrivingSchoolService(new GuidGeneratorService(), mock);
 
@@ -32,8 +33,9 @@ public class DrivingSchoolServiceTests
         Assert.That(drivingSchool.Value, Is.EqualTo(DrivingSchool.Create(
             DrivingSchoolKey.Create(Guid.Empty),
             DrivingSchoolName.Create("Test School"),
-            Address.Create("a", "b", "c", "d"),
+            StreetAddress.Create("a", "b", "c", "d"),
             PhoneNumber.Create("1234"), 
-            WebAddress.Create("url.com"))));
+            WebAddress.Create("url.com"),
+            Money.Create(100,"DKK"))));
     }
 }

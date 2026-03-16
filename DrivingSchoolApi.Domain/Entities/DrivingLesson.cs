@@ -7,10 +7,11 @@ namespace DrivingSchoolApi.Domain.Entities;
 public sealed class DrivingLesson : Entity<DrivingLessonKey>
 {
     public required DrivingSchoolKey SchoolId { get; init; }
-    public required DrivingRoute Route { get; init; }
-    public required Money Price { get; init; }
     public required InstructorKey InstructorId { get; init; }
     public required StudentKey StudentId { get; init; }
+    public required DrivingRoute Route { get; init; }
+    public required Money Price { get; init; }
+
 
     private DrivingLesson() {}  // EF
 

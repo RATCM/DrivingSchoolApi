@@ -13,6 +13,8 @@ public sealed class TheoryLesson : Entity<TheoryLessonKey>
     public required ImmutableArray<StudentKey> StudentIds { get; init; }
     public required DateTime LessonDateTime { get; init; }
     public required Money Price { get; init; }
+    
+    //TODO Instructor signature
 
     private TheoryLesson() {} // EF
     

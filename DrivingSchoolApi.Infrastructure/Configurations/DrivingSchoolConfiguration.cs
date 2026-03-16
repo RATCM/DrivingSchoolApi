@@ -21,14 +21,14 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
                 name => name.Name,
                 name => DrivingSchoolName.Create(name));
         
-        // Address
-        builder.OwnsOne(x => x.SchoolAddress)
+        // StreetAddress
+        builder.OwnsOne(x => x.StreetAddress)
             .Property(x => x.AddressLine);
-        builder.OwnsOne(x => x.SchoolAddress)
+        builder.OwnsOne(x => x.StreetAddress)
             .Property(x => x.City);
-        builder.OwnsOne(x => x.SchoolAddress)
+        builder.OwnsOne(x => x.StreetAddress)
             .Property(x => x.PostalCode);
-        builder.OwnsOne(x => x.SchoolAddress)
+        builder.OwnsOne(x => x.StreetAddress)
             .Property(x => x.Region);
         
         builder.Property(x => x.PhoneNumber)
