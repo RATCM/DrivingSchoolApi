@@ -22,7 +22,7 @@ public class DrivingSchoolServiceTests
                 StreetAddress.Create("a", "b", "c", "d"),
                 PhoneNumber.Create("1234"), 
                 WebAddress.Create("url.com"),
-                Money.Create(100,"DKK")));
+                []));
         
         var sut = new DrivingSchoolService(new GuidGeneratorService(), mock);
 
@@ -36,6 +36,6 @@ public class DrivingSchoolServiceTests
             StreetAddress.Create("a", "b", "c", "d"),
             PhoneNumber.Create("1234"), 
             WebAddress.Create("url.com"),
-            Money.Create(100,"DKK"))));
+            [])));
     }
 }

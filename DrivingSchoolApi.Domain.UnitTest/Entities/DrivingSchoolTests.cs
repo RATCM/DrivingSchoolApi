@@ -15,7 +15,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.Throws<InvalidOperationException>(() => school.ChangeName(DrivingSchoolName.Create("Test name")));
     }
@@ -29,7 +29,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.DoesNotThrow(() => school.ChangeName(DrivingSchoolName.Create("Test name 2")));
     }
@@ -44,7 +44,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.Throws<InvalidOperationException>(() => school.ChangeAddress(StreetAddress.Create("p", "c", "r", "a")));
     }
@@ -58,7 +58,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a1"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.DoesNotThrow(() => school.ChangeAddress(StreetAddress.Create("p", "c", "r", "a2")));
     }
@@ -73,7 +73,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.Throws<InvalidOperationException>(() => school.ChangePhoneNumber(PhoneNumber.Create("12345678")));
     }
@@ -87,7 +87,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.DoesNotThrow(() => school.ChangePhoneNumber(PhoneNumber.Create("12345679")));
     }
@@ -102,7 +102,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.Throws<InvalidOperationException>(() => school.ChangeWebAddress(WebAddress.Create("test.web")));
     }
@@ -116,7 +116,7 @@ public class DrivingSchoolTests
             StreetAddress.Create("p", "c", "r", "a"),
             PhoneNumber.Create("12345678"),
             WebAddress.Create("test1.web"),
-            Money.Create(100,"DKK"));
+            []);
 
         Assert.DoesNotThrow(() => school.ChangeWebAddress(WebAddress.Create("test2.web")));
     }
