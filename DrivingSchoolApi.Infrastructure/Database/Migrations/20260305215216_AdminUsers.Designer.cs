@@ -3,6 +3,7 @@ using System;
 using DrivingSchoolApi.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DrivingSchoolApi.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(DrivingSchoolDbContext))]
-    partial class DrivingSchoolDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260305215216_AdminUsers")]
+    partial class AdminUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,7 +40,7 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admin");
                 });
 
             modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.DrivingLesson", b =>
@@ -303,54 +306,6 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("DrivingSchoolId");
                         });
-
-                    b.OwnsMany("DrivingSchoolApi.Domain.ValueObjects.Package", "Packages", b1 =>
-                        {
-                            b1.Property<Guid>("SchoolId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Title")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("Description")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.HasKey("SchoolId", "Title");
-
-                            b1.ToTable("SchoolPackage", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("SchoolId");
-
-                            b1.OwnsOne("DrivingSchoolApi.Domain.ValueObjects.Money", "Price", b2 =>
-                                {
-                                    b2.Property<Guid>("PackageSchoolId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("PackageTitle")
-                                        .HasColumnType("text");
-
-                                    b2.Property<decimal>("Amount")
-                                        .HasColumnType("numeric");
-
-                                    b2.Property<string>("Currency")
-                                        .IsRequired()
-                                        .HasColumnType("text");
-
-                                    b2.HasKey("PackageSchoolId", "PackageTitle");
-
-                                    b2.ToTable("SchoolPackage");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("PackageSchoolId", "PackageTitle");
-                                });
-
-                            b1.Navigation("Price")
-                                .IsRequired();
-                        });
-
-                    b.Navigation("Packages");
 
                     b.Navigation("SchoolAddress")
                         .IsRequired();

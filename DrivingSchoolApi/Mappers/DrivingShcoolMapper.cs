@@ -18,7 +18,7 @@ public static class DrivingShcoolMapper
                 entity.StreetAddress.ToDto(),
                 entity.PhoneNumber.ToDto(),
                 entity.WebAddress.ToDto(),
-                entity.PackagePrice.ToDto(),
+                entity.Packages.Select(x => x.ToDto()).ToList(),
                 null,
                 null
                 );

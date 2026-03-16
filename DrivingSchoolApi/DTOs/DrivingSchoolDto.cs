@@ -6,6 +6,6 @@ public sealed record DrivingSchoolDto(
     StreetAddressDto StreetAddress,
     String PhoneNumber,
     String WebAddress,
-    MoneyDto PackagePrice,
+    IReadOnlyList<PackageDto> Packages,
     IReadOnlyList<StudentDto>? Students,
     IReadOnlyList<InstructorDto>? Instructors);

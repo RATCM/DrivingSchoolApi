@@ -7,7 +7,7 @@ namespace DrivingSchoolApi.Application.Services;
 
 public interface IDrivingSchoolService
 {
-    Task<Result<DrivingSchool>> CreateDrivingSchool(DrivingSchoolName name, StreetAddress streetAddress, PhoneNumber phoneNumber, WebAddress webAddress, Money packagePrice);
+    Task<Result<DrivingSchool>> CreateDrivingSchool(DrivingSchoolName name, StreetAddress streetAddress, PhoneNumber phoneNumber, WebAddress webAddress, Package[] packages);
     Task<Result<DrivingSchool>> GetDrivingSchoolById(DrivingSchoolKey id);
     Task<Result<IEnumerable<DrivingSchool>>> GetAllDrivingSchools();
     Task<Result> DeleteDrivingSchool(DrivingSchoolKey id);

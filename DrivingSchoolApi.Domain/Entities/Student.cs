@@ -11,7 +11,8 @@ public sealed class Student : Entity<StudentKey>
     public Email EmailAddress { get; private set; } = null!;
     public PasswordHash HashedPassword { get; private set; } = null!;
     public PhoneNumber PhoneNumber { get; private set; } = null!;
-
+    public required StudentCalender Calender { get; init; }
+    
     private Student() {} // EF
 
     public static Student Create(
@@ -29,7 +30,8 @@ public sealed class Student : Entity<StudentKey>
             StudentName = name,
             EmailAddress = email,
             HashedPassword = hashedPassword,
-            PhoneNumber = phoneNumber
+            PhoneNumber = phoneNumber,
+            Calender = StudentCalender.Create(id)
         };
     }
 

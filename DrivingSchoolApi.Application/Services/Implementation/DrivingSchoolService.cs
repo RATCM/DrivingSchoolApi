@@ -19,7 +19,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
         _drivingSchoolRepository = drivingSchoolRepository;
     }
     
-    public async Task<Result<DrivingSchool>> CreateDrivingSchool(DrivingSchoolName name, StreetAddress address, PhoneNumber phoneNumber, WebAddress webAddress, Money packagePrice)
+    public async Task<Result<DrivingSchool>> CreateDrivingSchool(DrivingSchoolName name, StreetAddress address, PhoneNumber phoneNumber, WebAddress webAddress, Package[] packages)
     {
         var drivingSchool = DrivingSchool.Create(
              DrivingSchoolKey.Create(_guidGeneratorService.NewGuid()),
@@ -27,7 +27,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
             address,
             phoneNumber,
             webAddress,
-            packagePrice);
+            packages);
         
         var result = await _drivingSchoolRepository.Create(drivingSchool);
 

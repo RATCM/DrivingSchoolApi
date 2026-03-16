@@ -35,7 +35,7 @@ public class DrivingSchoolController : ControllerBase
             x.StreetAddress.ToDto(),
             x.PhoneNumber.ToDto(),
             x.WebAddress.ToDto(),
-            x.PackagePrice.ToDto(),
+            x.Packages.Select(y => y.ToDto()).ToList(),
             null,
             null)));
     }
@@ -64,9 +64,7 @@ public class DrivingSchoolController : ControllerBase
             StreetAddress.Create("N/A", "N/A", "N/A", drivingSchool.Address),
             PhoneNumber.Create(drivingSchool.PhoneNumber),
             WebAddress.Create(drivingSchool.WebAddress),
-            Money.Create(
-                decimal.Parse(drivingSchool.PackagePrice.Split(" ")[0]), 
-                drivingSchool.PackagePrice.Split(" ")[1]));
+            []);
         
         if (!createdResult.IsSuccess) 
             return Problem(createdResult.Error!.Message, "", 500);
@@ -78,7 +76,7 @@ public class DrivingSchoolController : ControllerBase
             created.StreetAddress.ToDto(),
             created.PhoneNumber.ToDto(),
             created.WebAddress.ToDto(),
-            created.PackagePrice.ToDto(),
+            created.Packages.Select(x => x.ToDto()).ToList(),
             null,
             null));
     }
