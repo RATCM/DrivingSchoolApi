@@ -1,3 +1,4 @@
+using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.ValueObjects;
@@ -39,9 +40,24 @@ public class DrivingSchoolController : ControllerBase
             null)));
     }
     
+    //[HttpGet("{id}")]
+    //public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
+    //{
+    //    var drivingSchools = await _drivingSchoolService.GetDrivingSchool(id);
+    //    return Ok(drivingSchools.Select(x => new DrivingSchoolDto(
+    //        x.Id.Value,
+    //        x.DrivingSchoolName.ToDto(),
+    //        x.StreetAddress.ToDto(),
+    //        x.PhoneNumber.ToDto(),
+    //        x.WebAddress.ToDto(),
+    //        x.PackagePrice.ToDto(),
+    //        null,
+    //        null)));
+    //}
+    
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistry drivingSchool)
+    [Authorize(Policy = AuthPolicies.AdminOnly)]
+    public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistryDto drivingSchool)
     {
         var createdResult = await _drivingSchoolService.CreateDrivingSchool(
             DrivingSchoolName.Create(drivingSchool.Name),

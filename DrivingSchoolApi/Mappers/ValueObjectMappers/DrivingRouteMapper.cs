@@ -16,5 +16,16 @@ public static class DrivingRouteMapper
             );
         }
     }
+
+    extension(DrivingRouteDto dto)
+    {
+        public DrivingRoute ToDomain()
+        {
+            return DrivingRoute.Create(
+                dto.DateTimeRange.ToDomain(),
+                dto.RouteCoordinates.Select(x => x.ToDomain()).ToArray()
+            );
+        }
+    }
 }
     

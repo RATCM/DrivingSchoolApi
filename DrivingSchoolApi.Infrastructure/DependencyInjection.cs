@@ -30,7 +30,9 @@ public static class DependencyInjection
                 .AddJwtBearer(AuthSchemes.Refresh);
 
             services.AddAuthorizationBuilder()
-                .AddPolicy(AuthPolicies.AdminOnly, policy => policy.RequireRole("Admin"));
+                .AddPolicy(AuthPolicies.AdminOnly, policy => policy.RequireRole("Admin"))
+                .AddPolicy(AuthPolicies.InstructorOnly, policy => policy.RequireRole("Instructor"))
+                .AddPolicy(AuthPolicies.StudentOnly, policy => policy.RequireRole("Student"));
 
             return services;
         }

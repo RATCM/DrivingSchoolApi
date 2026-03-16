@@ -17,4 +17,17 @@ public static class StreetAddressMapper
                 );
         }
     }
+
+    extension(StreetAddressDto dto)
+    {
+        public StreetAddress ToDomain()
+        {
+            return StreetAddress.Create(
+                dto.PostalCode,
+                dto.City,
+                dto.Region,
+                dto.AddressLine
+            );
+        }
+    }
 }

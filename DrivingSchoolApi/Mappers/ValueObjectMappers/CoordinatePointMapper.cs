@@ -17,4 +17,16 @@ public static class CoordinatePointMapper
             );
         }
     }
+    
+    extension (CoordinatePointDto dto)
+    {
+        public CoordinatePoint ToDomain()
+        {
+            return CoordinatePoint.Create(
+                dto.Order,
+                dto.Latitude,
+                dto.Longitude
+            );
+        }
+    }
 }

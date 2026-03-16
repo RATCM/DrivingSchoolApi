@@ -16,4 +16,15 @@ public static class MoneyMapper
             );
         }
     }
+
+    extension(MoneyDto dto)
+    {
+        public Money ToDomain()
+        {
+            return Money.Create(
+                dto.Amount,
+                dto.Currency
+            );
+        }
+    }
 }
