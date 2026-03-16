@@ -38,7 +38,7 @@ public class StreetAddressTests
         var exception = Assert.Throws<InvalidInputException>(
             () => StreetAddress.Create("postalCode", "city", "region", ""));
         
-        Assert.That(exception.Message, Is.EqualTo("StreetAddress line cannot be empty"));
+        Assert.That(exception.Message, Is.EqualTo("Street Address line cannot be empty"));
     }
 
     [Test]

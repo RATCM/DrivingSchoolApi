@@ -47,5 +47,30 @@ internal class InstructorConfiguration : IEntityTypeConfiguration<Instructor>
             .HasMany<TheoryLesson>()
             .WithOne()
             .HasForeignKey(x => x.InstructorId);
+        
+        // It's a bit weird that an entity is owned but,
+        // I don't really see a way around this
+        builder
+            .OwnsOne<InstructorCalender>(x => x.Calender, calender =>
+            {
+                calender.WithOwner().HasForeignKey(x => x.Id);
+                calender.Property(x => x.Id)
+                    .HasConversion(
+                        x => x.Value,
+                        x => InstructorKey.Create(x));
+
+                calender.OwnsMany(x => x.TimeSlots, timeSlot =>
+                {
+                    timeSlot.ToTable("InstructorTimeSlots");
+                    timeSlot.WithOwner().HasForeignKey("InstructorId");
+                    timeSlot.HasKey(
+                        "InstructorId", 
+                        nameof(TimeSlot.StartDateTime),
+                        nameof(TimeSlot.EndDateTime));
+
+                    timeSlot.Property(x => x.StartDateTime);
+                    timeSlot.Property(x => x.EndDateTime);
+                });
+            });
     }
 }
