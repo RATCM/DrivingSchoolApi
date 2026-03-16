@@ -30,7 +30,7 @@ public class DrivingSchoolServiceTests
         var drivingSchool = await sut.GetDrivingSchoolById(DrivingSchoolKey.Create(Guid.Empty));
 
         // Assert
-        Assert.That(drivingSchool, Is.EqualTo(DrivingSchool.Create(
+        Assert.That(drivingSchool.Value, Is.EqualTo(DrivingSchool.Create(
             DrivingSchoolKey.Create(Guid.Empty),
             DrivingSchoolName.Create("Test School"),
             StreetAddress.Create("a", "b", "c", "d"),
