@@ -50,7 +50,7 @@ public static class DrivingShcoolMapper
                 dto.StreetAddress.ToDomain(),
                 PhoneNumber.Create(dto.PhoneNumber),
                 WebAddress.Create(dto.WebAddress),
-                dto.PackagePrice.ToDomain());
+                dto.Packages.Select(x => x.ToDomain()).ToArray());
             
         }
     }
