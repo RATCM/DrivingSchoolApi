@@ -1,4 +1,7 @@
-﻿using DrivingSchoolApi.Application.Auth;
+﻿using System.Security.Claims;
+using DrivingSchoolApi.Application.Auth;
+using DrivingSchoolApi.Application.Exceptions.Instructor;
+using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
@@ -18,16 +21,19 @@ public class InstructorController : ControllerBase
     private readonly IInstructorService _instructorService;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
+    private readonly IStudentService _studentService;
 
     public InstructorController(
         ILogger<InstructorController> logger,
         IInstructorService instructorService,
         ITheoryLessonService theoryLessonService,
-        IDrivingLessonService drivingLessonService)
+        IDrivingLessonService drivingLessonService,
+        IStudentService studentService)
     {
         _instructorService = instructorService;
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
+        _studentService = studentService;
     }
 
     [HttpPost]
@@ -69,7 +75,7 @@ public class InstructorController : ControllerBase
             ));
     }
     
-    [HttpGet("{instructorId}")]
+    [HttpGet("/theoryLessons/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
     {
@@ -108,13 +114,40 @@ public class InstructorController : ControllerBase
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> CreateDrivingLesson([FromBody] DrivingLessonRegistry registry)
     {
-        //TODO Authorization: Instructor should only be able to create lessons for themselves and their own school
+        // Check Jwt Token to ascertain Instructor ID
+        // Enforces that Instructor can only create lessons for themselves
+        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        Instructor instructor;
+        Student student;
+        
+        // Check that instructor & student exists in DB
+        try
+        {
+            instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+            student = await _studentService.GetStudentById(StudentKey.Create(registry.StudentId));
+        }
+        catch (InstructorNotFoundException e)
+        {
+            return NotFound("Instructor not found. " + e.Message);
+        }
+        catch (StudentNotFoundException e)
+        {
+            return NotFound("Student not found. " + e.Message);
+        }
+
+        // Check that student is from the same school as instructor
+        if (student.SchoolId.Value != instructor.SchoolId.Value)
+        {
+            return BadRequest("Student is not assigned to the same school as the instructor.");
+        }
+        
+        //TODO check that information is correct (e.g. price is not negative, route is valid etc.)
         
         var created = await _drivingLessonService.CreateDrivingLesson(
-            DrivingSchoolKey.Create(registry.SchoolId),
+            instructor.SchoolId,
             registry.Route.ToDomain(),
             registry.Price.ToDomain(),
-            InstructorKey.Create(registry.InstructorId),
+            instructor.Id,
             StudentKey.Create(registry.StudentId));
         
         return Created($"drivingLesson/{created.Id}", new DrivingLessonDto(
@@ -127,14 +160,32 @@ public class InstructorController : ControllerBase
         ));
     }
     
-    [HttpGet("{instructorId}")]
+    [HttpGet("/drivingLessons")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<IActionResult> GetDrivingLessonFromInstructor(Guid instructorId)
+    public async Task<IActionResult> GetDrivingLessonFromInstructor()
     {
         //TODO Authorization: Instructor should only be able to access their own lessons
         
-        var created = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(InstructorKey.Create(instructorId));
-        return Ok(created.Select(x => new DrivingLessonDto(
+        // Check Jwt Token to ascertain Instructor ID
+        // Enforces that Instructor can only see lessons belonging to them
+        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        Instructor instructor;
+        
+        // Check that instructor exists in DB
+        try
+        {
+            instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+        }
+        catch (InstructorNotFoundException e)
+        {
+            return NotFound("Instructor not found. " + e.Message);
+        }
+        
+        
+        
+        
+        var data = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(instructor.Id);
+        return Ok(data.Select(x => new DrivingLessonDto(
             x.Id.Value,
             x.SchoolId.Value,
             x.InstructorId.Value,
