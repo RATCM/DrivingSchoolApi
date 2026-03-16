@@ -14,4 +14,14 @@ public static class WebAddressMapper
             );
         }
     }
+
+    extension(WebAddressDto dto)
+    {
+        public WebAddress ToDomain()
+        {
+            return WebAddress.Create(
+                dto.Url
+            );
+        }
+    }
 }

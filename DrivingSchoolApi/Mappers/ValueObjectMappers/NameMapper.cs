@@ -16,4 +16,15 @@ public static class NameMapper
             ); 
         }
     }
+
+    extension(NameDto dto)
+    {
+        public Name ToDomain()
+        {
+            return Name.Create(
+                dto.FirstName,
+                dto.LastName
+            );
+        }
+    }
 }

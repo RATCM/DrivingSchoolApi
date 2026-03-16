@@ -1,5 +1,6 @@
 ﻿using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 
 namespace DrivingSchoolApi.Mappers;
@@ -37,5 +38,18 @@ public static class DrivingShcoolMapper
         //}
         
     }
-    
+
+    extension(DrivingSchoolDto dto)
+    {
+        public DrivingSchool ToDomain()
+        {
+            return DrivingSchool.Create(
+                DrivingSchoolKey.Create(dto.Id), 
+                dto.Name.ToDomain(),
+                dto.StreetAddress.ToDomain(),
+                dto.PhoneNumber.ToDomain(),
+                dto.WebAddress.ToDomain(),
+                dto.PackagePrice.ToDomain());
+        }
+    }
 }

@@ -15,4 +15,12 @@ public static class DrivingSchoolNameMapper
             );
         }
     }
+
+    extension(DrivingSchoolNameDto dto)
+    {
+        public DrivingSchoolName ToDomain()
+        {
+            return DrivingSchoolName.Create( dto.Name );
+        }
+    }
 }

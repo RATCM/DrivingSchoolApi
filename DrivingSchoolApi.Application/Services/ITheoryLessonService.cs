@@ -6,7 +6,8 @@ namespace DrivingSchoolApi.Application.Services;
 
 public interface ITheoryLessonService
 {
-    Task<TheoryLesson> CreateTheoryLesson(DrivingSchoolKey schoolId, 
+    Task<TheoryLesson> CreateTheoryLesson(
+        DrivingSchoolKey schoolId, 
         DateTime dateTime, 
         Money price, 
         InstructorKey instructorId, 

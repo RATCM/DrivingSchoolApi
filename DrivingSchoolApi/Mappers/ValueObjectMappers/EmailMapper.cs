@@ -14,4 +14,12 @@ public static class EmailMapper
             );
         }
     }
+
+    extension(EmailDto dto)
+    {
+        public Email ToDomain()
+        {
+            return Email.Create(dto.Address);
+        }
+    }
 }

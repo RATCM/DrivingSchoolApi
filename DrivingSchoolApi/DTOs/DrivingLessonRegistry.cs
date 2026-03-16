@@ -1,6 +1,7 @@
 ﻿namespace DrivingSchoolApi.DTOs;
 
 public record DrivingLessonRegistry(
+    Guid SchoolId,
     Guid InstructorId,
     Guid StudentId,
     List<CoordinatePointDto> Route,

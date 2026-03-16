@@ -16,4 +16,15 @@ public static class DateTimeRangeMapper
             );
         }
     }
+
+    extension(DateTimeRangeDto dto)
+    {
+        public DateTimeRange ToDomain()
+        {
+            return DateTimeRange.Create(
+                dto.StartDateTime,
+                dto.EndDateTime
+            );
+        }
+    }
 }

@@ -15,4 +15,12 @@ public static class PhoneNumberMapper
             ); 
         }
     }
+
+    extension(PhoneNumberDto dto)
+    {
+        public PhoneNumber ToDomain()
+        {
+            return PhoneNumber.Create(dto.Number);
+        }
+    }
 }
