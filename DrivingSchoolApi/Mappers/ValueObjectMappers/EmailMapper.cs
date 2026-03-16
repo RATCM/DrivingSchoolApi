@@ -7,19 +7,9 @@ public static class EmailMapper
 {
     extension (Email entity)
     {
-        public EmailDto ToDto()
+        public String ToDto()
         {
-            return new EmailDto(
-                entity.Address
-            );
-        }
-    }
-
-    extension(EmailDto dto)
-    {
-        public Email ToDomain()
-        {
-            return Email.Create(dto.Address);
+            return entity.Address.ToString();
         }
     }
 }

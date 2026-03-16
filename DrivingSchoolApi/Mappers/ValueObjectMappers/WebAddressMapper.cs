@@ -7,21 +7,9 @@ public static class WebAddressMapper
 {
     extension(WebAddress entity)
     {
-        public WebAddressDto ToDto()
+        public String ToDto()
         {
-            return new WebAddressDto(
-                entity.Url
-            );
-        }
-    }
-
-    extension(WebAddressDto dto)
-    {
-        public WebAddress ToDomain()
-        {
-            return WebAddress.Create(
-                dto.Url
-            );
+            return entity.Url.ToString();
         }
     }
 }

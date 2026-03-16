@@ -7,20 +7,9 @@ public static class DrivingSchoolNameMapper
 {
     extension (DrivingSchoolName entity)
     {
-        public DrivingSchoolNameDto ToDto()
+        public String ToDto()
         {
-            return new DrivingSchoolNameDto
-            (
-                entity.Name
-            );
-        }
-    }
-
-    extension(DrivingSchoolNameDto dto)
-    {
-        public DrivingSchoolName ToDomain()
-        {
-            return DrivingSchoolName.Create( dto.Name );
+            return entity.Name.ToString();
         }
     }
 }

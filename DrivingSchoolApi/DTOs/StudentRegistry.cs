@@ -3,7 +3,7 @@
 public sealed record StudentDtoRegistry(
     Guid SchoolId, 
     NameDto StudentName, 
-    EmailDto EmailAddress, 
-    PhoneNumberDto PhoneNumber,
+    String EmailAddress, 
+    String PhoneNumber,
     string Password);
     

@@ -3,6 +3,6 @@
 public sealed record InstructorRegistry(
     Guid SchoolId,
     NameDto Name,
-    EmailDto EmailAddress,
-    PhoneNumberDto PhoneNumber,
+    String EmailAddress,
+    String PhoneNumber,
     string Password);

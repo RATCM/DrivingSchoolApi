@@ -1,11 +1,13 @@
-﻿namespace DrivingSchoolApi.DTOs;
+﻿using DrivingSchoolApi.Domain.ValueObjects;
+
+namespace DrivingSchoolApi.DTOs;
 
 public record DrivingLessonRegistry(
     Guid SchoolId,
     Guid InstructorId,
     Guid StudentId,
-    List<CoordinatePointDto> Route,
-    string Price
+    DrivingRouteDto Route,
+    MoneyDto Price
     //TODO Instructor signature
     //TODO Student signature
     );

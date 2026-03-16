@@ -7,20 +7,9 @@ public static class PhoneNumberMapper
 {
     extension (PhoneNumber entity) 
     {
-        public PhoneNumberDto ToDto()
+        public String ToDto()
         {
-            return new PhoneNumberDto
-            (
-                entity.Number
-            ); 
-        }
-    }
-
-    extension(PhoneNumberDto dto)
-    {
-        public PhoneNumber ToDomain()
-        {
-            return PhoneNumber.Create(dto.Number);
+            return entity.Number.ToString();
         }
     }
 }
