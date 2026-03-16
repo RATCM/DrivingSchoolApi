@@ -1,4 +1,6 @@
 ﻿using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,20 +22,50 @@ public class StudentController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> CreateStudent([FromBody] StudentRegistry student)
+    public async Task<IActionResult> CreateStudent([FromBody] StudentDtoRegistry student)
+    {
+        /*
+public sealed record StudentDtoRegistry(
+    Guid SchoolId,
+    NameDto StudentName,
+    EmailDto EmailAddress,
+    PhoneNumberDto PhoneNumber,
+    string Password);
+        */
+        var created = await _studentService.CreateStudent(
+            Name.Create(student.StudentName.FirstName, student.StudentName.LastName),
+            )
+        /*
+        var created = await _drivingSchoolService.CreateDrivingSchool(
+            DrivingSchoolName.Create(drivingSchool.Name),
+            StreetAddress.Create("N/A", "N/A", "N/A", drivingSchool.Address),
+            PhoneNumber.Create(drivingSchool.PhoneNumber),
+            WebAddress.Create(drivingSchool.WebAddress),
+            Money.Create(
+                decimal.Parse(drivingSchool.PackagePrice.Split(" ")[0]), 
+                drivingSchool.PackagePrice.Split(" ")[1]));;
+        
+        return Created($"drivingschool/{created.Id}", new DrivingSchoolDto(
+            created.Id.Value,
+            created.DrivingSchoolName.ToDto(),
+            created.StreetAddress.ToDto(),
+            created.PhoneNumber.ToDto(),
+            created.WebAddress.ToDto(),
+            created.PackagePrice.ToDto(),
+            null,
+            null));
+         */
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentById(StudentKey id)
     {
         
     }
     
-    /*
-    public async Task<Student> GetStudentById(StudentKey id)
-    
-    public async Task<IEnumerable<Student>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId)
-    
-    public async Task DeleteStudent(StudentKey id)
-    */
-    
-    //public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
-    //public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistry drivingSchool)
-    
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(DrivingSchoolKey schoolId)
+    {
+        
+    }
 }
