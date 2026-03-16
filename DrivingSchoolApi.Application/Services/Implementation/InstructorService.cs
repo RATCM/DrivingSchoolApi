@@ -2,6 +2,7 @@ using DrivingSchoolApi.Application.Exceptions.Instructor;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Services.Implementation;
@@ -19,28 +20,32 @@ internal class InstructorService : IInstructorService
         _instructorRepository = instructorRepository;
     }
     
-    public async Task<Instructor> CreateInstructor(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
+    public async Task<Result<Instructor>> CreateInstructor(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
     {
-        throw new NotImplementedException();
+        return new NotImplementedException();
     }
 
-    public async Task<Instructor> GetInstructorById(InstructorKey id)
+    public async Task<Result<Instructor>> GetInstructorById(InstructorKey id) 
     {
-        return await _instructorRepository.Get(id) ?? throw new InstructorNotFoundException();
+        var instructor = await _instructorRepository.Get(id);
+        if(instructor is null)
+            return new InstructorNotFoundException();
+        return instructor;
     }
 
-    public async Task<IEnumerable<Instructor>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId)
+    public async Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId)
     {
         var instructors = await _instructorRepository.GetAll();
         
         return instructors.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
-    public async Task DeleteInstructor(InstructorKey id)
+    public async Task<Result> DeleteInstructor(InstructorKey id)
     {
         var deleted = await _instructorRepository.Delete(id);
         if (!deleted)
-            throw new InstructorNotFoundException();
+            return new InstructorNotFoundException();
         await _instructorRepository.Save();
+        return Result.Success();
     }
 }

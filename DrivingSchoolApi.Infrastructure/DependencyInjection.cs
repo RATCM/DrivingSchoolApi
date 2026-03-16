@@ -4,6 +4,8 @@ using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Infrastructure.Database;
 using DrivingSchoolApi.Infrastructure.Identity;
 using DrivingSchoolApi.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
@@ -32,6 +34,20 @@ public static class DependencyInjection
                 .AddPolicy(AuthPolicies.InstructorOnly, policy => policy.RequireRole("Instructor"));
 
             return services;
+        }
+    }
+
+    extension(WebApplication app)
+    {
+        public void ApplyMigrations()
+        {
+            using var scope = app.Services.CreateScope();
+            
+            var dbContext = scope.ServiceProvider.GetRequiredService<DrivingSchoolDbContext>();
+            
+            var pendingMigrations = dbContext.Database.GetPendingMigrations();
+            if (pendingMigrations.Any())
+                dbContext.Database.Migrate();
         }
     }
 }
