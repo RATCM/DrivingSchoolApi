@@ -1,9 +1,13 @@
 using DrivingSchoolApi.Application.Auth;
+using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
+using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +18,16 @@ namespace DrivingSchoolApi.Controllers;
 public class DrivingSchoolController : ControllerBase
 {
     private readonly IDrivingSchoolService _drivingSchoolService;
+    private readonly IStudentRepository _studentRepository;
+    private readonly IStudentService _studentService;
+    private readonly IInstructorService _instructorService;
 
     public DrivingSchoolController(
         ILogger<DrivingSchoolController> logger,
-        IDrivingSchoolService drivingSchoolService)
+        IDrivingSchoolService drivingSchoolService,
+        IStudentService studentService,
+        IStudentRepository studentRepository,
+        IInstructorService instructorService)
     {
         _drivingSchoolService = drivingSchoolService;
     }
@@ -79,5 +89,17 @@ public class DrivingSchoolController : ControllerBase
             created.Packages.Select(x => x.ToDto()).ToList(),
             null,
             null));
+    }
+    [HttpGet]
+    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()
+    {
+        var idClaim = HttpContext.GetUserIdClaim();
+        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+        var result = await _studentService.GetAllStudentsFromSchool(instructor.Value.SchoolId);
+        if (!result.IsSuccess)
+            return BadRequest("Failed to retrieve students.");
+        var students = result.Value!;
+        return Ok(students.Select(s => s.ToDtoUnprivileged()));
     }
 }

@@ -20,7 +20,7 @@ public static class StudentMapper
                 null
             );
         }
-        
+
         //public StudentDto ToDtoPrivileged()
         //{
         //    return new StudentDto(
@@ -33,6 +33,6 @@ public static class StudentMapper
         //        entity.DrivingLessons.Select(d => d.ToDto()).ToList()
         //    );
         //}
-        
+
     }
 }

@@ -8,7 +8,9 @@ using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
+using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -87,11 +89,5 @@ public class StudentController : ControllerBase
         if (student is null)
             return new StudentNotFoundException();
         return student;
-    }
-    
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(DrivingSchoolKey schoolId)
-    {
-        
     }
 }
