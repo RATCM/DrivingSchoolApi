@@ -72,11 +72,6 @@ public class InstructorController : ControllerBase
     //    
     //}
     
-    
-    
-    [HttpGet("{instructorId}")]
-    
-    
     [HttpPost("/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> CreateTheoryLesson([FromBody] TheoryLessonRegistryDto theoryLessonRegistryDto)
