@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DrivingSchoolApi.Infrastructure.Configurations;
 
-public class AdminConfiguration : IEntityTypeConfiguration<Admin>
+internal class AdminConfiguration : IEntityTypeConfiguration<Admin>
 {
     public void Configure(EntityTypeBuilder<Admin> builder)
     {
