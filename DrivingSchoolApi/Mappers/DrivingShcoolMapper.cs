@@ -10,7 +10,7 @@ public static class DrivingShcoolMapper
 {
     extension(DrivingSchool entity)
     {
-        public DrivingSchoolDto ToDtoUnprivileged()
+        public DrivingSchoolDto ToDto(IEnumerable<Student>? students = null, IEnumerable<Instructor>? instructors = null)
         {
             return new DrivingSchoolDto(
                 entity.Id.Value,
@@ -19,25 +19,10 @@ public static class DrivingShcoolMapper
                 entity.PhoneNumber.ToDto(),
                 entity.WebAddress.ToDto(),
                 entity.Packages.Select(x => x.ToDto()).ToList(),
-                null,
-                null
+                students?.Select(x=>x.ToDto()).ToList(),
+                instructors?.Select(x=>x.ToDto()).ToList()
                 );
         }
-        
-        //public DrivingSchoolDto ToDtoPrivileged()
-        //{
-        //    return new DrivingSchoolDto(
-        //        entity.Id.Value,
-        //        entity.DrivingSchoolName.ToDto(),
-        //        entity.StreetAddress.ToDto(),
-        //        entity.PhoneNumber.ToDto(),
-        //        entity.WebAddress.ToDto(),
-        //        entity.PackagePrice.ToDto(),
-        //        entity.Students.Select(s => s.ToDto()).ToList(),
-        //        entity.Instructors.Select(i => i.ToDto()).ToList()
-        //    );
-        //}
-        
     }
 
     extension(DrivingSchoolDto dto)
