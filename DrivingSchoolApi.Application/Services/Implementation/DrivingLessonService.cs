@@ -48,7 +48,7 @@ internal class DrivingLessonService : IDrivingLessonService
     {
         var drivingLesson = await _drivingLessonRepository.Get(id);
         if(drivingLesson is null)
-            return new DrivingLessonNotFoundException();
+            return new DrivingLessonNotFoundException("Error fetching driving lesson from DB.");
         return drivingLesson;
     }
 
@@ -77,7 +77,7 @@ internal class DrivingLessonService : IDrivingLessonService
     {
         var deleted = await _drivingLessonRepository.Delete(id);
         if (!deleted)
-            return new DrivingLessonNotFoundException();
+            return new DrivingLessonNotFoundException("Error deleting driving lesson.");
         await _drivingLessonRepository.Save();
         return Result.Success();
     }

@@ -98,6 +98,6 @@ public class DrivingSchoolController : ControllerBase
         if (!result.IsSuccess)
             return BadRequest("Failed to retrieve students.");
         var students = result.Value!;
-        return Ok(students.Select(s => s.ToDtoUnprivileged()));
+        return Ok(students.Select(s => s.ToDto()));
     }
 }
