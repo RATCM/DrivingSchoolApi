@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
@@ -51,39 +52,27 @@ public class StudentController : ControllerBase
     
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> CreateStudent([FromBody] StudentDtoRegistry student)
+    public async Task<IActionResult> CreateStudent([FromBody] StudentRegistryDto student)
     {
-        /*
-public sealed record StudentDtoRegistry(
-    Guid SchoolId,
-    NameDto StudentName,
-    EmailDto EmailAddress,
-    PhoneNumberDto PhoneNumber,
-    string Password);
-        */
-        var created = await _studentService.CreateStudent(
+        var createdResult = await _studentService.CreateStudent(
             Name.Create(student.StudentName.FirstName, student.StudentName.LastName),
-        )
-        /*
-        var created = await _drivingSchoolService.CreateDrivingSchool(
-            DrivingSchoolName.Create(drivingSchool.Name),
-            StreetAddress.Create("N/A", "N/A", "N/A", drivingSchool.Address),
-            PhoneNumber.Create(drivingSchool.PhoneNumber),
-            WebAddress.Create(drivingSchool.WebAddress),
-            Money.Create(
-                decimal.Parse(drivingSchool.PackagePrice.Split(" ")[0]),
-                drivingSchool.PackagePrice.Split(" ")[1]));;
+            Email.Create(student.EmailAddress),
+            student.Password,
+            PhoneNumber.Create(student.PhoneNumber),
+            DrivingSchoolKey.Create(student.SchoolId));
+        
+        if (!createdResult.IsSuccess) 
+            return Problem(createdResult.Error!.Message, "", 500);
+        var created = createdResult.Value!;
 
-        return Created($"drivingschool/{created.Id}", new DrivingSchoolDto(
+
+        return Created($"student/{created.Id}", new StudentDto(
             created.Id.Value,
-            created.DrivingSchoolName.ToDto(),
-            created.StreetAddress.ToDto(),
-            created.PhoneNumber.ToDto(),
-            created.WebAddress.ToDto(),
-            created.PackagePrice.ToDto(),
-            null,
-            null));
-         */
+            created.SchoolId,
+            created.StudentName,
+            created.EmailAddress,
+            created.PhoneNumber
+        ));
     }
 
     [HttpGet]
