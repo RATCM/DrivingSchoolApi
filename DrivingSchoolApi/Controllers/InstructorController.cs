@@ -83,11 +83,9 @@ public class InstructorController : ControllerBase
             Money.Create(theoryLessonRegistryDto.Price.Amount, theoryLessonRegistryDto.Price.Currency),
             theoryLessonRegistryDto.StudentIds.Select(StudentKey.Create).ToList());
 
-        //TODO handle result error handling more granularly
+        // handle result error granularly
         if (!result.IsSuccess)
-        {
-            return BadRequest("Theory lesson creation failed.");
-        }
+            return this.Problem(result.Error!);
         
         var created = result.Value!;
         
