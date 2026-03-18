@@ -7,12 +7,9 @@ public static class PhoneNumberMapper
 {
     extension (PhoneNumber entity) 
     {
-        public PhoneNumberDto ToDto()
+        public String ToDto()
         {
-            return new PhoneNumberDto
-            (
-                entity.Number
-            ); 
+            return entity.Number.ToString();
         }
     }
 }

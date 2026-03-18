@@ -1,11 +1,11 @@
 ﻿namespace DrivingSchoolApi.DTOs;
 
-public record TheoryLessonRegistry(
+public record TheoryLessonRegistryDto(
     Guid SchoolId,
     Guid InstructorId,
     DateTime LessonDateTime,
     MoneyDto Price,
-    List<Guid> Students
+    List<Guid> StudentIds
     //TODO Instructor Signature
     );
     

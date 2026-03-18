@@ -1,4 +1,6 @@
 ﻿using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 
@@ -31,5 +33,20 @@ public static class TheoryLessonMapper
         //        entity.Students.Select(s => s.ToDtoUnprivileged()).ToList()
         //    );
         //}
+    }
+    
+    extension(TheoryLessonDto dto)
+    {
+        public TheoryLesson ToDomain()
+        {
+            return TheoryLesson.Create(
+                TheoryLessonKey.Create(dto.Id),
+                DrivingSchoolKey.Create(dto.SchoolId),
+                dto.LessonDateTime,
+                Money.Create(dto.Price.Amount, dto.Price.Currency),
+                InstructorKey.Create(dto.InstructorId),
+                dto.StudentIds.Select(x=> StudentKey.Create(x)).ToList()
+            );
+        }
     }
 }
