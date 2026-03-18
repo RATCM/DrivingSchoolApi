@@ -51,7 +51,7 @@ public class StudentController : ControllerBase
     
     
     [HttpPost]
-    [Authorize]
+    //TODO Add invite ID
     public async Task<IActionResult> CreateStudent([FromBody] StudentRegistryDto student)
     {
         var createdResult = await _studentService.CreateStudent(
@@ -68,11 +68,10 @@ public class StudentController : ControllerBase
 
         return Created($"student/{created.Id}", new StudentDto(
             created.Id.Value,
-            created.SchoolId,
-            created.StudentName,
-            created.EmailAddress,
-            created.PhoneNumber
-        ));
+            created.SchoolId.Value,
+            created.StudentName.ToDto(),
+            created.EmailAddress.ToDto(),
+            created.PhoneNumber.ToDto()));
     }
 
     [HttpGet]
