@@ -76,8 +76,6 @@ public class DrivingSchoolController : ControllerBase
             created.StreetAddress.ToDto(),
             created.PhoneNumber.ToDto(),
             created.WebAddress.ToDto(),
-            created.Packages.Select(x => x.ToDto()).ToList(),
-            null,
-            null));
+            created.Packages.Select(x => x.ToDto()).ToList()));
     }
 }

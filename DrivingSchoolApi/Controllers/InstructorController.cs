@@ -7,6 +7,7 @@ using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,15 +44,40 @@ public class InstructorController : ControllerBase
         throw new NotImplementedException();
     }
 
-    [HttpGet("all")]
+    [HttpGet]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
-    public async Task<ActionResult<IEnumerable<InstructorDto>>> GetAllInstructors()
+    public async Task<ActionResult> GetAllInstructors()
     {
-        //TODO
-        throw new NotImplementedException();
+        var result = await _instructorService.GetAllInstructors();
+        
+        if (!result.IsSuccess)
+        {
+            return Problem("Something went wrong.");
+        }
+
+        return Ok(result.Value!.Select(x => x.ToDto()));
     }
+
+    //[HttpPut("{instructorId}")]
+    //[Authorize]
+    //public async Task<ActionResult> UpdateInstructor(Guid instructorId, [FromBody] InstructorRegistryDto update)
+    //{
+    //    var created = await _instructorService.UpdateInstructor();
+    //}
+
+    //[HttpPut("{instructorId}/password")]
+    //[Authorize]
+    //public async Task<IActionResult> UpdatePassword(Guid instructorId, [FromBody] UpdatePasswordDto passwordDto)
+    //{
+    //    
+    //}
     
-    [HttpPost("/create/theoryLesson")]
+    
+    
+    [HttpGet("{instructorId}")]
+    
+    
+    [HttpPost("/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> CreateTheoryLesson([FromBody] TheoryLessonRegistryDto theoryLessonRegistryDto)
     {
@@ -67,19 +93,12 @@ public class InstructorController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            BadRequest("Theory lesson creation failed.");
+            return BadRequest("Theory lesson creation failed.");
         }
         
         var created = result.Value!;
         
-        return Created($"theoryLesson/{created.Id}", new TheoryLessonDto(
-            created.Id.Value,
-            created.SchoolId.Value,
-            created.InstructorId.Value,
-            created.LessonDateTime,
-            created.Price.ToDto(),
-            created.StudentIds.Select(studentKey => studentKey.Value).ToList()
-            ));
+        return Created($"theoryLesson/{created.Id}", created.ToDto(created.StudentIds));
     }
     
     [HttpGet("/theoryLessons")]
@@ -91,15 +110,8 @@ public class InstructorController : ControllerBase
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
         if (!result.IsSuccess) { return BadRequest("Failed to retrieve theory lessons."); }
         var theoryLessons = result.Value!;
-        
-        return Ok(theoryLessons.Select(x => new TheoryLessonDto(
-            x.Id.Value,
-            x.SchoolId.Value,
-            x.InstructorId.Value,
-            x.LessonDateTime,
-            x.Price.ToDto(),
-            x.StudentIds.Select(studentKey => studentKey.Value).ToList()
-        )));
+
+        return Ok(theoryLessons.Select(x => x.ToDto()).ToList());
     }
     
     [HttpPost("create/drivingLesson")]
@@ -134,14 +146,7 @@ public class InstructorController : ControllerBase
             StudentKey.Create(registryDto.StudentId));
         var created = createdResult.Value!;
         
-        return Created($"drivingLesson/{created.Id}", new DrivingLessonDto(
-            created.Id.Value,
-            created.SchoolId.Value,
-            created.InstructorId.Value,
-            created.StudentId.Value,
-            created.Route.ToDto(),
-            created.Price.ToDto()
-        ));
+        return Created($"drivingLesson/{created.Id}", created.ToDto());
     }
     
     [HttpGet("/drivingLessons")]
@@ -159,14 +164,6 @@ public class InstructorController : ControllerBase
         if (!dataResult.IsSuccess) { return BadRequest("Failed to retrieve driving lessons."); }
         var data = dataResult.Value!;
         
-        return Ok(data.Select(x => new DrivingLessonDto(
-            x.Id.Value,
-            x.SchoolId.Value,
-            x.InstructorId.Value,
-            x.StudentId.Value,
-            x.Route.ToDto(),
-            x.Price.ToDto()
-        )));
+        return Ok(data.Select(x => x.ToDto()).ToList());
     }
-    
 }

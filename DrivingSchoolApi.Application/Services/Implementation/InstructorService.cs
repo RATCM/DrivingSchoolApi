@@ -25,6 +25,12 @@ internal class InstructorService : IInstructorService
         return new NotImplementedException();
     }
 
+    public async Task<Result<IEnumerable<Instructor>>> GetAllInstructors()
+    {
+        var instructors = await _instructorRepository.GetAll();
+        return instructors.ToList();
+    }
+
     public async Task<Result<Instructor>> GetInstructorById(InstructorKey id) 
     {
         var instructor = await _instructorRepository.Get(id);
@@ -40,6 +46,11 @@ internal class InstructorService : IInstructorService
         return instructors.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
+    public async Task<Result<Instructor>> UpdateInstructor(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
+    {
+        return new NotImplementedException();
+    }
+    
     public async Task<Result> DeleteInstructor(InstructorKey id)
     {
         var deleted = await _instructorRepository.Delete(id);

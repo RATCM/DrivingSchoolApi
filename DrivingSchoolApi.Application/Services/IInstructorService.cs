@@ -12,7 +12,14 @@ public interface IInstructorService
         string password, 
         PhoneNumber phoneNumber, 
         DrivingSchoolKey schoolId);
+
+    Task<Result<IEnumerable<Instructor>>> GetAllInstructors();
     Task<Result<Instructor>> GetInstructorById(InstructorKey id);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId);
+    Task<Result<Instructor>> UpdateInstructor(Name name, 
+        Email email, 
+        string password, 
+        PhoneNumber phoneNumber, 
+        DrivingSchoolKey schoolId);
     Task<Result> DeleteInstructor(InstructorKey id);
 }
