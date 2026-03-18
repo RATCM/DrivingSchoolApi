@@ -1,14 +1,12 @@
 ﻿using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
-using DrivingSchoolApi.Application.Exceptions.Instructor;
-using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Services;
-using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
+using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -67,7 +65,7 @@ public class InstructorController : ControllerBase
 
     //[HttpPut("{instructorId}/password")]
     //[Authorize]
-    //public async Task<IActionResult> UpdatePassword(Guid instructorId, [FromBody] UpdatePasswordDto passwordDto)
+    //public async Task<IActionResult> UpdateInstructorPassword(Guid instructorId, [FromBody] UpdatePasswordDto passwordDto)
     //{
     //    
     //}
@@ -76,16 +74,16 @@ public class InstructorController : ControllerBase
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> CreateTheoryLesson([FromBody] TheoryLessonRegistryDto theoryLessonRegistryDto)
     {
-        
-        //TODO Authorization: Instructor should only be able to create lessons for themselves and their own school
+        // Read Jwt Token to ascertain Instructor ID
+        var idClaim = HttpContext.GetUserIdClaim();
         
         var result = await _theoryLessonService.CreateTheoryLesson(
-            DrivingSchoolKey.Create(theoryLessonRegistryDto.SchoolId),
+            InstructorKey.Create(idClaim),
             theoryLessonRegistryDto.LessonDateTime,
             Money.Create(theoryLessonRegistryDto.Price.Amount, theoryLessonRegistryDto.Price.Currency),
-            InstructorKey.Create(theoryLessonRegistryDto.InstructorId),
             theoryLessonRegistryDto.StudentIds.Select(StudentKey.Create).ToList());
 
+        //TODO handle result error handling more granularly
         if (!result.IsSuccess)
         {
             return BadRequest("Theory lesson creation failed.");
@@ -101,7 +99,7 @@ public class InstructorController : ControllerBase
     public async Task<IActionResult> GetTheoryLessonsFromInstructor()
     {
         // Check Jwt Token to ascertain Instructor ID
-        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var idClaim = HttpContext.GetUserIdClaim();
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
         if (!result.IsSuccess) { return BadRequest("Failed to retrieve theory lessons."); }
         var theoryLessons = result.Value!;
@@ -109,7 +107,7 @@ public class InstructorController : ControllerBase
         return Ok(theoryLessons.Select(x => x.ToDto()).ToList());
     }
     
-    [HttpPost("create/drivingLesson")]
+    [HttpPost("/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> CreateDrivingLesson([FromBody] DrivingLessonRegistryDto registryDto)
     {

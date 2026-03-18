@@ -11,29 +11,57 @@ internal class TheoryLessonService : ITheoryLessonService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly ITheoryLessonRepository _theoryLessonRepository;
+    private readonly IStudentRepository _studentRepository;
+    private readonly IInstructorRepository _instructorRepository;
 
     public TheoryLessonService(
         IGuidGeneratorService guidGeneratorService, 
-        ITheoryLessonRepository theoryLessonRepository)
+        ITheoryLessonRepository theoryLessonRepository,
+        IStudentRepository studentRepository,
+        IInstructorRepository instructorRepository)
     {
         _guidGeneratorService = guidGeneratorService;
         _theoryLessonRepository = theoryLessonRepository;
+        _studentRepository = studentRepository;
+        _instructorRepository = instructorRepository;
     }
     
     public async Task<Result<TheoryLesson>> CreateTheoryLesson(
-        DrivingSchoolKey schoolId, 
-        DateTime dateTime, 
-        Money price, 
         InstructorKey instructorId,
+        DateTime dateTime,
+        Money price, 
         IEnumerable<StudentKey> studentIds)
     {
+        // Materialize studentIds once to avoid multiple enumeration
+        var studentIdsList = studentIds.ToList();
+        
+        // No duplicates
+        if (studentIdsList.Count != studentIdsList.Distinct().Count())
+            return new Exception("Cannot add duplicate students to theory lesson.");
+        
+        var instructor = await _instructorRepository.Get(instructorId);
+        if (instructor is null)
+            return new Exception($"Instructor was not found.");
+        
+        // Build allowed student id set for the instructor's school.
+        var schoolStudents = await _studentRepository.GetAllFromDrivingSchool(instructor.SchoolId);
+        var allowedStudentIds = schoolStudents.Select(x => x.Id).ToHashSet();
+        
+        // Validate all requested students are from the same school as the instructor.
+        var invalidStudentIds = studentIdsList
+            .Where(id => !allowedStudentIds.Contains(id))
+            .ToList();
+        
+        if (invalidStudentIds.Count != 0)
+            return new Exception("One or more students are not in the instructor's school.");
+        
         var lesson = TheoryLesson.Create(
             TheoryLessonKey.Create(_guidGeneratorService.NewGuid()),
-            schoolId,
+            instructor.SchoolId,
             dateTime,
             price,
             instructorId, 
-            studentIds);
+            studentIdsList);
 
         var created = await _theoryLessonRepository.Create(lesson);
 
