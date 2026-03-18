@@ -6,6 +6,6 @@ public sealed record StudentDto(
     NameDto StudentName, 
     String EmailAddress, 
     String PhoneNumber, 
-    List<TheoryLessonDto>? TheoryLessons, 
-    List<DrivingLessonDto>? DrivingLessons);
+    List<TheoryLessonDto>? TheoryLessons = null, 
+    List<DrivingLessonDto>? DrivingLessons = null);
  

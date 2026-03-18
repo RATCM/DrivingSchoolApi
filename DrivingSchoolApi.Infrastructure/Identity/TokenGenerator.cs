@@ -41,12 +41,13 @@ internal class TokenGeneratorService : ITokenGeneratorService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string GenerateJwtRefreshToken(Guid userId)
+    public string GenerateJwtRefreshToken(Guid userId, string role)
     {
         var scheme = _configuration.GetSection("Authentication:Schemes:Refresh");
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim("role", role),
             new Claim(JwtRegisteredClaimNames.Jti, _guidGenerator.NewGuid().ToString())
         };
 

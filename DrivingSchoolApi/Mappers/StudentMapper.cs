@@ -8,7 +8,7 @@ public static class StudentMapper
 {
     extension(Student entity)
     {
-        public StudentDto ToDtoUnprivileged()
+        public StudentDto ToDto(IEnumerable<DrivingLesson>? drivingLessons = null, IEnumerable<TheoryLesson>? theoryLessons = null)
         {
             return new StudentDto(
                 entity.Id.Value,
@@ -16,23 +16,10 @@ public static class StudentMapper
                 entity.StudentName.ToDto(),
                 entity.EmailAddress.ToDto(),
                 entity.PhoneNumber.ToDto(),
-                null,
-                null
+                theoryLessons?.Select(x=>x.ToDto()).ToList(),
+                drivingLessons?.Select(x=>x.ToDto()).ToList()
             );
         }
-        
-        //public StudentDto ToDtoPrivileged()
-        //{
-        //    return new StudentDto(
-        //        entity.Id.Value,
-        //        entity.SchoolId.Value,
-        //        entity.StudentName.ToDto(),
-        //        entity.EmailAddress.ToDto(),
-        //        entity.PhoneNumber.ToDto(),
-        //        entity.TheoryLessons.Select(t => t.ToDtoPrivileged()).ToList(),
-        //        entity.DrivingLessons.Select(d => d.ToDto()).ToList()
-        //    );
-        //}
         
     }
 }

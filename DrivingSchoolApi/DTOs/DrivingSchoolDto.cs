@@ -7,5 +7,5 @@ public sealed record DrivingSchoolDto(
     String PhoneNumber,
     String WebAddress,
     IReadOnlyList<PackageDto> Packages,
-    IReadOnlyList<StudentDto>? Students,
-    IReadOnlyList<InstructorDto>? Instructors);
+    IReadOnlyList<StudentDto>? Students = null,
+    IReadOnlyList<InstructorDto>? Instructors = null);

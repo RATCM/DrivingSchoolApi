@@ -10,7 +10,7 @@ public static class TheoryLessonMapper
 {
     extension(TheoryLesson entity)
     {
-        public TheoryLessonDto ToDtoUnprivileged()
+        public TheoryLessonDto ToDto(IEnumerable<StudentKey>? studentIds = null)
         {
             return new TheoryLessonDto(
                 entity.Id.Value,
@@ -18,21 +18,10 @@ public static class TheoryLessonMapper
                 entity.InstructorId.Value,
                 entity.LessonDateTime,
                 entity.Price.ToDto(),
-                null
+                studentIds?.Select(x=> x.Value).ToList()
             );
         }
         
-        //public TheoryLessonDto ToDtoPrivileged()
-        //{
-        //    return new TheoryLessonDto(
-        //        entity.Id.Value,
-        //        entity.SchoolId.Value,
-        //        entity.InstructorId.Value,
-        //        entity.LessonDateTime,
-        //        entity.Price.ToDto(),
-        //        entity.Students.Select(s => s.ToDtoUnprivileged()).ToList()
-        //    );
-        //}
     }
     
     extension(TheoryLessonDto dto)
