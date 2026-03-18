@@ -2,6 +2,7 @@ using DrivingSchoolApi.Application.Exceptions.DrivingSchool;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Services.Implementation;
@@ -18,7 +19,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
         _drivingSchoolRepository = drivingSchoolRepository;
     }
     
-    public async Task<DrivingSchool> CreateDrivingSchool(DrivingSchoolName name, StreetAddress address, PhoneNumber phoneNumber, WebAddress webAddress, Money packagePrice)
+    public async Task<Result<DrivingSchool>> CreateDrivingSchool(DrivingSchoolName name, StreetAddress address, PhoneNumber phoneNumber, WebAddress webAddress, Package[] packages)
     {
         var drivingSchool = DrivingSchool.Create(
              DrivingSchoolKey.Create(_guidGeneratorService.NewGuid()),
@@ -26,32 +27,36 @@ internal class DrivingSchoolService : IDrivingSchoolService
             address,
             phoneNumber,
             webAddress,
-            packagePrice);
+            packages);
         
         var result = await _drivingSchoolRepository.Create(drivingSchool);
 
         if(!result)
-            throw new Exception("Unable to create driving school");
+            return new Exception("Unable to create driving school");
         
         await _drivingSchoolRepository.Save();
         return drivingSchool;
     }
 
-    public async Task<DrivingSchool> GetDrivingSchoolById(DrivingSchoolKey id)
+    public async Task<Result<DrivingSchool>> GetDrivingSchoolById(DrivingSchoolKey id)
     {
-        return await _drivingSchoolRepository.Get(id) ?? throw new DrivingSchoolNotFoundException();
+        var drivingSchool = await _drivingSchoolRepository.Get(id);
+        if(drivingSchool is null)
+            return new DrivingSchoolNotFoundException();
+        return drivingSchool;
     }
     
-    public async Task<IEnumerable<DrivingSchool>> GetAllDrivingSchools()
+    public async Task<Result<IEnumerable<DrivingSchool>>> GetAllDrivingSchools()
     {
-        return await _drivingSchoolRepository.GetAll();
+        return (await _drivingSchoolRepository.GetAll()).ToList();
     }
 
-    public async Task DeleteDrivingSchool(DrivingSchoolKey id)
+    public async Task<Result> DeleteDrivingSchool(DrivingSchoolKey id)
     {
         var deleted = await _drivingSchoolRepository.Delete(id);
         if (!deleted)
-            throw new DrivingSchoolNotFoundException();
+            return new DrivingSchoolNotFoundException();
         await _drivingSchoolRepository.Save();
+        return Result.Success();
     }
 }

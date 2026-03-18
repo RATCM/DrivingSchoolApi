@@ -11,7 +11,8 @@ public sealed class Instructor : Entity<InstructorKey>
     public Email EmailAddress { get; private set; } = null!;
     public PasswordHash HashedPassword { get; private set; } = null!;
     public PhoneNumber PhoneNumber { get; private set; } = null!;
-
+    public required InstructorCalender Calender { get; init; }
+    
     private Instructor() {} // EF
     
     public static Instructor Create(
@@ -29,7 +30,8 @@ public sealed class Instructor : Entity<InstructorKey>
             InstructorName = name,
             EmailAddress = email,
             HashedPassword = hashedPassword,
-            PhoneNumber = phoneNumber
+            PhoneNumber = phoneNumber,
+            Calender = InstructorCalender.Create(id)
         };
     }
     

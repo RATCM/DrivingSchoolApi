@@ -25,13 +25,16 @@ public class DrivingSchoolController : ControllerBase
     public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
     {
         var drivingSchools = await _drivingSchoolService.GetAllDrivingSchools();
-        return Ok(drivingSchools.Select(x => new DrivingSchoolDto(
+
+        if (!drivingSchools.IsSuccess) 
+            return Problem(drivingSchools.Error!.Message, "", 500);
+        return Ok(drivingSchools.Value!.Select(x => new DrivingSchoolDto(
             x.Id.Value,
             x.DrivingSchoolName.ToDto(),
             x.StreetAddress.ToDto(),
             x.PhoneNumber.ToDto(),
             x.WebAddress.ToDto(),
-            x.PackagePrice.ToDto(),
+            x.Packages.Select(y => y.ToDto()).ToList(),
             null,
             null)));
     }
@@ -40,14 +43,16 @@ public class DrivingSchoolController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistry drivingSchool)
     {
-        var created = await _drivingSchoolService.CreateDrivingSchool(
+        var createdResult = await _drivingSchoolService.CreateDrivingSchool(
             DrivingSchoolName.Create(drivingSchool.Name),
             StreetAddress.Create("N/A", "N/A", "N/A", drivingSchool.Address),
             PhoneNumber.Create(drivingSchool.PhoneNumber),
             WebAddress.Create(drivingSchool.WebAddress),
-            Money.Create(
-                decimal.Parse(drivingSchool.PackagePrice.Split(" ")[0]), 
-                drivingSchool.PackagePrice.Split(" ")[1]));;
+            []);
+        
+        if (!createdResult.IsSuccess) 
+            return Problem(createdResult.Error!.Message, "", 500);
+        var created = createdResult.Value!;
         
         return Created($"drivingschool/{created.Id}", new DrivingSchoolDto(
             created.Id.Value,
@@ -55,7 +60,7 @@ public class DrivingSchoolController : ControllerBase
             created.StreetAddress.ToDto(),
             created.PhoneNumber.ToDto(),
             created.WebAddress.ToDto(),
-            created.PackagePrice.ToDto(),
+            created.Packages.Select(x => x.ToDto()).ToList(),
             null,
             null));
     }
