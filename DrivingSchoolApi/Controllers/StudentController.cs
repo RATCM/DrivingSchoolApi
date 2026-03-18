@@ -1,8 +1,11 @@
 using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
+using DrivingSchoolApi.Application.Exceptions.Student;
+using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
@@ -17,17 +20,20 @@ public class StudentController : ControllerBase
 {
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
+    private readonly IStudentRepository _studentRepository;
     private readonly IStudentService _studentService;
 
     public StudentController(
         ILogger<StudentController> logger,
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService,
-        IStudentService studentService)
+        IStudentService studentService,
+        IStudentRepository studentRepository)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
+        _studentRepository = studentRepository;
     }
     
     [HttpGet]
@@ -75,9 +81,12 @@ public class StudentController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentById(StudentKey id)
+    public async Task<Result<Student>> GetStudentById(StudentKey id)
     {
-        
+        var student = await _studentRepository.Get(id);
+        if (student is null)
+            return new StudentNotFoundException();
+        return student;
     }
     
     [HttpGet]
