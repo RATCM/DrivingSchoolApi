@@ -11,18 +11,35 @@ internal class StudentService : IStudentService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IStudentRepository _studentRepository;
+    private readonly IPasswordHasher<Student> _passwordHasher;
 
     public StudentService(
         IGuidGeneratorService guidGeneratorService,
-        IStudentRepository studentRepository)
+        IStudentRepository studentRepository,
+        IPasswordHasher<Student> passwordHasher)
     {
         _guidGeneratorService = guidGeneratorService;
         _studentRepository = studentRepository;
+        _passwordHasher = passwordHasher;
     }
     
     public async Task<Result<Student>> CreateStudent(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
     {
-        return new NotImplementedException();
+        Student student = Student.Create(
+            StudentKey.Create(_guidGeneratorService.NewGuid()),
+            schoolId,
+            name,
+            email,
+            _passwordHasher.HashPassword(password),
+            phoneNumber
+        );
+
+        var created = await _studentRepository.Create(student);
+
+        if (!created)
+            return new Exception("Unable to create new student");
+        
+        return student;
     }
 
     public async Task<Result<Student>> GetStudentById(StudentKey id)
@@ -32,7 +49,7 @@ internal class StudentService : IStudentService
             return new StudentNotFoundException();
         return student;
     }
-
+    
     public async Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId)
     {
         var students = await _studentRepository.GetAll();
