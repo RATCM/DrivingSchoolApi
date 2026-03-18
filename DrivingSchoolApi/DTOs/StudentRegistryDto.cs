@@ -5,5 +5,6 @@ public sealed record StudentRegistryDto(
     NameDto StudentName,
     String EmailAddress, 
     String PhoneNumber,
-    string Password);
+    string Password,
+    Guid InviteId);
     
