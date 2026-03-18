@@ -62,7 +62,7 @@ public class StudentController : ControllerBase
             DrivingSchoolKey.Create(student.SchoolId));
         
         if (!createdResult.IsSuccess) 
-            return Problem(createdResult.Error!.Message, "", 500);
+            return Problem("Error creating student", "", 500);
         var created = createdResult.Value!;
 
 
