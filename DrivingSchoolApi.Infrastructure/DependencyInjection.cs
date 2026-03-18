@@ -1,6 +1,7 @@
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Infrastructure.Database;
 using DrivingSchoolApi.Infrastructure.Identity;
 using DrivingSchoolApi.Infrastructure.Repositories;
@@ -22,6 +23,9 @@ public static class DependencyInjection
                 .AddScoped<IStudentRepository, StudentRepository>()
                 .AddScoped<ITheoryLessonRepository, TheoryLessonRepository>()
                 .AddScoped<ITokenGeneratorService, TokenGeneratorService>()
+                .AddScoped<IPasswordHasher<Student>, PasswordHasher<Student>>()
+                .AddScoped<IPasswordHasher<Instructor>, PasswordHasher<Instructor>>()
+                .AddScoped<IPasswordHasher<Admin>, PasswordHasher<Admin>>()
                 .AddDbContext<IDrivingSchoolDbContext, DrivingSchoolDbContext>();
 
             services
