@@ -27,6 +27,25 @@ internal class DrivingLessonService : IDrivingLessonService
         InstructorKey instructorId,
         StudentKey studentId)
     {
+        //TODO validations
+        
+        //var instructorResult = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+        //if (!instructorResult.IsSuccess) { return BadRequest("Failed to retrieve instructor."); }
+        //var instructor = instructorResult.Value!;
+        //
+        //var studentResult = await _studentService.GetStudentById(StudentKey.Create(registryDto.StudentId));
+        //if (!studentResult.IsSuccess) { return BadRequest("Failed to retrieve student."); }
+        //var student = studentResult.Value!;
+        //
+//
+        //// Check that student is from the same school as instructor
+        //if (student.SchoolId.Value != instructor.SchoolId.Value)
+        //{
+        //    return BadRequest("Student is not assigned to the same school as the instructor.");
+        //}
+        //
+        ////TODO check that information is correct (e.g. price is not negative, route is valid etc.)
+        
         var lesson = DrivingLesson.Create(
             DrivingLessonKey.Create(_guidGeneratorService.NewGuid()),
             schoolId,

@@ -16,10 +16,15 @@ public interface IInstructorService
     Task<Result<IEnumerable<Instructor>>> GetAllInstructors();
     Task<Result<Instructor>> GetInstructorById(InstructorKey id);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId);
-    Task<Result<Instructor>> UpdateInstructor(Name name, 
-        Email email, 
-        string password, 
-        PhoneNumber phoneNumber, 
-        DrivingSchoolKey schoolId);
+    Task<Result<Instructor>> UpdateInstructor(
+        InstructorKey id,
+        DrivingSchoolKey schoolId,
+        Name name,
+        Email email,
+        PhoneNumber phoneNumber);
+    Task<Result<Instructor>> UpdateInstructorPassword(
+        InstructorKey id,
+        string oldPassword,
+        string newPassword);
     Task<Result> DeleteInstructor(InstructorKey id);
 }

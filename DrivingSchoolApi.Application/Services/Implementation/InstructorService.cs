@@ -46,10 +46,16 @@ internal class InstructorService : IInstructorService
         return instructors.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
-    public async Task<Result<Instructor>> UpdateInstructor(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
+    public async Task<Result<Instructor>> UpdateInstructor(InstructorKey id, DrivingSchoolKey schoolId, Name name, Email email, PhoneNumber phoneNumber)
     {
         return new NotImplementedException();
     }
+
+    public async Task<Result<Instructor>> UpdateInstructorPassword(InstructorKey id, string oldPassword, string newPassword)
+    {
+        return new NotImplementedException();
+    }
+    
     
     public async Task<Result> DeleteInstructor(InstructorKey id)
     {
