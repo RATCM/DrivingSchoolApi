@@ -36,11 +36,13 @@ public class InstructorController : ControllerBase
     }
 
     [HttpPost("/login")]
-    public async Task<ActionResult> Login([FromBody] InstructorLoginRequestDto loginRequest)
+    public async Task<ActionResult> LoginAsInstructor([FromBody] InstructorLoginRequestDto loginRequest)
     {
-        //TODO
-        throw new NotImplementedException();
-        //TODO return Jwt
+        var result = await _instructorService.LoginAsInstructor(loginRequest.Email, loginRequest.Password);
+        
+        return result.IsSuccess ? 
+            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
+            : this.Problem(result.Error!);
     }
     
     [HttpPost("/register")]

@@ -13,6 +13,7 @@ public interface IInstructorService
         PhoneNumber phoneNumber, 
         DrivingSchoolKey schoolId);
 
+    Task<Result<(string AccessToken, string RefreshToken)>> LoginAsInstructor(string email, string password);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructors();
     Task<Result<Instructor>> GetInstructorById(InstructorKey id);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId);

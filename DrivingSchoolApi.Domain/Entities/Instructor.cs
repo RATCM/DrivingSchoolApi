@@ -62,7 +62,7 @@ public sealed class Instructor : Entity<InstructorKey>
         // so even if the same password is provided, it will probably
         // result in a different hash
         if (HashedPassword.Equals(newPasswordHash))
-            throw new InvalidOperationException("Can't change the same password to the same password");
+            throw new InvalidOperationException("New password must be different from old password");
         HashedPassword = newPasswordHash;
     }
 

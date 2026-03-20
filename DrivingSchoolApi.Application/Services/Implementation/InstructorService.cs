@@ -11,13 +11,29 @@ internal class InstructorService : IInstructorService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IInstructorRepository _instructorRepository;
+    private readonly ITokenGeneratorService _tokenGeneratorService;
+    private readonly IPasswordHasher<Instructor> _passwordHasherService;
 
     public InstructorService(
         IGuidGeneratorService guidGeneratorService,
-        IInstructorRepository instructorRepository)
+        IInstructorRepository instructorRepository,
+        ITokenGeneratorService tokenGeneratorService,
+        IPasswordHasher<Instructor> passwordHasher)
     {
         _guidGeneratorService = guidGeneratorService;
         _instructorRepository = instructorRepository;
+        _tokenGeneratorService = tokenGeneratorService;
+        _passwordHasherService = passwordHasher;
+    }
+
+    public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsInstructor(string email, string password)
+    {
+        //var instructor = await _instructorRepository.Get(instructorId);
+        //
+        //var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(instructorId.Value, "Instructor");
+        //var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(instructorId.Value, "Instructor");
+        //return (accessToken, refreshToken);
+        return new NotImplementedException();
     }
     
     public async Task<Result<Instructor>> CreateInstructor(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
