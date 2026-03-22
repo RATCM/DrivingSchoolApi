@@ -22,6 +22,7 @@ public static class DependencyInjection
                 .AddScoped<IInstructorRepository, InstructorRepository>()
                 .AddScoped<IStudentRepository, StudentRepository>()
                 .AddScoped<ITheoryLessonRepository, TheoryLessonRepository>()
+                .AddScoped<IAdminRepository, AdminRepository>()
                 .AddScoped<ITokenGeneratorService, TokenGeneratorService>()
                 .AddScoped<IPasswordHasher<Student>, PasswordHasher<Student>>()
                 .AddScoped<IPasswordHasher<Instructor>, PasswordHasher<Instructor>>()
