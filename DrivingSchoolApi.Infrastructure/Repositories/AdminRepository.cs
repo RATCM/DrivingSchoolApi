@@ -11,6 +11,7 @@ internal class AdminRepository : Repository, IAdminRepository
     
     public async Task<bool> Create(Admin admin)
     {
+        // Don't implement this without good reason
         throw new NotImplementedException();
     }
 
@@ -21,17 +22,19 @@ internal class AdminRepository : Repository, IAdminRepository
 
     public async Task<IEnumerable<Admin>> GetAll()
     {
+        // Don't implement this without good reason
         throw new NotImplementedException();
     }
 
     public async Task<bool> Update(Admin admin)
     {
-        // Driving lesson is immutable, so we probably shouldn't actually have this method anyway
+        // Don't implement this without good reason
         throw new NotImplementedException();
     }
 
     public async Task<bool> Delete(AdminKey id)
     {
+        // Don't implement this without good reason
         throw new NotImplementedException();
     }
 }

@@ -12,6 +12,11 @@ public static class ControllerExtensions
         {
             return new Guid(context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         }
+        
+        public string GetUserRoleClaim()
+        {
+            return context.User.FindFirst(ClaimTypes.Role)?.Value!;
+        }
     }
 
     extension(ControllerBase controller)
