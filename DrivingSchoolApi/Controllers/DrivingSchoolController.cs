@@ -93,11 +93,17 @@ public class DrivingSchoolController : ControllerBase
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()
     {
         var idClaim = HttpContext.GetUserIdClaim();
-        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
-        var result = await _studentService.GetAllStudentsFromSchool(instructor.Value.SchoolId);
-        if (!result.IsSuccess)
-            return BadRequest("Failed to retrieve students.");
-        var students = result.Value!;
-        return Ok(students.Select(s => s.ToDto()));
+        var roleClaim = HttpContext.GetUserRoleClaim().Equals("Instructor");
+        
+        var instructor = await _instructorService.GetInstructorById(idClaim, roleClaim, InstructorKey.Create(idClaim));
+        
+        if  (!instructor.IsSuccess)
+            return this.Problem(instructor.Error!);
+        
+        var result = await _studentService.GetAllStudentsFromSchool(instructor.Value!.SchoolId);
+        
+        return result.IsSuccess ? 
+            Ok(result.Value!.Select(s => s.ToDto()))
+            : BadRequest("Failed to retrieve students.");
     }
 }

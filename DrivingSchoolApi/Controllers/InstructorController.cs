@@ -16,7 +16,6 @@ namespace DrivingSchoolApi.Controllers;
 [Route("[controller]")]
 public class InstructorController : ControllerBase
 {
-    
     private readonly IInstructorService _instructorService;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
@@ -41,8 +40,8 @@ public class InstructorController : ControllerBase
         var result = await _instructorService.LoginAsInstructor(loginRequest.Email, loginRequest.Password);
         
         return result.IsSuccess ? 
-            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
-            : this.Problem(result.Error!);
+            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken}) :
+            this.Problem(result.Error!);
     }
     
     [HttpPost("/register")]
@@ -58,12 +57,9 @@ public class InstructorController : ControllerBase
         
         var created = result.Value!;
         
-        
-        //TODO return Jwt
-        
         return result.IsSuccess ?
-            Created($"instructor/{created.Id}", created.ToDto())
-            : this.Problem(result.Error!);
+            Created($"instructor/{created.Id}", created.ToDto()) :
+            this.Problem(result.Error!);
     }
 
     [HttpGet]
@@ -73,27 +69,23 @@ public class InstructorController : ControllerBase
         var result = await _instructorService.GetAllInstructors();
         
         return result.IsSuccess ? 
-            Ok(result.Value!.Select(x => x.ToDto()))
-            : this.Problem(result.Error!);
+            Ok(result.Value!.Select(x => x.ToDto())) :
+            this.Problem(result.Error!);
     }
 
     [HttpGet("/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
     {
-        // Read Jwt Token to ascertain Instructor ID
+        // Read Jwt Token to ascertain  ID
         var idClaim = HttpContext.GetUserIdClaim();
+        bool isAdmin = HttpContext.GetUserRoleClaim().Equals("admin");
         
-        // TODO enforce validation
-        // Instructor can only get their own data
-        // Admin can get all
-        // If possible do it in Application.Services
-        
-        var result = await _instructorService.GetInstructorById(InstructorKey.Create(instructorId));
+        var result = await _instructorService.GetInstructorById(instructorId, isAdmin, InstructorKey.Create(instructorId));
         
         return result.IsSuccess ?
-            Ok(result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            Ok(result.Value!.ToDto()) :
+            this.Problem(result.Error!);
     }
     
     [HttpPut("/{instructorId:guid}")]
@@ -114,8 +106,8 @@ public class InstructorController : ControllerBase
             PhoneNumber.Create(updateDto.PhoneNumber));
         
         return result.IsSuccess ?
-            Ok(result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            Ok(result.Value!.ToDto()) :
+            this.Problem(result.Error!);
     }
 
     [HttpPut("/{instructorId:guid}/password")]
@@ -134,8 +126,8 @@ public class InstructorController : ControllerBase
             updateDto.NewPassword);
         
         return result.IsSuccess ?
-            Ok(result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            Ok(result.Value!.ToDto()) :
+            this.Problem(result.Error!);
     }
 
     [HttpDelete("/{instructorId:guid}")]
@@ -154,8 +146,8 @@ public class InstructorController : ControllerBase
             InstructorKey.Create(idClaim));
         
         return  deleted.IsSuccess ?
-            NoContent()
-            : this.Problem(deleted.Error!);
+            NoContent() :
+            this.Problem(deleted.Error!);
     }
     
     [HttpPost("/{instructorId:guid}/theoryLesson")]
@@ -177,8 +169,8 @@ public class InstructorController : ControllerBase
         var created = result.Value!;
         
         return result.IsSuccess ?
-            Created($"theoryLesson/{created.Id}", created.ToDto(created.StudentIds))
-            : this.Problem(result.Error!);
+            Created($"theoryLesson/{created.Id}", created.ToDto(created.StudentIds)) :
+            this.Problem(result.Error!);
     }
     
     [HttpGet("/{instructorId:guid}/theoryLessons")]
@@ -194,8 +186,8 @@ public class InstructorController : ControllerBase
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
 
         return result.IsSuccess ? 
-            Ok(result.Value!.Select(x => x.ToDto()).ToList())
-            : this.Problem(result.Error!);
+            Ok(result.Value!.Select(x => x.ToDto()).ToList()) :
+            this.Problem(result.Error!);
     }
     
     [HttpPost("/{instructorId:guid}/drivingLesson")]
@@ -216,8 +208,8 @@ public class InstructorController : ControllerBase
             StudentKey.Create(registryDto.StudentId));
         
         return result.IsSuccess ?
-            Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto()) :
+            this.Problem(result.Error!);
     }
     
     [HttpGet("{instructorId:guid}/drivingLessons")]
@@ -233,7 +225,7 @@ public class InstructorController : ControllerBase
         var result = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(InstructorKey.Create(idClaim));
 
         return result.IsSuccess ? 
-            Ok(result.Value!.Select(x => x.ToDto()).ToList())
-            : this.Problem(result.Error!);
+            Ok(result.Value!.Select(x => x.ToDto()).ToList()) :
+            this.Problem(result.Error!);
     }
 }
