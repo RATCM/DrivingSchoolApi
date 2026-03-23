@@ -37,6 +37,17 @@ public class StudentController : ControllerBase
         _studentService = studentService;
         _studentRepository = studentRepository;
     }
+
+    [HttpGet]
+    [Authorize(Policy = AuthPolicies.AdminOnly)]
+    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents(int page = 1)
+    {
+        var result = await _studentService.GetAllStudents();
+        const int PAGE_SIZE = 30;
+        return result.IsSuccess ? 
+            Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto())) : 
+            this.Problem(result.Error!);
+    }
     
     [HttpGet]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
@@ -83,11 +94,14 @@ public class StudentController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<Result<Student>> GetStudentById(StudentKey id)
+    public async Task<Result<StudentDto>> GetStudentById(StudentKey id)
     {
         var student = await _studentRepository.Get(id);
         if (student is null)
             return new StudentNotFoundException();
-        return student;
+        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(id);
+        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(id);
+        
+        return student.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value);
     }
 }

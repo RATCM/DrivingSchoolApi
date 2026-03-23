@@ -49,6 +49,12 @@ internal class StudentService : IStudentService
             return new StudentNotFoundException();
         return student;
     }
+
+    public async Task<Result<IEnumerable<Student>>> GetAllStudents()
+    {
+        var students = await _studentRepository.GetAll();
+        return students.ToList();
+    }
     
     public async Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId)
     {
