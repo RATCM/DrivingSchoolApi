@@ -19,7 +19,9 @@ internal class AdminConfiguration : IEntityTypeConfiguration<Admin>
         builder.Property(x => x.EmailAddress).HasConversion(
             email => email.Address,
             address => Email.Create(address));
-        
+        builder
+            .HasIndex(x => x.EmailAddress)
+            .IsUnique();
         builder.Property(x => x.HashedPassword).HasConversion(
             x => x.Hash,
             x => PasswordHash.Create(x));
