@@ -42,7 +42,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
     {
         var drivingSchool = await _drivingSchoolRepository.Get(id);
         if(drivingSchool is null)
-            return new DrivingSchoolNotFoundException();
+            return new DrivingSchoolNotFoundException("Driving school not found.");
         return drivingSchool;
     }
     
@@ -55,7 +55,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
     {
         var deleted = await _drivingSchoolRepository.Delete(id);
         if (!deleted)
-            return new DrivingSchoolNotFoundException();
+            return new DrivingSchoolNotFoundException("Driving school not found.");
         await _drivingSchoolRepository.Save();
         return Result.Success();
     }

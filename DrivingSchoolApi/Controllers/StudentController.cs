@@ -87,7 +87,7 @@ public class StudentController : ControllerBase
     {
         var student = await _studentRepository.Get(id);
         if (student is null)
-            return new StudentNotFoundException();
+            return new StudentNotFoundException("Student not found.");
         return student;
     }
 }

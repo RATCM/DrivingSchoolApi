@@ -74,7 +74,7 @@ internal class TheoryLessonService : ITheoryLessonService
 
     public async Task<Result<TheoryLesson>> GetTheoryLessonById(TheoryLessonKey id)
     {
-        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException();
+        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException("Theory lesson not found.");
     }
 
     public async Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId)
@@ -102,7 +102,7 @@ internal class TheoryLessonService : ITheoryLessonService
     {
         var deleted = await _theoryLessonRepository.Delete(id);
         if (!deleted)
-            return new TheoryLessonNotFoundException();
+            return new TheoryLessonNotFoundException("Theory lesson not found.");
         await _theoryLessonRepository.Save();
         return Result.Success();
     }
