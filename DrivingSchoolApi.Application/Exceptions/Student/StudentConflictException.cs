@@ -1,5 +1,6 @@
 ﻿namespace DrivingSchoolApi.Application.Exceptions.Student;
 
-public class StudentConflictException(string message) : ApplicationException(400, message)
+public class StudentConflictException : BadRequestException
 {
+    public StudentConflictException(string message) : base(message) { }
 }

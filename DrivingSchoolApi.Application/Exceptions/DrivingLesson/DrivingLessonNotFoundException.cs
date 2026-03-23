@@ -1,8 +1,6 @@
 namespace DrivingSchoolApi.Application.Exceptions.DrivingLesson;
 
-public class DrivingLessonNotFoundException : ApplicationException
+public class DrivingLessonNotFoundException : NotFoundException
 {
-    public DrivingLessonNotFoundException(string message) : base(404, message)
-    {
-    }
+    public DrivingLessonNotFoundException(string message) : base(message) { }
 }
