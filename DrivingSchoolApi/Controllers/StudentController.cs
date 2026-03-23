@@ -59,7 +59,7 @@ public class StudentController : ControllerBase
         
         return result.IsSuccess ?
             Ok(result.Value!.Select(x => x.ToDto())) : 
-            this.Problem((result.Error!));
+            this.Problem(result.Error!);
     }
     
     
@@ -67,24 +67,23 @@ public class StudentController : ControllerBase
     //TODO Add invite ID
     public async Task<IActionResult> CreateStudent([FromBody] StudentRegistryDto student)
     {
-        var createdResult = await _studentService.CreateStudent(
+        var result = await _studentService.CreateStudent(
             Name.Create(student.StudentName.FirstName, student.StudentName.LastName),
             Email.Create(student.EmailAddress),
             student.Password,
             PhoneNumber.Create(student.PhoneNumber),
             DrivingSchoolKey.Create(student.SchoolId));
         
-        if (!createdResult.IsSuccess) 
+        /*
+        if (!result.IsSuccess) 
             return Problem("Error creating student", "", 500);
-        var created = createdResult.Value!;
+        */
+        var created = result.Value!;
 
 
-        return Created($"student/{created.Id}", new StudentDto(
-            created.Id.Value,
-            created.SchoolId.Value,
-            created.StudentName.ToDto(),
-            created.EmailAddress.ToDto(),
-            created.PhoneNumber.ToDto()));
+        return result.IsSuccess ?
+            Created($"student/{created.Id}", result.Value!.ToDto()) :
+            this.Problem(result.Error!);
     }
 
     [HttpGet]
