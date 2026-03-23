@@ -55,17 +55,11 @@ public class StudentController : ControllerBase
     {
         var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
-        if (!result.IsSuccess) { return BadRequest("Failed to retrieve theory lessons."); }
-        var theoryLessons = result.Value!;
+        //if (!result.IsSuccess) { return BadRequest("Failed to retrieve theory lessons."); }
         
-        return Ok(theoryLessons.Select(x => new TheoryLessonDto(
-            x.Id.Value,
-            x.SchoolId.Value,
-            x.InstructorId.Value,
-            x.LessonDateTime,
-            x.Price.ToDto(),
-            x.StudentIds.Select(studentKey => studentKey.Value).ToList()
-        )));
+        return result.IsSuccess ?
+            Ok(result.Value!.Select(x => x.ToDto())) : 
+            this.Problem((result.Error!));
     }
     
     
