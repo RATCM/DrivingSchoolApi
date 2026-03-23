@@ -1,8 +1,7 @@
 ﻿namespace DrivingSchoolApi.DTOs;
 
-public sealed record InstructorRegistryDto(
+public record InstructorUpdateDto(
     Guid SchoolId,
     NameDto Name,
     string Email,
-    string PhoneNumber,
-    string Password);
+    string PhoneNumber);

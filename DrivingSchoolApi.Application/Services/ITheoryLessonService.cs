@@ -7,10 +7,10 @@ namespace DrivingSchoolApi.Application.Services;
 
 public interface ITheoryLessonService
 {
-    Task<Result<TheoryLesson>> CreateTheoryLesson(DrivingSchoolKey schoolId, 
+    Task<Result<TheoryLesson>> CreateTheoryLesson(
+        InstructorKey instructorId,
         DateTime dateTime, 
-        Money price, 
-        InstructorKey instructorId, 
+        Money price,
         IEnumerable<StudentKey> studentIds);
     Task<Result<TheoryLesson>> GetTheoryLessonById(TheoryLessonKey id);
     Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId);

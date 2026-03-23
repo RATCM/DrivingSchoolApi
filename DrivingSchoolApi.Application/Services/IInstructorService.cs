@@ -13,13 +13,19 @@ public interface IInstructorService
         PhoneNumber phoneNumber, 
         DrivingSchoolKey schoolId);
 
+    Task<Result<(string AccessToken, string RefreshToken)>> LoginAsInstructor(string email, string password);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructors();
-    Task<Result<Instructor>> GetInstructorById(InstructorKey id);
+    Task<Result<Instructor>> GetInstructorById(Guid claimedId, bool isAdmin, InstructorKey requestedId);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId);
-    Task<Result<Instructor>> UpdateInstructor(Name name, 
-        Email email, 
-        string password, 
-        PhoneNumber phoneNumber, 
-        DrivingSchoolKey schoolId);
+    Task<Result<Instructor>> UpdateInstructor(
+        InstructorKey id,
+        DrivingSchoolKey schoolId,
+        Name name,
+        Email email,
+        PhoneNumber phoneNumber);
+    Task<Result<Instructor>> UpdateInstructorPassword(
+        InstructorKey id,
+        string oldPassword,
+        string newPassword);
     Task<Result> DeleteInstructor(InstructorKey id);
 }

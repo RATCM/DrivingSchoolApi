@@ -3,6 +3,7 @@
 namespace DrivingSchoolApi.DTOs;
 
 public record DrivingLessonRegistryDto(
+    Guid SchoolId,
     Guid StudentId,
     DrivingRouteDto Route,
     MoneyDto Price

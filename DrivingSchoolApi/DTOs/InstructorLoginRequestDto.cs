@@ -1,5 +1,5 @@
 ﻿namespace DrivingSchoolApi.DTOs;
 
 public record InstructorLoginRequestDto(
-    String Username,
-    String Password);
+    string Email,
+    string Password);

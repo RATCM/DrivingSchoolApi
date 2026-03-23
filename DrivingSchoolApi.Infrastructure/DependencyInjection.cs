@@ -22,6 +22,7 @@ public static class DependencyInjection
                 .AddScoped<IInstructorRepository, InstructorRepository>()
                 .AddScoped<IStudentRepository, StudentRepository>()
                 .AddScoped<ITheoryLessonRepository, TheoryLessonRepository>()
+                .AddScoped<IAdminRepository, AdminRepository>()
                 .AddScoped<ITokenGeneratorService, TokenGeneratorService>()
                 .AddScoped<IPasswordHasher<Student>, PasswordHasher<Student>>()
                 .AddScoped<IPasswordHasher<Instructor>, PasswordHasher<Instructor>>()
@@ -36,7 +37,8 @@ public static class DependencyInjection
             services.AddAuthorizationBuilder()
                 .AddPolicy(AuthPolicies.AdminOnly, policy => policy.RequireRole("Admin"))
                 .AddPolicy(AuthPolicies.InstructorOnly, policy => policy.RequireRole("Instructor"))
-                .AddPolicy(AuthPolicies.StudentOnly, policy => policy.RequireRole("Student"));
+                .AddPolicy(AuthPolicies.StudentOnly, policy => policy.RequireRole("Student"))
+                .AddPolicy(AuthPolicies.AdminOrInstructor, policy => policy.RequireRole("Admin", "Instructor"));
 
             return services;
         }
