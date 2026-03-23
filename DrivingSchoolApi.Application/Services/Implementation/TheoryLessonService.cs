@@ -1,3 +1,5 @@
+using DrivingSchoolApi.Application.Exceptions.Instructor;
+using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Exceptions.TheoryLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
@@ -37,11 +39,11 @@ internal class TheoryLessonService : ITheoryLessonService
         
         // No duplicates
         if (studentIdsList.Count != studentIdsList.Distinct().Count())
-            return new Exception("Cannot add duplicate students to theory lesson.");
+            return new StudentDuplicateException("Cannot add duplicate students to theory lesson.");
         
         var instructor = await _instructorRepository.Get(instructorId);
         if (instructor is null)
-            return new Exception($"Instructor was not found.");
+            return new InstructorNotFoundException($"Instructor was not found.");
         
         // Build allowed student id set for the instructor's school.
         var schoolStudents = await _studentRepository.GetAllFromDrivingSchool(instructor.SchoolId);

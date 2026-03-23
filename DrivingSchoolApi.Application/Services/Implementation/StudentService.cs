@@ -46,7 +46,7 @@ internal class StudentService : IStudentService
     {
         var student = await _studentRepository.Get(id);
         if (student is null)
-            return new StudentNotFoundException("Driving school not found.");
+            return new StudentNotFoundException("Student not found.");
         return student;
     }
     

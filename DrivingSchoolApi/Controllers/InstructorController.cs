@@ -173,7 +173,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpGet("/{instructorId:guid}/theoryLessons")]
+    [HttpGet("/{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
     {
@@ -212,7 +212,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpGet("{instructorId:guid}/drivingLessons")]
+    [HttpGet("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> GetDrivingLessonFromInstructor(Guid instructorId)
     {
