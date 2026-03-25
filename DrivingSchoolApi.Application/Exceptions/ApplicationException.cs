@@ -1,6 +1,6 @@
 ﻿namespace DrivingSchoolApi.Application.Exceptions;
 
-public class ApplicationException : Exception
+public abstract class ApplicationException : Exception
 {
     public int ResponseCode { get; }
 

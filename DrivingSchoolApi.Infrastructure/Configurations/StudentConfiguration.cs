@@ -24,6 +24,9 @@ internal class StudentConfiguration : IEntityTypeConfiguration<Student>
         builder.Property(x => x.EmailAddress).HasConversion(
             email => email.Address,
             address => Email.Create(address));
+        builder
+            .HasIndex(x => x.EmailAddress)
+            .IsUnique();
 
         builder.Property(x => x.PhoneNumber).HasConversion(
             number => number.Number,

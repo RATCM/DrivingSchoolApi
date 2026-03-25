@@ -1,6 +1,7 @@
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,13 @@ internal class InstructorRepository : Repository, IInstructorRepository
     public async Task<Instructor?> Get(InstructorKey id)
     {
         return await DbContext.Instructors.FindAsync(id);
+    }
+
+    public async Task<Instructor?> GetByEmail(Email email)
+    {
+        return await DbContext.Instructors
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.EmailAddress == email);
     }
     
     public async Task<IEnumerable<Instructor>> GetAll()

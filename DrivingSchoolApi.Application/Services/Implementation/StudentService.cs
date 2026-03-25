@@ -46,7 +46,7 @@ internal class StudentService : IStudentService
     {
         var student = await _studentRepository.Get(id);
         if (student is null)
-            return new StudentNotFoundException();
+            return new StudentNotFoundException("Student not found.");
         return student;
     }
 
@@ -67,7 +67,7 @@ internal class StudentService : IStudentService
     {
         var deleted = await _studentRepository.Delete(id);
         if (!deleted)
-            return new StudentNotFoundException();
+            return new StudentNotFoundException("Student school not found.");
         await _studentRepository.Save();
         return Result.Success();
     }

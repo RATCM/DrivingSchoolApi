@@ -1,6 +1,6 @@
 namespace DrivingSchoolApi.Application.Exceptions.Student;
 
-public class StudentNotFoundException : Exception
+public class StudentNotFoundException : NotFoundException
 {
-    
+    public StudentNotFoundException(string message) : base(message) { }
 }
