@@ -46,7 +46,7 @@ public class StudentController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpGet]
+    [HttpGet("/theorylesson")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
     public async Task<IActionResult> GetTheoryLessonsFromStudent()
     {
@@ -58,7 +58,7 @@ public class StudentController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpGet]
+    [HttpGet("/drivinglesson")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
     public async Task<IActionResult> GetDrivingLessonsFromStudent()
     {
@@ -89,12 +89,14 @@ public class StudentController : ControllerBase
             Created($"student/{created.Id}", result.Value!.ToDto()) :
             this.Problem(result.Error!);
     }
+    
+    
 
-    [HttpGet]
+    [HttpGet("/{id:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    public async Task<ActionResult<StudentDto>> GetStudentById(StudentKey id)
+    public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)
     {
-        var student = await _studentService.GetStudentById(id);
+        var student = await _studentService.GetStudentById(StudentKey.Create(id));
         var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(id);
         var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(id);
 
