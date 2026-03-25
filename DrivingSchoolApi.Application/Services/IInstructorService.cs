@@ -15,7 +15,7 @@ public interface IInstructorService
 
     Task<Result<(string AccessToken, string RefreshToken)>> LoginAsInstructor(string email, string password);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructors();
-    Task<Result<Instructor>> GetInstructorById(InstructorKey id);
+    Task<Result<Instructor>> GetInstructorById(Guid claimedId, bool isAdmin, InstructorKey requestedId);
     Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId);
     Task<Result<Instructor>> UpdateInstructor(
         InstructorKey id,

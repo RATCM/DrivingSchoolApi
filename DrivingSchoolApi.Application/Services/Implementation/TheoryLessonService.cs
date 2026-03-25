@@ -1,3 +1,5 @@
+using DrivingSchoolApi.Application.Exceptions.Instructor;
+using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Exceptions.TheoryLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
@@ -37,11 +39,11 @@ internal class TheoryLessonService : ITheoryLessonService
         
         // No duplicates
         if (studentIdsList.Count != studentIdsList.Distinct().Count())
-            return new Exception("Cannot add duplicate students to theory lesson.");
+            return new StudentDuplicateException("Cannot add duplicate students to theory lesson.");
         
         var instructor = await _instructorRepository.Get(instructorId);
         if (instructor is null)
-            return new Exception($"Instructor was not found.");
+            return new InstructorNotFoundException($"Instructor was not found.");
         
         // Build allowed student id set for the instructor's school.
         var schoolStudents = await _studentRepository.GetAllFromDrivingSchool(instructor.SchoolId);
@@ -74,7 +76,7 @@ internal class TheoryLessonService : ITheoryLessonService
 
     public async Task<Result<TheoryLesson>> GetTheoryLessonById(TheoryLessonKey id)
     {
-        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException();
+        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException("Theory lesson not found.");
     }
 
     public async Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId)
@@ -102,7 +104,7 @@ internal class TheoryLessonService : ITheoryLessonService
     {
         var deleted = await _theoryLessonRepository.Delete(id);
         if (!deleted)
-            return new TheoryLessonNotFoundException();
+            return new TheoryLessonNotFoundException("Theory lesson not found.");
         await _theoryLessonRepository.Save();
         return Result.Success();
     }
