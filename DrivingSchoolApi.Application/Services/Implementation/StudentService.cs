@@ -1,3 +1,4 @@
+using DrivingSchoolApi.Application.Exceptions.Admin;
 using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
@@ -11,15 +12,18 @@ internal class StudentService : IStudentService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IStudentRepository _studentRepository;
+    private readonly IAdminRepository _adminRepository;
     private readonly IPasswordHasher<Student> _passwordHasher;
 
     public StudentService(
         IGuidGeneratorService guidGeneratorService,
         IStudentRepository studentRepository,
+        IAdminRepository adminRepository,
         IPasswordHasher<Student> passwordHasher)
     {
         _guidGeneratorService = guidGeneratorService;
         _studentRepository = studentRepository;
+        _adminRepository = adminRepository;
         _passwordHasher = passwordHasher;
     }
     
@@ -63,9 +67,18 @@ internal class StudentService : IStudentService
         return students.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
-    public async Task<Result> DeleteStudent(StudentKey id)
+    public async Task<Result> DeleteStudent(Guid claimedId, StudentKey deleteId, bool isAdmin)
     {
-        var deleted = await _studentRepository.Delete(id);
+        if (isAdmin)
+        {
+            var resultAdmin = await _adminRepository.Get(AdminKey.Create(claimedId));
+            if (resultAdmin is null)
+                return new AdminNotFoundException("Couldn't find your admin account in DB.");
+        }
+        var searchId = isAdmin ? deleteId : StudentKey.Create(claimedId);
+        
+        
+        var deleted = await _studentRepository.Delete(searchId);
         if (!deleted)
             return new StudentNotFoundException("Student school not found.");
         await _studentRepository.Save();

@@ -89,6 +89,20 @@ public class StudentController : ControllerBase
             Created($"student/{created.Id}", result.Value!.ToDto()) :
             this.Problem(result.Error!);
     }
+
+    [HttpDelete("/{studentId:Guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOrStudent)]
+    public async Task<IActionResult> DeleteStudent(Guid studentId)
+    {
+        var idClaim = HttpContext.GetUserIdClaim();
+        var isAdmin = HttpContext.GetUserRoleClaim().Equals("Admin");
+
+        var deleted = await _studentService.DeleteStudent(studentId, StudentKey.Create(idClaim), isAdmin);
+
+        return deleted.IsSuccess ? 
+            NoContent() : 
+            this.Problem(deleted.Error!);
+    }
     
     
 
@@ -97,8 +111,8 @@ public class StudentController : ControllerBase
     public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)
     {
         var student = await _studentService.GetStudentById(StudentKey.Create(id));
-        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(id);
-        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(id);
+        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(id));
+        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(id));
 
         return student.IsSuccess ?
             Ok(student.Value!.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value)) :
