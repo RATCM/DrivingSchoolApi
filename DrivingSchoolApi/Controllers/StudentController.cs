@@ -34,6 +34,10 @@ public class StudentController : ControllerBase
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
     }
+    
+    //TODO login
+    
+    //TODO register
 
     [HttpGet]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
