@@ -12,7 +12,9 @@ public interface IStudentService
         string password, 
         PhoneNumber phoneNumber, 
         DrivingSchoolKey schoolId);
+    
     Task<Result<Student>> GetStudentById(StudentKey id);
+    Task<Result<IEnumerable<Student>>> GetAllStudents();
     Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId);
     Task<Result> DeleteStudent(StudentKey id);
 }
