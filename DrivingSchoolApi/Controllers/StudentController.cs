@@ -22,20 +22,17 @@ public class StudentController : ControllerBase
 {
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
-    private readonly IStudentRepository _studentRepository;
     private readonly IStudentService _studentService;
 
     public StudentController(
         ILogger<StudentController> logger,
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService,
-        IStudentService studentService,
-        IStudentRepository studentRepository)
+        IStudentService studentService)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
-        _studentRepository = studentRepository;
     }
 
     [HttpGet]
@@ -83,14 +80,14 @@ public class StudentController : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    public async Task<Result<StudentDto>> GetStudentById(StudentKey id)
+    public async Task<ActionResult<StudentDto>> GetStudentById(StudentKey id)
     {
-        var student = await _studentRepository.Get(id);
-        if (student is null)
-            return new StudentNotFoundException("Student not found");
+        var student = await _studentService.GetStudentById(id);
         var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(id);
         var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(id);
-        
-        return student.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value);
+
+        return student.IsSuccess ?
+            Ok(student.Value!.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value)) :
+            this.Problem(student.Error!);
     }
 }
