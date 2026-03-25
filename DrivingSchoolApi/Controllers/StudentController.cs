@@ -51,9 +51,21 @@ public class StudentController : ControllerBase
     public async Task<IActionResult> GetTheoryLessonsFromStudent()
     {
         var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
+        var result = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(idClaim));
         
         return result.IsSuccess ?
+            Ok(result.Value!.Select(x => x.ToDto())) : 
+            this.Problem(result.Error!);
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> GetDrivingLessonsFromStudent()
+    {
+        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var result = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(idClaim));
+
+        return result.IsSuccess ? 
             Ok(result.Value!.Select(x => x.ToDto())) : 
             this.Problem(result.Error!);
     }
