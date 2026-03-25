@@ -55,7 +55,6 @@ public class StudentController : ControllerBase
     {
         var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
-        //if (!result.IsSuccess) { return BadRequest("Failed to retrieve theory lessons."); }
         
         return result.IsSuccess ?
             Ok(result.Value!.Select(x => x.ToDto())) : 
@@ -74,10 +73,6 @@ public class StudentController : ControllerBase
             PhoneNumber.Create(student.PhoneNumber),
             DrivingSchoolKey.Create(student.SchoolId));
         
-        /*
-        if (!result.IsSuccess) 
-            return Problem("Error creating student", "", 500);
-        */
         var created = result.Value!;
 
 
@@ -87,6 +82,7 @@ public class StudentController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     public async Task<Result<StudentDto>> GetStudentById(StudentKey id)
     {
         var student = await _studentRepository.Get(id);
