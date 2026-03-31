@@ -7,6 +7,7 @@ using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
+using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -93,9 +94,10 @@ public class DrivingSchoolController : ControllerBase
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()
     {
         var idClaim = HttpContext.GetUserIdClaim();
-        var roleClaim = HttpContext.GetUserRoleClaim().Equals("Instructor");
+        var userId = new Guid(idClaim.Value);
+        var roleClaim = HttpContext.User.IsInRole(nameof(UserRole.Instructor));
         
-        var instructor = await _instructorService.GetInstructorById(idClaim, roleClaim, InstructorKey.Create(idClaim));
+        var instructor = await _instructorService.GetInstructorById(userId, roleClaim, InstructorKey.Create(userId));
         
         if  (!instructor.IsSuccess)
             return this.Problem(instructor.Error!);
