@@ -24,7 +24,7 @@ public class DrivingSchoolServiceTests
                 WebAddress.Create("url.com"),
                 []));
         
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), mock);
+        var sut = new DrivingSchoolService(new GuidGeneratorService(), mock, new DateTimeProviderService());
 
         // Act
         var drivingSchool = await sut.GetDrivingSchoolById(DrivingSchoolKey.Create(Guid.Empty));

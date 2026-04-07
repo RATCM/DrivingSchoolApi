@@ -11,12 +11,15 @@ internal class DrivingSchoolService : IDrivingSchoolService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IDrivingSchoolRepository _drivingSchoolRepository;
+    private readonly IDateTimeProviderService _dateTimeProviderService;
     public DrivingSchoolService(
         IGuidGeneratorService guidGeneratorService,
-        IDrivingSchoolRepository drivingSchoolRepository)
+        IDrivingSchoolRepository drivingSchoolRepository,
+        IDateTimeProviderService dateTimeProviderService)
     {
         _guidGeneratorService = guidGeneratorService;
         _drivingSchoolRepository = drivingSchoolRepository;
+        _dateTimeProviderService = dateTimeProviderService;
     }
     
     public async Task<Result<DrivingSchool>> CreateDrivingSchool(DrivingSchoolName name, StreetAddress address, PhoneNumber phoneNumber, WebAddress webAddress, Package[] packages)
@@ -49,6 +52,22 @@ internal class DrivingSchoolService : IDrivingSchoolService
     public async Task<Result<IEnumerable<DrivingSchool>>> GetAllDrivingSchools()
     {
         return (await _drivingSchoolRepository.GetAll()).ToList();
+    }
+
+    public async Task<Result<StudentInvite>> CreateStudentInvite(DrivingSchoolKey id, TimeSpan timeValid)
+    {
+        var drivingSchool = await _drivingSchoolRepository.Get(id);
+        if (drivingSchool is null)
+            return new DrivingSchoolNotFoundException("Driving school not found");
+
+        var invite = StudentInvite.Create(
+            StudentInviteKey.Create(_guidGeneratorService.NewGuid()),
+            id,
+            DateTime.Now.Add(timeValid));
+        
+        drivingSchool.AddStudentInvite(invite);
+
+        return invite;
     }
 
     public async Task<Result> DeleteDrivingSchool(DrivingSchoolKey id)

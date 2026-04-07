@@ -23,16 +23,19 @@ public class StudentController : ControllerBase
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
     private readonly IStudentService _studentService;
+    private readonly IStudentInviteService _studentInviteService;
 
     public StudentController(
         ILogger<StudentController> logger,
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService,
-        IStudentService studentService)
+        IStudentService studentService,
+        IStudentInviteService studentInviteService)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
+        _studentInviteService = studentInviteService;
     }
 
     [HttpGet]
@@ -60,18 +63,22 @@ public class StudentController : ControllerBase
     
     
     [HttpPost]
-    //TODO Add invite ID
     public async Task<IActionResult> CreateStudent([FromBody] StudentRegistryDto student)
     {
+        var studentInviteResult = await _studentInviteService.RedeemStudentInvite(
+            StudentInviteKey.Create(student.InviteId));
+
+        if (!studentInviteResult.IsSuccess)
+            return this.Problem(studentInviteResult.Error!);
+        
         var result = await _studentService.CreateStudent(
             Name.Create(student.StudentName.FirstName, student.StudentName.LastName),
             Email.Create(student.EmailAddress),
             student.Password,
             PhoneNumber.Create(student.PhoneNumber),
-            DrivingSchoolKey.Create(student.SchoolId));
+            studentInviteResult.Value!.Id);
         
         var created = result.Value!;
-
 
         return result.IsSuccess ?
             Created($"student/{created.Id}", result.Value!.ToDto()) :

@@ -106,4 +106,25 @@ public class DrivingSchoolController : ControllerBase
             Ok(result.Value!.Select(s => s.ToDto()))
             : BadRequest("Failed to retrieve students.");
     }
+    
+    [HttpPost("{schoolId:guid}/student/invite")]
+    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid schoolId)
+    {
+        var idClaim = HttpContext.GetUserIdClaim();
+        var roleClaim = HttpContext.GetUserRoleClaim().Equals("Instructor");
+
+        var instructor = await _instructorService.GetInstructorById(idClaim, roleClaim, InstructorKey.Create(idClaim));
+
+        if (instructor.IsSuccess)
+            return this.Problem(instructor.Error!);
+        
+        var invite = await _drivingSchoolService.CreateStudentInvite(
+            DrivingSchoolKey.Create(schoolId), 
+            TimeSpan.FromDays(30)); // We just have the invite be available for 30 days for now
+
+        return invite.IsSuccess
+            ? Ok(invite.Value!)
+            : this.Problem(invite.Error!);
+    }
 }
