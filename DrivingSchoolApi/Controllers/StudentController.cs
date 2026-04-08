@@ -36,8 +36,17 @@ public class StudentController : ControllerBase
     }
     
     //TODO login
+    [HttpPost("/login")]
+    public async Task<ActionResult> LoginAsStudent([FromBody] StudentLoginRequestDto loginRequest)
+    {
+        var result = await _studentService.LoginAsStudent(loginRequest.Email, loginRequest.Password);
+        
+        return result.IsSuccess ? 
+            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken}) :
+            this.Problem(result.Error!);
+    }
     
-    //TODO register
+    //TODO register (should be implemented studentInvite branch)
 
     [HttpGet]
     [Authorize(Policy = AuthPolicies.AdminOnly)]

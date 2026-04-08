@@ -1,4 +1,5 @@
 using DrivingSchoolApi.Application.Exceptions.Admin;
+using DrivingSchoolApi.Application.Exceptions.Common;
 using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
@@ -13,18 +14,35 @@ internal class StudentService : IStudentService
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IStudentRepository _studentRepository;
     private readonly IAdminRepository _adminRepository;
-    private readonly IPasswordHasher<Student> _passwordHasher;
+    private readonly ITokenGeneratorService _tokenGeneratorService;
+    private readonly IPasswordHasher<Student> _passwordHasherService;
 
     public StudentService(
         IGuidGeneratorService guidGeneratorService,
         IStudentRepository studentRepository,
         IAdminRepository adminRepository,
+        ITokenGeneratorService tokenGeneratorService,
         IPasswordHasher<Student> passwordHasher)
     {
         _guidGeneratorService = guidGeneratorService;
         _studentRepository = studentRepository;
         _adminRepository = adminRepository;
-        _passwordHasher = passwordHasher;
+        _tokenGeneratorService = tokenGeneratorService;
+        _passwordHasherService = passwordHasher;
+    }
+    
+        public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password)
+    {
+        var instructor = await _studentRepository.GetByEmail(Email.Create(email));
+        if (instructor is null)
+            return new StudentNotFoundException("Student not found during login attempt.");
+
+        if (!_passwordHasherService.VerifyHashedPassword(password, instructor.HashedPassword))
+            return new InvalidLoginRequestException();
+        
+        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(instructor.Id.Value, "Student");
+        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(instructor.Id.Value, "Student");
+        return (accessToken, refreshToken);
     }
     
     public async Task<Result<Student>> CreateStudent(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
@@ -34,7 +52,7 @@ internal class StudentService : IStudentService
             schoolId,
             name,
             email,
-            _passwordHasher.HashPassword(password),
+            _passwordHasherService.HashPassword(password),
             phoneNumber
         );
 
