@@ -8,23 +8,23 @@
       driving-school-db:
         condition: service_healthy
     ports:
-      - "${API_PORT_HOST}:${API_PORT_CONTAINER}"
+      - "${API_PORT_HOST:-5259}:${API_PORT_CONTAINER:-5259}"
     environment:
-      - ConnectionStrings__Database=host=driving-school-db; port=${DB_PORT_HOST}; database=DrivingSchoolDb; username=${DB_USER}; password=${DB_PASSWD}
-      - ASPNETCORE_URLS=http://0.0.0.0:${API_PORT_HOST}
-      - Authentication__Schemes__Access__SigningKeys__0__Value=${JWT_ACCESS_SIGNING_KEY}
-      - Authentication__Schemes__Refresh__SigningKeys__0__Value=${JWT_REFRESH_SIGNING_KEY}
-      - ASPNETCORE_ENVIRONMENT=$BUILD_ENVIRONMENT
+      - ConnectionStrings__Database=host=driving-school-db; port=${DB_PORT_HOST:-5432}; database=DrivingSchoolDb; username=${DB_USER}; password=${DB_PASSWD}
+      - ASPNETCORE_URLS=http://0.0.0.0:${API_PORT_HOST:-5259}
+      - Authentication__Schemes__Access__SigningKeys__0__Value=${JWT_ACCESS_SIGNING_KEY:? JWT refresh signing key required}
+      - Authentication__Schemes__Refresh__SigningKeys__0__Value=${JWT_REFRESH_SIGNING_KEY:? JWT access signing key required}
+      - ASPNETCORE_ENVIRONMENT=${BUILD_ENVIRONMENT:-Development}
   driving-school-db:
     container_name: "driving-school-db"
     image: postgres:latest
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWD}
+      POSTGRES_USER: ${DB_USER:? Database username required}
+      POSTGRES_PASSWORD: ${DB_PASSWD:? Database password required}
       POSTGRES_DB: DrivingSchoolDb
-      PGPORT: ${DB_PORT_HOST}
+      PGPORT: ${DB_PORT_HOST:-5432}
     ports:
-      - "${DB_PORT_HOST}:${DB_PORT_CONTAINER}"
+      - "${DB_PORT_HOST:-5432}:${DB_PORT_CONTAINER:-5432}"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d DrivingSchoolDb" ]
       interval: 5s
