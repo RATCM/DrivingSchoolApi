@@ -74,13 +74,13 @@ public class InstructorController : ControllerBase
 
     [HttpGet("/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [UserFilter("instructorId", allowAdmins: true)]
+    [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
     {
         var idClaim = HttpContext.GetUserIdClaim();
         bool isAdmin = HttpContext.User.IsInRole(nameof(UserRole.Admin));
         
-        var result = await _instructorService.GetInstructorById(instructorId, isAdmin, InstructorKey.Create(instructorId));
+        var result = await _instructorService.GetInstructorById(InstructorKey.Create(instructorId));
         
         return result.IsSuccess ?
             Ok(result.Value!.ToDto()) :
@@ -106,7 +106,7 @@ public class InstructorController : ControllerBase
 
     [HttpPut("/{instructorId:guid}/password")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [UserFilter("instructorId", allowAdmins: true)]
+    [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> UpdateInstructorPassword(Guid instructorId, [FromBody] UpdatePasswordDto updateDto)
     {
         var result = await _instructorService.UpdateInstructorPassword(
@@ -121,7 +121,7 @@ public class InstructorController : ControllerBase
 
     [HttpDelete("/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [UserFilter("instructorId", allowAdmins: true)]
+    [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteInstructor(Guid instructorId)
     {
         var deleted  = await _instructorService.DeleteInstructor(InstructorKey.Create(instructorId));

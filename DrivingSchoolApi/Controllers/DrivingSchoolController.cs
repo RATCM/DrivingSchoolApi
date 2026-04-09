@@ -1,7 +1,6 @@
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
-using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
@@ -91,13 +90,14 @@ public class DrivingSchoolController : ControllerBase
     }
     [HttpGet]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    //[SameDrivingSchoolFilter()]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()
     {
         var idClaim = HttpContext.GetUserIdClaim();
         var userId = new Guid(idClaim.Value);
         var roleClaim = HttpContext.User.IsInRole(nameof(UserRole.Instructor));
         
-        var instructor = await _instructorService.GetInstructorById(userId, roleClaim, InstructorKey.Create(userId));
+        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(userId));
         
         if  (!instructor.IsSuccess)
             return this.Problem(instructor.Error!);

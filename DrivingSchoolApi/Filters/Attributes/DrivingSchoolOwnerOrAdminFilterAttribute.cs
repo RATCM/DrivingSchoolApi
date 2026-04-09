@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DrivingSchoolApi.Filters.Attributes;
 
 public class DrivingSchoolOwnerOrAdminFilterAttribute : TypeFilterAttribute
-{ 
+{
     /// <summary>
     /// When applied to an endpoint or controller, it checks
     /// if the user is either an owner of the driving school, or an admin

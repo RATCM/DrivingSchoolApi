@@ -10,13 +10,13 @@ namespace DrivingSchoolApi.Filters.Attributes;
 public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
 {
     private readonly string _key;
-    private readonly bool _allowAdmins;
+    private readonly bool _letAdminsBypass;
     
     /// <summary>
     /// When applied to an endpoint or controller, it enforces TokenUserID == EndpointID
     /// </summary>
     /// <param name="key">The user guid in the route template</param>
-    /// <param name="allowAdmins">Whether admins should be allowed to bypass this restriction</param>
+    /// <param name="letAdminsBypass">Whether admins should be allowed to bypass this restriction</param>
     /// <example>
     /// <code>
     /// [HttpPut("{id}")] // Route template
@@ -32,10 +32,10 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public UserFilterAttribute(string key, bool allowAdmins = false)
+    public UserFilterAttribute(string key, bool letAdminsBypass = false)
     {
         _key = key;
-        _allowAdmins = allowAdmins;
+        _letAdminsBypass = letAdminsBypass;
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -79,7 +79,7 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
         var providedId = new Guid(providedIdStr);
         Console.WriteLine(isAdmin);
 
-        var allowedAccess = userId == providedId || (isAdmin && _allowAdmins);
+        var allowedAccess = userId == providedId || (isAdmin && _letAdminsBypass);
         if ( !allowedAccess )
         {
             var errorResponse = new
