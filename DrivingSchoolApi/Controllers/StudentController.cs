@@ -75,7 +75,7 @@ public class StudentController : ControllerBase
     [Authorize(Policy = AuthPolicies.StudentOnly)]
     public async Task<IActionResult> GetDrivingLessonsFromStudent()
     {
-        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var idClaim = HttpContext.GetUserIdClaim();
         var result = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(idClaim));
 
         return result.IsSuccess ? 

@@ -33,15 +33,15 @@ internal class StudentService : IStudentService
     
         public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password)
     {
-        var instructor = await _studentRepository.GetByEmail(Email.Create(email));
-        if (instructor is null)
+        var student = await _studentRepository.GetByEmail(Email.Create(email));
+        if (student is null)
             return new StudentNotFoundException("Student not found during login attempt.");
 
-        if (!_passwordHasherService.VerifyHashedPassword(password, instructor.HashedPassword))
+        if (!_passwordHasherService.VerifyHashedPassword(password, student.HashedPassword))
             return new InvalidLoginRequestException();
         
-        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(instructor.Id.Value, "Student");
-        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(instructor.Id.Value, "Student");
+        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(student.Id.Value, "Student");
+        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(student.Id.Value, "Student");
         return (accessToken, refreshToken);
     }
     
