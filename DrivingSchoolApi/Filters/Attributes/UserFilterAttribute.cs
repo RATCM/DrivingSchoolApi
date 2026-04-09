@@ -40,9 +40,9 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        Console.WriteLine("UserFilter...");
+        //Console.WriteLine("UserFilter...");
         var userIdClaim = context.HttpContext.GetUserIdClaim();
-        Console.WriteLine($"Id claim: {userIdClaim?.Value}");
+        //Console.WriteLine($"Id claim: {userIdClaim?.Value}");
         if (userIdClaim is null)
         {
             var errorResponse = new
@@ -60,7 +60,7 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
 
         var userId = new Guid(userIdClaim.Value);
         var providedIdStr = context.HttpContext.GetRouteValue(_key) as string;
-        Console.WriteLine($"Provided id str: {providedIdStr}");
+        //Console.WriteLine($"Provided id str: {providedIdStr}");
         if (providedIdStr is null)
         {
             var errorResponse = new
@@ -77,7 +77,7 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
 
         var isAdmin = context.HttpContext.User.IsInRole(nameof(UserRole.Admin));
         var providedId = new Guid(providedIdStr);
-        Console.WriteLine(isAdmin);
+        //Console.WriteLine(isAdmin);
 
         var allowedAccess = userId == providedId || (isAdmin && _letAdminsBypass);
         if ( !allowedAccess )

@@ -1,5 +1,4 @@
 using DrivingSchoolApi.Application.Auth;
-using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
@@ -18,7 +17,6 @@ namespace DrivingSchoolApi.Controllers;
 public class DrivingSchoolController : ControllerBase
 {
     private readonly IDrivingSchoolService _drivingSchoolService;
-    private readonly IStudentRepository _studentRepository;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
 
@@ -26,11 +24,13 @@ public class DrivingSchoolController : ControllerBase
         ILogger<DrivingSchoolController> logger,
         IDrivingSchoolService drivingSchoolService,
         IStudentService studentService,
-        IStudentRepository studentRepository,
         IInstructorService instructorService)
     {
         _drivingSchoolService = drivingSchoolService;
+        _studentService = studentService;
+        _instructorService = instructorService;
     }
+    
     
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
@@ -50,6 +50,7 @@ public class DrivingSchoolController : ControllerBase
             null)));
     }
     
+    
     //[HttpGet("{id}")]
     //public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
     //{
@@ -64,6 +65,7 @@ public class DrivingSchoolController : ControllerBase
     //        null,
     //        null)));
     //}
+    
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
@@ -88,10 +90,12 @@ public class DrivingSchoolController : ControllerBase
             created.WebAddress.ToDto(),
             created.Packages.Select(x => x.ToDto()).ToList()));
     }
-    [HttpGet("/students")]
+    
+    
+    [HttpGet("{schoolId:guid}/students")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     //[SameDrivingSchoolFilter()]
-    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()
+    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var idClaim = HttpContext.GetUserIdClaim();
         var userId = new Guid(idClaim.Value);

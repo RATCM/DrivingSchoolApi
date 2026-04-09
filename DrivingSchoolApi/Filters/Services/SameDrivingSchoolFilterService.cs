@@ -20,7 +20,6 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
     public SameDrivingSchoolFilterService(
         string key,
         UserRole targetRole,
-        UserRole requesteeRole,
         bool letAdminsBypass,
         IStudentService studentService,
         IInstructorService instructorService,

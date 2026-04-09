@@ -11,7 +11,8 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// if the userId is connected to the same school as the URI id.
     /// </summary>
     /// <param name="key">The targets guid in the route template</param>
-    /// <param name="allowAdmins">Whether admins should be allowed to bypass this restriction</param>
+    /// <param name="targetRole">The role of the target (student or instructor)</param>
+    /// <param name="letAdminsBypass">Whether admins should be allowed to bypass this restriction</param>
     /// <example>
     /// <code>
     /// [HttpPut("{id}")] // Route template
@@ -27,9 +28,9 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public SameDrivingSchoolFilterAttribute(string key, UserRole targetRole,UserRole requesteeRole, bool allowAdmins) : base(typeof(SameDrivingSchoolFilterService))
+    public SameDrivingSchoolFilterAttribute(string key, UserRole targetRole, bool letAdminsBypass) : base(typeof(SameDrivingSchoolFilterService))
     {
-        Arguments = [key, targetRole, requesteeRole, allowAdmins];
+        Arguments = [key, targetRole, letAdminsBypass];
         Order = 2;
     }
 }

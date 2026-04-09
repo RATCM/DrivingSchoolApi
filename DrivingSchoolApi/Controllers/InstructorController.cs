@@ -20,19 +20,16 @@ public class InstructorController : ControllerBase
     private readonly IInstructorService _instructorService;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
-    private readonly IStudentService _studentService;
 
     public InstructorController(
         ILogger<InstructorController> logger,
         IInstructorService instructorService,
         ITheoryLessonService theoryLessonService,
-        IDrivingLessonService drivingLessonService,
-        IStudentService studentService)
+        IDrivingLessonService drivingLessonService)
     {
         _instructorService = instructorService;
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
-        _studentService = studentService;
     }
 
     [HttpPost("/login")]
@@ -77,9 +74,6 @@ public class InstructorController : ControllerBase
     [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
     {
-        var idClaim = HttpContext.GetUserIdClaim();
-        bool isAdmin = HttpContext.User.IsInRole(nameof(UserRole.Admin));
-        
         var result = await _instructorService.GetInstructorById(InstructorKey.Create(instructorId));
         
         return result.IsSuccess ?
