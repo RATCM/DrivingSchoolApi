@@ -1,4 +1,5 @@
 ﻿using DrivingSchoolApi.Filters.Services;
+using DrivingSchoolApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrivingSchoolApi.Filters.Attributes;
@@ -9,7 +10,7 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// When applied to an endpoint or controller, it checks
     /// if the userId is connected to the same school as the URI id.
     /// </summary>
-    /// <param name="key">The schools guid in the route template</param>
+    /// <param name="key">The targets guid in the route template</param>
     /// <param name="allowAdmins">Whether admins should be allowed to bypass this restriction</param>
     /// <example>
     /// <code>
@@ -26,9 +27,9 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public SameDrivingSchoolFilterAttribute(string key, bool allowAdmins) : base(typeof(SameDrivingSchoolFilterService))
+    public SameDrivingSchoolFilterAttribute(string key, UserRole targetRole,UserRole requesteeRole, bool allowAdmins) : base(typeof(SameDrivingSchoolFilterService))
     {
-        Arguments = [key,allowAdmins];
+        Arguments = [key, targetRole, requesteeRole, allowAdmins];
         Order = 2;
     }
 }
