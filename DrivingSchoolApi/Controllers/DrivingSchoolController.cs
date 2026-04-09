@@ -88,7 +88,7 @@ public class DrivingSchoolController : ControllerBase
             created.WebAddress.ToDto(),
             created.Packages.Select(x => x.ToDto()).ToList()));
     }
-    [HttpGet]
+    [HttpGet("/students")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     //[SameDrivingSchoolFilter()]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()

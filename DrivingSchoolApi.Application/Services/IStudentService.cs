@@ -13,6 +13,7 @@ public interface IStudentService
         PhoneNumber phoneNumber, 
         DrivingSchoolKey schoolId);
     
+    Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password);
     Task<Result<Student>> GetStudentById(StudentKey id);
     Task<Result<IEnumerable<Student>>> GetAllStudents();
     Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId);
