@@ -63,6 +63,15 @@ internal class StudentService : IStudentService
         return students.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
+    // Used for SameDrivingSchoolFilterService
+    public async Task<Result<DrivingSchoolKey>> GetStudentDrivingSchoolId(StudentKey id)
+    {
+        var student = await _studentRepository.Get(id);
+        if (student is null)
+            return new StudentNotFoundException("Student not found.");
+        return student.SchoolId;
+    }
+
     public async Task<Result> DeleteStudent(StudentKey id)
     {
         var deleted = await _studentRepository.Delete(id);

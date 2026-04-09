@@ -16,5 +16,6 @@ public interface IStudentService
     Task<Result<Student>> GetStudentById(StudentKey id);
     Task<Result<IEnumerable<Student>>> GetAllStudents();
     Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId);
+    Task<Result<DrivingSchoolKey>> GetStudentDrivingSchoolId(StudentKey id);
     Task<Result> DeleteStudent(StudentKey id);
 }
