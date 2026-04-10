@@ -3,6 +3,8 @@ using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.Filters.Attributes;
+using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Models;
@@ -94,7 +96,7 @@ public class DrivingSchoolController : ControllerBase
     
     [HttpGet("{schoolId:guid}/students")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    //[SameDrivingSchoolFilter()]
+    [SameDrivingSchoolFilter("schoolId", TargetRole.School)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var idClaim = HttpContext.GetUserIdClaim();
