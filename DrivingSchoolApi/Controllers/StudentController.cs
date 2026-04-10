@@ -4,8 +4,8 @@ using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Filters.Attributes;
+using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
-using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -119,7 +119,7 @@ public class StudentController : ControllerBase
     
     [HttpGet("/{id:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [SameDrivingSchoolFilter("id", UserRole.Student,true)]
+    [SameDrivingSchoolFilter("id", TargetRole.Student,true)]
     public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)
     {
         var student = await _studentService.GetStudentById(StudentKey.Create(id));

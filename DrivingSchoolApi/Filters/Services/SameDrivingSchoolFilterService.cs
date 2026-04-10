@@ -1,6 +1,6 @@
-﻿using System.Net;
-using DrivingSchoolApi.Application.Services;
+﻿using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -8,29 +8,33 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace DrivingSchoolApi.Filters.Services;
 
+public enum TargetRole
+{
+    Student,
+    Instructor,
+    School
+}
+
 public class SameDrivingSchoolFilterService : IAsyncResourceFilter
 {
     private readonly string _key;
-    private readonly UserRole _targetRole;
+    private readonly TargetRole _targetRole;
     private readonly bool _letAdminsBypass;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
-    private readonly ILogger<SameDrivingSchoolFilterService> _logger;
 
     public SameDrivingSchoolFilterService(
         string key,
-        UserRole targetRole,
+        TargetRole targetRole,
         bool letAdminsBypass,
         IStudentService studentService,
-        IInstructorService instructorService,
-        ILogger<SameDrivingSchoolFilterService> logger)
+        IInstructorService instructorService)
     {
         _key = key;
         _targetRole = targetRole;
         _letAdminsBypass = letAdminsBypass;
         _studentService = studentService;
         _instructorService = instructorService;
-        _logger = logger;
     }
 
     public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
@@ -39,133 +43,119 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
         var providedIdStr = context.HttpContext.GetRouteValue(_key) as string;
         if (providedIdStr is null)
         {
-            var errorResponse = new
-            {
-                Status = (int)HttpStatusCode.InternalServerError,
-            };
-            
-            context.Result = new JsonResult(errorResponse)
-            {
-                StatusCode = (int)HttpStatusCode.InternalServerError,
-            };
+            context.Result = CreateErrorResult(
+            StatusCodes.Status500InternalServerError);
             return;
         }
         
         
-        var requesteeIdClaim = context.HttpContext.GetUserIdClaim();
-        if (requesteeIdClaim is null)
+        var callerIdClaim = context.HttpContext.GetUserIdClaim();
+        if (callerIdClaim is null)
         {
-            var errorResponse = new
-            {
-                Status = (int)HttpStatusCode.Unauthorized,
-                Message = "You need to be logged-in to access this resource"
-            };
-            
-            context.Result = new JsonResult(errorResponse)
-            {
-                StatusCode = (int)HttpStatusCode.Unauthorized,
-            };
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized,
+                "You need to be logged-in to access this resource"
+                );
             return;
         }
 
-        var requesteeId = new Guid(requesteeIdClaim.Value);
+        var callerId = new Guid(callerIdClaim.Value);
         
-        var requesteeRoleClaim = context.HttpContext.GetUserRoleClaim();
-        if (requesteeRoleClaim is null)
+        var callerRoleClaim = context.HttpContext.GetUserRoleClaim();
+        if (callerRoleClaim is null)
         {
-            var errorResponse = new
-            {
-                Status = (int)HttpStatusCode.Unauthorized,
-            };
-            
-            context.Result = new JsonResult(errorResponse)
-            {
-                StatusCode = (int)HttpStatusCode.Unauthorized,
-            };
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized
+                );
             return;
         }
 
         // Admin bypass
-        if (_letAdminsBypass && requesteeRoleClaim == nameof(UserRole.Admin))
+        if (_letAdminsBypass && callerRoleClaim == nameof(UserRole.Admin))
         {
             await next();
-            return;
         } 
-        else if (!_letAdminsBypass && requesteeRoleClaim == nameof(UserRole.Admin))
+        else if (!_letAdminsBypass && callerRoleClaim == nameof(UserRole.Admin))
         {
-            context.Result = new JsonResult(new
-            {
-                Status = StatusCodes.Status401Unauthorized,
-            })
-            {
-                StatusCode = StatusCodes.Status401Unauthorized
-            };
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized
+                );
             return;
         }
         
         // Find requestee corresponding schoolId
-        var requesteeSchoolResult = requesteeRoleClaim switch
-        {
-            nameof(UserRole.Student) => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(requesteeId)),
-            nameof(UserRole.Instructor) => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(requesteeId)),
-            _ => throw new Exception("Invalid target role: " + requesteeRoleClaim)
-        };
+        var callerSchoolResult = await GetSchoolIdForUser(callerRoleClaim, callerId);
         
-        if (!requesteeSchoolResult.IsSuccess)
+        if (!callerSchoolResult.IsSuccess)
         {
-            context.Result = new JsonResult(new
-            {
-                Status = StatusCodes.Status404NotFound,
-                Message = requesteeSchoolResult.Error!.Message
-            })
-            {
-                StatusCode = StatusCodes.Status404NotFound
-            };
+            context.Result = CreateErrorResult(
+                StatusCodes.Status404NotFound,
+                callerSchoolResult.Error!.Message
+                );
             return;
         }
         
-        var requesteeSchoolId = requesteeSchoolResult.Value!;
+        var callerSchoolId = callerSchoolResult.Value!;
         
         
         // Find the targets corresponding schoolId
         var targetId = new Guid(providedIdStr);
-        var targetSchoolResult = _targetRole switch
-        {
-            UserRole.Student => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(targetId)),
-            UserRole.Instructor => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(targetId)),
-            _ => throw new Exception("Invalid target role: " + requesteeRoleClaim)
-        };
+        var targetSchoolResult = await GetSchoolIdForUser(_targetRole.ToString(), targetId);
         
         if (!targetSchoolResult.IsSuccess)
         {
-            context.Result = new JsonResult(new
-            {
-                Status = StatusCodes.Status404NotFound,
-                Message = targetSchoolResult.Error!.Message
-            })
-            {
-                StatusCode = StatusCodes.Status404NotFound
-            };
+            context.Result = CreateErrorResult(
+                StatusCodes.Status404NotFound,
+                targetSchoolResult.Error!.Message);
             return;
         }
 
         var targetSchoolId = targetSchoolResult.Value!;
 
-        var allowedAccess = requesteeSchoolId.Value == targetSchoolId.Value;
+        var allowedAccess = callerSchoolId.Value == targetSchoolId.Value;
         if (!allowedAccess)
         {
-            context.Result = new JsonResult(new
-            {
-                Status = StatusCodes.Status401Unauthorized,
-                Message = "You don't have access to resources outside your school"
-            })
-            {
-                StatusCode = StatusCodes.Status401Unauthorized
-            };
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized,
+                "You don't have access to resources outside your school");
             return;
         }
         
         
         await next();
+    }
+    
+    private async Task<Result<DrivingSchoolKey>> GetSchoolIdForUser(string role, Guid id)
+    {
+        return role switch
+        {
+            nameof(TargetRole.Student) => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(id)),
+            nameof(TargetRole.Instructor) => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(id)),
+            nameof(TargetRole.School) => DrivingSchoolKey.Create(id),
+            _ => new InvalidOperationException($"Unsupported role: {role}")
+        };
+    }
+    
+    private static JsonResult CreateErrorResult(int statusCode)
+    {
+        return new JsonResult(new
+        {
+            Status = statusCode
+        })
+        {
+            StatusCode = statusCode
+        };
+    }
+    
+    private static JsonResult CreateErrorResult(int statusCode, string message)
+    {
+        return new JsonResult(new
+        {
+            Status = statusCode,
+            Message = message
+        })
+        {
+            StatusCode = statusCode
+        };
     }
 }

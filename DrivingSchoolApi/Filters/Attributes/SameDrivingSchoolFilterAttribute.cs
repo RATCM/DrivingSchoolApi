@@ -28,7 +28,7 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public SameDrivingSchoolFilterAttribute(string key, UserRole targetRole, bool letAdminsBypass) : base(typeof(SameDrivingSchoolFilterService))
+    public SameDrivingSchoolFilterAttribute(string key, TargetRole targetRole, bool letAdminsBypass = false) : base(typeof(SameDrivingSchoolFilterService))
     {
         Arguments = [key, targetRole, letAdminsBypass];
         Order = 2;
