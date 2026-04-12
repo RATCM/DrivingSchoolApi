@@ -21,19 +21,4 @@ public static class DrivingLessonMapper
                 );
         }
     }
-
-    extension(DrivingLessonDto dto)
-    {
-        public DrivingLesson ToDomain()
-        {
-            return DrivingLesson.Create(
-                DrivingLessonKey.Create(dto.Id),
-                DrivingSchoolKey.Create(dto.SchoolId),
-                dto.Route.ToDomain(),
-                dto.Price.ToDomain(),
-                InstructorKey.Create(dto.InstructorId),
-                StudentKey.Create(dto.StudentId)
-            );
-        }
-    }
 }

@@ -21,6 +21,8 @@ internal class DrivingLessonService : IDrivingLessonService
     }
     
     public async Task<Result<DrivingLesson>> CreateDrivingLesson(
+        byte[] instructorSignature,
+        byte[] studentSignature,
         DrivingSchoolKey schoolId, 
         DrivingRoute route, 
         Money price, 
@@ -52,7 +54,9 @@ internal class DrivingLessonService : IDrivingLessonService
             route,
             price,
             instructorId,
-            studentId);
+            studentId,
+            Signature.Create(instructorSignature),
+            Signature.Create(studentSignature));
 
         var created = await _drivingLessonRepository.Create(lesson);
 

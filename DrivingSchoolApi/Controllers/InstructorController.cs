@@ -16,6 +16,7 @@ namespace DrivingSchoolApi.Controllers;
 [Route("[controller]")]
 public class InstructorController : ControllerBase
 {
+    private readonly ILogger<InstructorController> _logger;
     private readonly IInstructorService _instructorService;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
@@ -28,6 +29,7 @@ public class InstructorController : ControllerBase
         IDrivingLessonService drivingLessonService,
         IStudentService studentService)
     {
+        _logger = logger;
         _instructorService = instructorService;
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
@@ -190,26 +192,33 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpPost("/{instructorId:guid}/drivingLesson")]
+    [HttpPost("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromBody] DrivingLessonRegistryDto registryDto)
+    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromForm] DrivingLessonRegistryDto registry)
     {
-        // Check Jwt Token to ascertain Instructor ID
         var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         
         if (instructorId != idClaim)
             return Forbid("Instructors can only create driving lessons containing themself.");
+
+        using MemoryStream instructorMs = new();
+        using MemoryStream studentMs = new();
+        await registry.InstructorSignature.CopyToAsync(instructorMs);
+        await registry.StudentSignature.CopyToAsync(studentMs);
         
         var result = await _drivingLessonService.CreateDrivingLesson(
-            DrivingSchoolKey.Create(registryDto.SchoolId),
-            registryDto.Route.ToDomain(),
-            registryDto.Price.ToDomain(),
-            InstructorKey.Create(idClaim),
-            StudentKey.Create(registryDto.StudentId));
-        
-        return result.IsSuccess ?
-            Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto()) :
-            this.Problem(result.Error!);
+            instructorMs.ToArray(),
+            studentMs.ToArray(),
+            DrivingSchoolKey.Create(registry.SchoolId),
+            registry.Route.ToDomain(),
+            registry.Price.ToDomain(),
+            InstructorKey.Create(instructorId),
+            StudentKey.Create(registry.StudentId)
+        );
+
+        return result.IsSuccess
+            ? Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto())
+            : this.Problem(result.Error!);
     }
     
     [HttpGet("{instructorId:guid}/drivingLesson")]

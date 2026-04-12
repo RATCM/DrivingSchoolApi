@@ -12,7 +12,7 @@ public static class DrivingRouteMapper
         {
             return new DrivingRouteDto(
                 entity.DateTimeRange.ToDto(),
-                entity.RouteCoordinates.Select(x => x.ToDto()).ToImmutableArray()
+                [..entity.RouteCoordinates.Select(x => x.ToDto())]
             );
         }
     }
@@ -28,4 +28,3 @@ public static class DrivingRouteMapper
         }
     }
 }
-    
