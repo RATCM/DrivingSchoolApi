@@ -2,7 +2,8 @@ using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
-using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
@@ -68,7 +69,6 @@ public class DrivingSchoolController : ControllerBase
     //        null)));
     //}
     
-    
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistryDto drivingSchool)
@@ -100,8 +100,7 @@ public class DrivingSchoolController : ControllerBase
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var idClaim = HttpContext.GetUserIdClaim();
-        var userId = new Guid(idClaim.Value);
-        var roleClaim = HttpContext.User.IsInRole(nameof(UserRole.Instructor));
+        var userId = new Guid(idClaim!.Value);
         
         var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(userId));
         
@@ -113,5 +112,25 @@ public class DrivingSchoolController : ControllerBase
         return result.IsSuccess ? 
             Ok(result.Value!.Select(s => s.ToDto()))
             : BadRequest("Failed to retrieve students.");
+    }
+    
+    [HttpPost("{schoolId:guid}/student/invite")]
+    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid schoolId)
+    {
+        var idClaim = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
+
+        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+
+        if (instructor.IsSuccess)
+            return this.Problem(instructor.Error!);
+        
+        var invite = await _drivingSchoolService.CreateStudentInvite(
+            DrivingSchoolKey.Create(schoolId), 
+            TimeSpan.FromDays(30)); // We just have the invite be available for 30 days for now
+
+        return invite.IsSuccess
+            ? Ok(invite.Value!)
+            : this.Problem(invite.Error!);
     }
 }

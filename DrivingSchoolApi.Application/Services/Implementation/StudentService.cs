@@ -13,25 +13,22 @@ internal class StudentService : IStudentService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IStudentRepository _studentRepository;
-    private readonly IAdminRepository _adminRepository;
     private readonly ITokenGeneratorService _tokenGeneratorService;
     private readonly IPasswordHasher<Student> _passwordHasherService;
 
     public StudentService(
         IGuidGeneratorService guidGeneratorService,
         IStudentRepository studentRepository,
-        IAdminRepository adminRepository,
         ITokenGeneratorService tokenGeneratorService,
         IPasswordHasher<Student> passwordHasher)
     {
         _guidGeneratorService = guidGeneratorService;
         _studentRepository = studentRepository;
-        _adminRepository = adminRepository;
         _tokenGeneratorService = tokenGeneratorService;
         _passwordHasherService = passwordHasher;
     }
     
-        public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password)
+    public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password)
     {
         var student = await _studentRepository.GetByEmail(Email.Create(email));
         if (student is null)

@@ -1,8 +1,12 @@
-﻿using DrivingSchoolApi.Application.Auth;
+﻿using System.Security.Claims;
+using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
-using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.Common;
+using DrivingSchoolApi.DTOs.DrivingLesson;
+using DrivingSchoolApi.DTOs.Instructor;
+using DrivingSchoolApi.DTOs.TheoryLesson;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
@@ -17,6 +21,7 @@ namespace DrivingSchoolApi.Controllers;
 [Route("[controller]")]
 public class InstructorController : ControllerBase
 {
+    private readonly ILogger<InstructorController> _logger;
     private readonly IInstructorService _instructorService;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
@@ -27,12 +32,13 @@ public class InstructorController : ControllerBase
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService)
     {
+        _logger = logger;
         _instructorService = instructorService;
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
     }
 
-    [HttpPost("/login")]
+    [HttpPost("login")]
     public async Task<ActionResult> LoginAsInstructor([FromBody] InstructorLoginRequestDto loginRequest)
     {
         var result = await _instructorService.LoginAsInstructor(loginRequest.Email, loginRequest.Password);
@@ -42,7 +48,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpPost("/register")]
+    [HttpPost("register")]
     [Authorize(Policy = AuthPolicies.AdminOnly)] 
     public async Task<ActionResult> RegisterInstructor([FromBody] InstructorRegistryDto registryDto)
     {
@@ -69,7 +75,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpGet("/{instructorId:guid}")]
+    [HttpGet("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
@@ -81,7 +87,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpPut("/{instructorId:guid}")]
+    [HttpPut("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("id")]
     public async Task<ActionResult> UpdateInstructor(Guid instructorId, [FromBody] InstructorUpdateDto updateDto)
@@ -98,7 +104,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpPut("/{instructorId:guid}/password")]
+    [HttpPut("{instructorId:guid}/password")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> UpdateInstructorPassword(Guid instructorId, [FromBody] UpdatePasswordDto updateDto)
@@ -113,7 +119,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpDelete("/{instructorId:guid}")]
+    [HttpDelete("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteInstructor(Guid instructorId)
@@ -124,7 +130,7 @@ public class InstructorController : ControllerBase
             this.Problem(deleted.Error!);
     }
     
-    [HttpPost("/{instructorId:guid}/theoryLesson")]
+    [HttpPost("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
     public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromBody] TheoryLessonRegistryDto registryDto)
@@ -142,7 +148,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpGet("/{instructorId:guid}/theoryLesson")]
+    [HttpGet("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
     public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
@@ -154,12 +160,19 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpPost("/{instructorId:guid}/drivingLesson")]
+    [HttpPost("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
     public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromBody] DrivingLessonRegistryDto registryDto)
     {
+        using MemoryStream instructorMs = new();
+        using MemoryStream studentMs = new();
+        await registryDto.InstructorSignature.CopyToAsync(instructorMs);
+        await registryDto.StudentSignature.CopyToAsync(studentMs);
+
         var result = await _drivingLessonService.CreateDrivingLesson(
+            instructorMs.ToArray(),
+            studentMs.ToArray(),
             DrivingSchoolKey.Create(registryDto.SchoolId),
             registryDto.Route.ToDomain(),
             registryDto.Price.ToDomain(),

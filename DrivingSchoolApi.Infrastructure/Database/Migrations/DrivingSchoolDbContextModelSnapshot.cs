@@ -51,11 +51,19 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.Property<Guid>("InstructorId")
                         .HasColumnType("uuid");
 
+                    b.Property<byte[]>("InstructorSignature")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
                     b.Property<Guid>("SchoolId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uuid");
+
+                    b.Property<byte[]>("StudentSignature")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.HasKey("Id");
 
@@ -284,6 +292,27 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
 
             modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.DrivingSchool", b =>
                 {
+                    b.OwnsMany("DrivingSchoolApi.Domain.Entities.StudentInvite", "StudentInvites", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("DrivingSchoolId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTime>("ExpirationDateTime")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("DrivingSchoolId");
+
+                            b1.ToTable("StudentInvites");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DrivingSchoolId");
+                        });
+
                     b.OwnsOne("DrivingSchoolApi.Domain.ValueObjects.StreetAddress", "StreetAddress", b1 =>
                         {
                             b1.Property<Guid>("DrivingSchoolId")
@@ -363,6 +392,8 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
 
                     b.Navigation("StreetAddress")
                         .IsRequired();
+
+                    b.Navigation("StudentInvites");
                 });
 
             modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.Instructor", b =>

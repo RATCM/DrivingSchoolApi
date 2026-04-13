@@ -2,6 +2,7 @@
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.TheoryLesson;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 
 namespace DrivingSchoolApi.Mappers;

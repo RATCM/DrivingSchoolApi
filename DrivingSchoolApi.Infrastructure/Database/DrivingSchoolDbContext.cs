@@ -12,6 +12,8 @@ internal class DrivingSchoolDbContext : DbContext, IDrivingSchoolDbContext
     public DbSet<Instructor> Instructors { get; set; }
     public DbSet<Student> Students { get; set; }
     public DbSet<Admin> Admins { get; set; }
+    public DbSet<StudentInvite> StudentInvites { get; set; }
+
 
     private readonly string? _connectionString;
 

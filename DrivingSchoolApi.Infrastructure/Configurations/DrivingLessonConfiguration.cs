@@ -52,5 +52,14 @@ internal class DrivingLessonConfiguration : IEntityTypeConfiguration<DrivingLess
             .HasOne<Instructor>()
             .WithMany()
             .HasForeignKey(x => x.InstructorId);
+
+        builder
+            .Property<Signature>(x => x.InstructorSignature)
+            .HasConversion(x => x.Blob,
+                x => Signature.Create(x));
+        builder
+            .Property<Signature>(x => x.StudentSignature)
+            .HasConversion(x => x.Blob,
+                x => Signature.Create(x));
     }
 }

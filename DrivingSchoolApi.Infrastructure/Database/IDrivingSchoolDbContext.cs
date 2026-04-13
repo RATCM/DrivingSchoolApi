@@ -11,6 +11,7 @@ internal interface IDrivingSchoolDbContext
     DbSet<Instructor> Instructors { get; set; }
     DbSet<Student> Students { get; set; }
     DbSet<Admin> Admins { get; set; }
-    
+    DbSet<StudentInvite> StudentInvites { get; set; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

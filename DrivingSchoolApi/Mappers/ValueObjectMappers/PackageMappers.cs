@@ -1,5 +1,6 @@
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.ValueObject;
 
 namespace DrivingSchoolApi.Mappers.ValueObjectMappers;
 
