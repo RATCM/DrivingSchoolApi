@@ -1,3 +1,4 @@
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Application.Exceptions.Admin;
 using DrivingSchoolApi.Application.Exceptions.Common;
 using DrivingSchoolApi.Application.Repositories;
@@ -51,8 +52,8 @@ public class AdminService : IAdminService
 
         var passwordValid = _passwordHasher.VerifyHashedPassword(password, admin.HashedPassword);
 
-        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(admin.Id.Value, "Admin");
-        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(admin.Id.Value, "Admin");
+        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(admin.Id.Value, UserRole.Admin);
+        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(admin.Id.Value, UserRole.Admin);
         return passwordValid
             ? (accessToken, refreshToken)
             : new InvalidLoginRequestException();
