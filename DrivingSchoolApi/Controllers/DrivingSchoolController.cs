@@ -101,7 +101,6 @@ public class DrivingSchoolController : ControllerBase
     {
         var idClaim = HttpContext.GetUserIdClaim();
         var userId = new Guid(idClaim!.Value);
-        var roleClaim = HttpContext.User.IsInRole(nameof(UserRole.Instructor));
         
         var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(userId));
         

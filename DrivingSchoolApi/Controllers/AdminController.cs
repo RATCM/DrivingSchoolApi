@@ -15,15 +15,12 @@ public class AdminController : ControllerBase
 {
     private readonly ILogger<AdminController> _logger;
     private readonly IAdminService _adminService;
-    private readonly ITokenGeneratorService _tokenGeneratorService;
     public AdminController(
         ILogger<AdminController> logger, 
-        IAdminService adminService,
-        ITokenGeneratorService tokenGeneratorService)
+        IAdminService adminService)
     {
         _logger = logger;
         _adminService = adminService;
-        _tokenGeneratorService = tokenGeneratorService;
     }
 
     [HttpPost]
