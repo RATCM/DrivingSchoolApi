@@ -6,8 +6,6 @@ using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
-using DrivingSchoolApi.Mappers.ValueObjectMappers;
-using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,98 +18,66 @@ public class DrivingSchoolController : ControllerBase
 {
     private readonly IDrivingSchoolService _drivingSchoolService;
     private readonly IStudentService _studentService;
-    private readonly IInstructorService _instructorService;
 
     public DrivingSchoolController(
         ILogger<DrivingSchoolController> logger,
         IDrivingSchoolService drivingSchoolService,
-        IStudentService studentService,
-        IInstructorService instructorService)
+        IStudentService studentService)
     {
         _drivingSchoolService = drivingSchoolService;
         _studentService = studentService;
-        _instructorService = instructorService;
     }
     
     
+    //TODO Add paging
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
     {
-        var drivingSchools = await _drivingSchoolService.GetAllDrivingSchools();
+        var result = await _drivingSchoolService.GetAllDrivingSchools();
 
-        if (!drivingSchools.IsSuccess) 
-            return Problem(drivingSchools.Error!.Message, "", 500);
-        return Ok(drivingSchools.Value!.Select(x => new DrivingSchoolDto(
-            x.Id.Value,
-            x.DrivingSchoolName.ToDto(),
-            x.StreetAddress.ToDto(),
-            x.PhoneNumber.ToDto(),
-            x.WebAddress.ToDto(),
-            x.Packages.Select(y => y.ToDto()).ToList(),
-            null,
-            null)));
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
     }
     
     
-    //[HttpGet("{id}")]
-    //public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
-    //{
-    //    var drivingSchools = await _drivingSchoolService.GetDrivingSchool(id);
-    //    return Ok(drivingSchools.Select(x => new DrivingSchoolDto(
-    //        x.Id.Value,
-    //        x.DrivingSchoolName.ToDto(),
-    //        x.StreetAddress.ToDto(),
-    //        x.PhoneNumber.ToDto(),
-    //        x.WebAddress.ToDto(),
-    //        x.PackagePrice.ToDto(),
-    //        null,
-    //        null)));
-    //}
+    [HttpGet("/{id}")]
+    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
+    {
+        var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(id));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
+    }
     
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistryDto drivingSchool)
     {
-        var createdResult = await _drivingSchoolService.CreateDrivingSchool(
+        var result = await _drivingSchoolService.CreateDrivingSchool(
             DrivingSchoolName.Create(drivingSchool.Name),
             StreetAddress.Create("N/A", "N/A", "N/A", drivingSchool.Address),
             PhoneNumber.Create(drivingSchool.PhoneNumber),
             WebAddress.Create(drivingSchool.WebAddress),
             []);
         
-        if (!createdResult.IsSuccess) 
-            return Problem(createdResult.Error!.Message, "", 500);
-        var created = createdResult.Value!;
-        
-        return Created($"drivingschool/{created.Id}", new DrivingSchoolDto(
-            created.Id.Value,
-            created.DrivingSchoolName.ToDto(),
-            created.StreetAddress.ToDto(),
-            created.PhoneNumber.ToDto(),
-            created.WebAddress.ToDto(),
-            created.Packages.Select(x => x.ToDto()).ToList()));
+        return result.IsSuccess
+            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto())
+            : this.Problem(result.Error!);
     }
     
-    
+    //TODO Add paging
     [HttpGet("{schoolId:guid}/students")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [SameDrivingSchoolFilter("schoolId", TargetRole.School)]
+    [SameDrivingSchoolFilter("schoolId", TargetEntity.School)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
-        var idClaim = HttpContext.GetUserIdClaim();
-        var userId = new Guid(idClaim.Value);
-        var roleClaim = HttpContext.User.IsInRole(nameof(UserRole.Instructor));
+        var result = await _studentService.GetAllStudentsFromSchool(DrivingSchoolKey.Create(schoolId));
         
-        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(userId));
-        
-        if  (!instructor.IsSuccess)
-            return this.Problem(instructor.Error!);
-        
-        var result = await _studentService.GetAllStudentsFromSchool(instructor.Value!.SchoolId);
-        
-        return result.IsSuccess ? 
-            Ok(result.Value!.Select(s => s.ToDto()))
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(s => s.ToDto()))
             : BadRequest("Failed to retrieve students.");
     }
 }
