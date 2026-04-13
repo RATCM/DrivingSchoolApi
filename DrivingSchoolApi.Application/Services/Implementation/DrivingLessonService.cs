@@ -55,21 +55,18 @@ internal class DrivingLessonService : IDrivingLessonService
     public async Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromSchool(DrivingSchoolKey schoolId)
     {
         var lessons = await _drivingLessonRepository.GetAll();
-        
         return lessons.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
     public async Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromStudent(StudentKey studentId)
     {
         var lessons = await _drivingLessonRepository.GetAll();
-        
         return lessons.Where(x => x.StudentId.Equals(studentId)).ToList();
     }
 
     public async Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromInstructor(InstructorKey instructorId)
     {
         var lessons = await _drivingLessonRepository.GetAll();
-        
         return lessons.Where(x => x.InstructorId.Equals(instructorId)).ToList();
     }
 

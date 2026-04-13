@@ -6,7 +6,6 @@ using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
-using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,15 +31,17 @@ public class InstructorController : ControllerBase
         _drivingLessonService = drivingLessonService;
     }
 
+    
     [HttpPost("/login")]
     public async Task<ActionResult> LoginAsInstructor([FromBody] InstructorLoginRequestDto loginRequest)
     {
         var result = await _instructorService.LoginAsInstructor(loginRequest.Email, loginRequest.Password);
         
-        return result.IsSuccess ? 
-            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken}) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
+            : this.Problem(result.Error!);
     }
+    
     
     [HttpPost("/register")]
     [Authorize(Policy = AuthPolicies.AdminOnly)] 
@@ -53,21 +54,24 @@ public class InstructorController : ControllerBase
             PhoneNumber.Create(registryDto.PhoneNumber),
             DrivingSchoolKey.Create(registryDto.SchoolId));
         
-        return result.IsSuccess ?
-            Created($"instructor/{result.Value!.Id}", result.Value.ToDto()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Created($"instructor/{result.Value!.Id}", result.Value.ToDto())
+            : this.Problem(result.Error!);
     }
 
+    
     [HttpGet]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
-    public async Task<ActionResult> GetAllInstructors()
+    public async Task<ActionResult> GetAllInstructors(int page = 1)
     {
         var result = await _instructorService.GetAllInstructors();
+        const int PAGE_SIZE = 30;
         
-        return result.IsSuccess ? 
-            Ok(result.Value!.Select(x => x.ToDto())) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
     }
+    
 
     [HttpGet("/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
@@ -76,10 +80,11 @@ public class InstructorController : ControllerBase
     {
         var result = await _instructorService.GetInstructorById(InstructorKey.Create(instructorId));
         
-        return result.IsSuccess ?
-            Ok(result.Value!.ToDto()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
     }
+    
     
     [HttpPut("/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
@@ -88,16 +93,16 @@ public class InstructorController : ControllerBase
     {
         var result = await _instructorService.UpdateInstructor(
             InstructorKey.Create(instructorId),
-            DrivingSchoolKey.Create(updateDto.SchoolId),
             updateDto.Name.ToDomain(),
             Email.Create(updateDto.Email),
             PhoneNumber.Create(updateDto.PhoneNumber));
         
-        return result.IsSuccess ?
-            Ok(result.Value!.ToDto()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
     }
 
+    
     [HttpPut("/{instructorId:guid}/password")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [UserFilter("instructorId", letAdminsBypass: true)]
@@ -108,21 +113,23 @@ public class InstructorController : ControllerBase
             updateDto.OldPassword,
             updateDto.NewPassword);
         
-        return result.IsSuccess ?
-            Ok(result.Value!.ToDto()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? NoContent()
+            : this.Problem(result.Error!);
     }
 
+    
     [HttpDelete("/{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteInstructor(Guid instructorId)
     {
         var deleted  = await _instructorService.DeleteInstructor(InstructorKey.Create(instructorId));
-        return  deleted.IsSuccess ?
-            NoContent() :
-            this.Problem(deleted.Error!);
+        return  deleted.IsSuccess
+            ? NoContent()
+            : this.Problem(deleted.Error!);
     }
+    
     
     [HttpPost("/{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
@@ -135,13 +142,13 @@ public class InstructorController : ControllerBase
             Money.Create(registryDto.Price.Amount, registryDto.Price.Currency),
             registryDto.StudentIds.Select(StudentKey.Create).ToList());
         
-        var created = result.Value!;
-        
-        return result.IsSuccess ?
-            Created($"theoryLesson/{created.Id}", created.ToDto(created.StudentIds)) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto(result.Value.StudentIds))
+            : this.Problem(result.Error!);
     }
     
+    
+    //TODO Add paging
     [HttpGet("/{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
@@ -149,10 +156,11 @@ public class InstructorController : ControllerBase
     {
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(instructorId));
 
-        return result.IsSuccess ? 
-            Ok(result.Value!.Select(x => x.ToDto()).ToList()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(x => x.ToDto()).ToList())
+            : this.Problem(result.Error!);
     }
+    
     
     [HttpPost("/{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
@@ -166,11 +174,13 @@ public class InstructorController : ControllerBase
             InstructorKey.Create(instructorId),
             StudentKey.Create(registryDto.StudentId));
         
-        return result.IsSuccess ?
-            Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto())
+            : this.Problem(result.Error!);
     }
     
+    
+    //TODO Add paging
     [HttpGet("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
@@ -178,8 +188,8 @@ public class InstructorController : ControllerBase
     {
         var result = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(InstructorKey.Create(instructorId));
 
-        return result.IsSuccess ? 
-            Ok(result.Value!.Select(x => x.ToDto()).ToList()) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(x => x.ToDto()).ToList())
+            : this.Problem(result.Error!);
     }
 }
