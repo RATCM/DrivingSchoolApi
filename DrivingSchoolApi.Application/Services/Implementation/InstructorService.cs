@@ -13,20 +13,17 @@ internal class InstructorService : IInstructorService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IInstructorRepository _instructorRepository;
-    private readonly IAdminRepository _adminRepository;
     private readonly ITokenGeneratorService _tokenGeneratorService;
     private readonly IPasswordHasher<Instructor> _passwordHasherService;
 
     public InstructorService(
         IGuidGeneratorService guidGeneratorService,
         IInstructorRepository instructorRepository,
-        IAdminRepository adminRepository,
         ITokenGeneratorService tokenGeneratorService,
         IPasswordHasher<Instructor> passwordHasher)
     {
         _guidGeneratorService = guidGeneratorService;
         _instructorRepository = instructorRepository;
-        _adminRepository = adminRepository;
         _tokenGeneratorService = tokenGeneratorService;
         _passwordHasherService = passwordHasher;
     }
@@ -57,19 +54,9 @@ internal class InstructorService : IInstructorService
         return instructors.ToList();
     }
 
-    public async Task<Result<Instructor>> GetInstructorById(Guid claimedId, bool isAdmin, InstructorKey requestedId)
+    public async Task<Result<Instructor>> GetInstructorById(InstructorKey id)
     {
-        // Probably overkill to check if admin exists in DB
-        if (isAdmin)
-        {
-            var resultAdmin = await _adminRepository.Get(AdminKey.Create(claimedId));
-            if (resultAdmin is null)
-                return new AdminNotFoundException("Couldn't find your admin account in DB.");
-        }
-        
-        var searchId = isAdmin ? requestedId : InstructorKey.Create(claimedId);
-        
-        var result = await _instructorRepository.Get(searchId);
+        var result = await _instructorRepository.Get(id);
         
         return result is not null ? 
             result : 
@@ -81,6 +68,15 @@ internal class InstructorService : IInstructorService
         var instructors = await _instructorRepository.GetAll();
         
         return instructors.Where(x => x.SchoolId.Equals(schoolId)).ToList();
+    }
+
+    // Used for SameDrivingSchoolFilterService
+    public async Task<Result<DrivingSchoolKey>> GetInstructorDrivingSchoolId(InstructorKey id)
+    {
+        var instructor = await _instructorRepository.Get(id);
+        if (instructor is null)
+            return new InstructorNotFoundException("Instructor not found in DB.");
+        return instructor.SchoolId;
     }
 
     public async Task<Result<Instructor>> UpdateInstructor(InstructorKey id, DrivingSchoolKey schoolId, Name name, Email email, PhoneNumber phoneNumber)

@@ -3,7 +3,11 @@ using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
+using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.Common;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.Filters.Attributes;
+using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +36,19 @@ public class StudentController : ControllerBase
         _studentService = studentService;
         _studentInviteService = studentInviteService;
     }
-
+    
+    //TODO login
+    [HttpPost("login")]
+    public async Task<ActionResult> LoginAsStudent([FromBody] StudentLoginRequestDto loginRequest)
+    {
+        var result = await _studentService.LoginAsStudent(loginRequest.Email, loginRequest.Password);
+        
+        return result.IsSuccess ? 
+            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken}) :
+            this.Problem(result.Error!);
+    }
+    
+    //TODO register (should be implemented studentInvite branch)
     [HttpGet]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents(int page = 1)
@@ -44,14 +60,28 @@ public class StudentController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpGet]
+    
+    [HttpGet("{studentId:guid}/theorylessons")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
-    public async Task<IActionResult> GetTheoryLessonsFromStudent()
+    [UserFilter("studentId")]
+    public async Task<IActionResult> GetTheoryLessonsFromStudent(Guid studentId)
     {
-        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
+        var result = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(studentId));
         
         return result.IsSuccess ?
+            Ok(result.Value!.Select(x => x.ToDto())) : 
+            this.Problem(result.Error!);
+    }
+
+    
+    [HttpGet("{studentId:guid}/drivinglesson")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    [UserFilter("studentId")]
+    public async Task<IActionResult> GetDrivingLessonsFromStudent(Guid studentId)
+    {
+        var result = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(studentId));
+
+        return result.IsSuccess ? 
             Ok(result.Value!.Select(x => x.ToDto())) : 
             this.Problem(result.Error!);
     }
@@ -80,13 +110,29 @@ public class StudentController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpGet]
-    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    public async Task<ActionResult<StudentDto>> GetStudentById(StudentKey id)
+    
+    [HttpDelete("{studentId:Guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOrStudent)]
+    [UserFilter("studentId", letAdminsBypass: true)]
+    public async Task<IActionResult> DeleteStudent(Guid studentId)
     {
-        var student = await _studentService.GetStudentById(id);
-        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(id);
-        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(id);
+
+        var deleted = await _studentService.DeleteStudent(StudentKey.Create(studentId));
+
+        return deleted.IsSuccess ? 
+            NoContent() : 
+            this.Problem(deleted.Error!);
+    }
+    
+    
+    [HttpGet("{id:guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [SameDrivingSchoolFilter("id", TargetRole.Student,true)]
+    public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)
+    {
+        var student = await _studentService.GetStudentById(StudentKey.Create(id));
+        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(id));
+        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(id));
 
         return student.IsSuccess ?
             Ok(student.Value!.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value)) :

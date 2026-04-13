@@ -7,8 +7,10 @@ using DrivingSchoolApi.DTOs.Common;
 using DrivingSchoolApi.DTOs.DrivingLesson;
 using DrivingSchoolApi.DTOs.Instructor;
 using DrivingSchoolApi.DTOs.TheoryLesson;
+using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
+using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,20 +25,17 @@ public class InstructorController : ControllerBase
     private readonly IInstructorService _instructorService;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
-    private readonly IStudentService _studentService;
 
     public InstructorController(
         ILogger<InstructorController> logger,
         IInstructorService instructorService,
         ITheoryLessonService theoryLessonService,
-        IDrivingLessonService drivingLessonService,
-        IStudentService studentService)
+        IDrivingLessonService drivingLessonService)
     {
         _logger = logger;
         _instructorService = instructorService;
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
-        _studentService = studentService;
     }
 
     [HttpPost("login")]
@@ -60,10 +59,8 @@ public class InstructorController : ControllerBase
             PhoneNumber.Create(registryDto.PhoneNumber),
             DrivingSchoolKey.Create(registryDto.SchoolId));
         
-        var created = result.Value!;
-        
         return result.IsSuccess ?
-            Created($"instructor/{created.Id}", created.ToDto()) :
+            Created($"instructor/{result.Value!.Id}", result.Value.ToDto()) :
             this.Problem(result.Error!);
     }
 
@@ -80,13 +77,10 @@ public class InstructorController : ControllerBase
 
     [HttpGet("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
     {
-        // Read Jwt Token to ascertain  ID
-        var idClaim = HttpContext.GetUserIdClaim();
-        bool isAdmin = HttpContext.GetUserRoleClaim().Equals("admin");
-        
-        var result = await _instructorService.GetInstructorById(instructorId, isAdmin, InstructorKey.Create(instructorId));
+        var result = await _instructorService.GetInstructorById(InstructorKey.Create(instructorId));
         
         return result.IsSuccess ?
             Ok(result.Value!.ToDto()) :
@@ -95,16 +89,11 @@ public class InstructorController : ControllerBase
     
     [HttpPut("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [UserFilter("id")]
     public async Task<ActionResult> UpdateInstructor(Guid instructorId, [FromBody] InstructorUpdateDto updateDto)
     {
-        // Read Jwt Token to ascertain Instructor ID
-        var idClaim = HttpContext.GetUserIdClaim();
-        
-        if (instructorId != idClaim)
-            return Forbid("Instructors can only update their own attributes.");
-        
         var result = await _instructorService.UpdateInstructor(
-            InstructorKey.Create(idClaim),
+            InstructorKey.Create(instructorId),
             DrivingSchoolKey.Create(updateDto.SchoolId),
             updateDto.Name.ToDomain(),
             Email.Create(updateDto.Email),
@@ -116,17 +105,12 @@ public class InstructorController : ControllerBase
     }
 
     [HttpPut("{instructorId:guid}/password")]
-    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> UpdateInstructorPassword(Guid instructorId, [FromBody] UpdatePasswordDto updateDto)
     {
-        // Read Jwt Token to ascertain Instructor ID
-        var idClaim = HttpContext.GetUserIdClaim();
-        
-        if (instructorId != idClaim)
-            return Forbid("Instructors can only update their own password.");
-        
         var result = await _instructorService.UpdateInstructorPassword(
-            InstructorKey.Create(idClaim),
+            InstructorKey.Create(instructorId),
             updateDto.OldPassword,
             updateDto.NewPassword);
         
@@ -137,19 +121,10 @@ public class InstructorController : ControllerBase
 
     [HttpDelete("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [UserFilter("instructorId", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteInstructor(Guid instructorId)
     {
-        // Read Jwt Token to ascertain Instructor ID
-        var idClaim = HttpContext.GetUserIdClaim();
-        
-        // TODO enforce validation
-        // Instructor can only delete their own data
-        // Admin can delete all
-        // If possible do it in Application.Services
-        
-        var deleted  = await _instructorService.DeleteInstructor(
-            InstructorKey.Create(idClaim));
-        
+        var deleted  = await _instructorService.DeleteInstructor(InstructorKey.Create(instructorId));
         return  deleted.IsSuccess ?
             NoContent() :
             this.Problem(deleted.Error!);
@@ -157,16 +132,11 @@ public class InstructorController : ControllerBase
     
     [HttpPost("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [UserFilter("instructorId")]
     public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromBody] TheoryLessonRegistryDto registryDto)
     {
-        // Read Jwt Token to ascertain Instructor ID
-        var idClaim = HttpContext.GetUserIdClaim();
-        
-        if (instructorId != idClaim)
-            return Forbid("Instructors can only create theory lessons containing themself.");
-        
         var result = await _theoryLessonService.CreateTheoryLesson(
-            InstructorKey.Create(idClaim),
+            InstructorKey.Create(instructorId),
             registryDto.LessonDateTime,
             Money.Create(registryDto.Price.Amount, registryDto.Price.Currency),
             registryDto.StudentIds.Select(StudentKey.Create).ToList());
@@ -180,15 +150,10 @@ public class InstructorController : ControllerBase
     
     [HttpGet("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [UserFilter("instructorId")]
     public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
     {
-        // Check Jwt Token to ascertain Instructor ID
-        var idClaim = HttpContext.GetUserIdClaim();
-        
-        if (instructorId != idClaim)
-            return Forbid("Instructors can only see their own theory lessons.");
-        
-        var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(idClaim));
+        var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(instructorId));
 
         return result.IsSuccess ? 
             Ok(result.Value!.Select(x => x.ToDto()).ToList()) :
@@ -197,44 +162,34 @@ public class InstructorController : ControllerBase
     
     [HttpPost("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromForm] DrivingLessonRegistryDto registry)
+    [UserFilter("instructorId")]
+    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromBody] DrivingLessonRegistryDto registryDto)
     {
-        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        
-        if (instructorId != idClaim)
-            return Forbid("Instructors can only create driving lessons containing themself.");
-
         using MemoryStream instructorMs = new();
         using MemoryStream studentMs = new();
-        await registry.InstructorSignature.CopyToAsync(instructorMs);
-        await registry.StudentSignature.CopyToAsync(studentMs);
-        
+        await registryDto.InstructorSignature.CopyToAsync(instructorMs);
+        await registryDto.StudentSignature.CopyToAsync(studentMs);
+
         var result = await _drivingLessonService.CreateDrivingLesson(
             instructorMs.ToArray(),
             studentMs.ToArray(),
-            DrivingSchoolKey.Create(registry.SchoolId),
-            registry.Route.ToDomain(),
-            registry.Price.ToDomain(),
+            DrivingSchoolKey.Create(registryDto.SchoolId),
+            registryDto.Route.ToDomain(),
+            registryDto.Price.ToDomain(),
             InstructorKey.Create(instructorId),
-            StudentKey.Create(registry.StudentId)
-        );
-
-        return result.IsSuccess
-            ? Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            StudentKey.Create(registryDto.StudentId));
+        
+        return result.IsSuccess ?
+            Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto()) :
+            this.Problem(result.Error!);
     }
     
     [HttpGet("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [UserFilter("instructorId")]
     public async Task<IActionResult> GetDrivingLessonFromInstructor(Guid instructorId)
     {
-        // Check Jwt Token to ascertain Instructor ID
-        var idClaim = new Guid(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-        
-        if (instructorId != idClaim)
-            return Forbid("Instructors can only see driving lessons containing themself.");
-        
-        var result = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(InstructorKey.Create(idClaim));
+        var result = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(InstructorKey.Create(instructorId));
 
         return result.IsSuccess ? 
             Ok(result.Value!.Select(x => x.ToDto()).ToList()) :

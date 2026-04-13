@@ -8,14 +8,14 @@ public static class ControllerExtensions
 {
     extension(HttpContext context)
     {
-        public Guid GetUserIdClaim()
+        public Claim? GetUserIdClaim()
         {
-            return new Guid(context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+            return context.User.FindFirst(ClaimTypes.NameIdentifier);
         }
         
-        public string GetUserRoleClaim()
+        public string? GetUserRoleClaim()
         {
-            return context.User.FindFirst(ClaimTypes.Role)?.Value!;
+            return context.User.FindFirst(ClaimTypes.Role)?.Value;
         }
     }
 
