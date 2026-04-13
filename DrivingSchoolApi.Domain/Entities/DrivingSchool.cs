@@ -9,12 +9,14 @@ namespace DrivingSchoolApi.Domain.Entities;
 public sealed class DrivingSchool : Entity<DrivingSchoolKey>
 {
     private List<Package> _packages = [];
+    private List<StudentInvite> _studentInvites = [];
     
     public DrivingSchoolName DrivingSchoolName { get; private set; } = null!;
     public StreetAddress StreetAddress { get; private set; } = null!;
     public PhoneNumber PhoneNumber { get; private set; } = null!;
     public WebAddress WebAddress { get; private set; } = null!;
     public IReadOnlyList<Package> Packages => _packages.AsReadOnly();
+    public IReadOnlyList<StudentInvite> StudentInvites => _studentInvites.AsReadOnly();
     
     private DrivingSchool() {} // EF
     
@@ -63,8 +65,22 @@ public sealed class DrivingSchool : Entity<DrivingSchoolKey>
     public void ChangeWebAddress(WebAddress newWebAddress)
     {
         if (WebAddress.Equals(newWebAddress))
-            throw new InvalidOperationException("Can't change teh same web address to the same web address");
+            throw new InvalidOperationException("Can't change the same web address to the same web address");
         WebAddress = newWebAddress;
+    }
+
+    public void AddStudentInvite(StudentInvite invite)
+    {
+        if (_studentInvites.Select(x => x.Id).Contains(invite.Id))
+            throw new InvalidOperationException("Can't add an invite that already exists"); 
+        _studentInvites.Add(invite);
+    }
+
+    public void RemoveStudentInvite(StudentInvite invite)
+    {
+        if (!_studentInvites.Select(x => x.Id).Contains(invite.Id))
+            throw new InvalidOperationException("Can't remove an invite that doesn't exist");
+        _studentInvites.Remove(invite);
     }
 
     public void AddPackage(Package package)

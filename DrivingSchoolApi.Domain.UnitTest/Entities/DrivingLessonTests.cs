@@ -19,6 +19,8 @@ public class DrivingLessonTests
                     [CoordinatePoint.Create(1, 0, 0)]),
                 Money.Create(10, "USD"),
                 InstructorKey.Create(Guid.Empty),
-                StudentKey.Create(Guid.Empty)));
+                StudentKey.Create(Guid.Empty),
+                Signature.Create([0]),
+                Signature.Create([0])));
     }
 }

@@ -8,6 +8,8 @@ namespace DrivingSchoolApi.Application.Services;
 public interface IDrivingLessonService
 {
     Task<Result<DrivingLesson>> CreateDrivingLesson(
+        byte[] instructorSignature,
+        byte[] studentSignature,
         DrivingSchoolKey schoolId, 
         DrivingRoute route, 
         Money price, 

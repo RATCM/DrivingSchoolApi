@@ -11,7 +11,9 @@ public sealed class DrivingLesson : Entity<DrivingLessonKey>
     public required StudentKey StudentId { get; init; }
     public required DrivingRoute Route { get; init; }
     public required Money Price { get; init; }
-
+    public required Signature InstructorSignature { get; init; }
+    public required Signature StudentSignature { get; init; }
+    
 
     private DrivingLesson() {}  // EF
 
@@ -21,7 +23,9 @@ public sealed class DrivingLesson : Entity<DrivingLessonKey>
         DrivingRoute route,
         Money price,
         InstructorKey instructorId,
-        StudentKey studentId)
+        StudentKey studentId,
+        Signature instructorSignature,
+        Signature studentSignature)
     {
         return new DrivingLesson
         {
@@ -30,7 +34,9 @@ public sealed class DrivingLesson : Entity<DrivingLessonKey>
             Route = route,
             Price = price,
             InstructorId = instructorId,
-            StudentId = studentId
+            StudentId = studentId,
+            InstructorSignature = instructorSignature,
+            StudentSignature = studentSignature
         };
     }
 }

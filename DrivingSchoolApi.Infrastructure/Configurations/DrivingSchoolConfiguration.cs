@@ -63,6 +63,18 @@ internal class DrivingSchoolConfiguration : IEntityTypeConfiguration<DrivingScho
             package.OwnsOne(x => x.Price)
                 .Property(x => x.Amount);
         });
+
+        builder.OwnsMany(x => x.StudentInvites, invite =>
+        {
+            invite.HasKey(x => x.Id);
+            invite.Property(x => x.Id)
+                .HasConversion(
+                    key => key.Value,
+                    value => StudentInviteKey.Create(value));
+
+            invite.WithOwner()
+                .HasForeignKey(x => x.DrivingSchoolId);
+        });
     }
 
 }

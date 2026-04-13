@@ -16,7 +16,7 @@ internal class PasswordHasher<T> : Application.Services.IPasswordHasher<T> where
 
     public bool VerifyHashedPassword(string password, PasswordHash hash)
     {
-        return _hasher.VerifyHashedPassword(null!, password, hash.Hash) == 
+        return _hasher.VerifyHashedPassword(null!, hash.Hash, password) == 
                PasswordVerificationResult.Success;
     }
 }

@@ -2,7 +2,8 @@ using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
-using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
@@ -18,14 +19,17 @@ public class DrivingSchoolController : ControllerBase
 {
     private readonly IDrivingSchoolService _drivingSchoolService;
     private readonly IStudentService _studentService;
+    private readonly IInstructorService _instructorService;
 
     public DrivingSchoolController(
         ILogger<DrivingSchoolController> logger,
         IDrivingSchoolService drivingSchoolService,
-        IStudentService studentService)
+        IStudentService studentService,
+        IInstructorService instructorService)
     {
         _drivingSchoolService = drivingSchoolService;
         _studentService = studentService;
+        _instructorService = instructorService;
     }
     
     
@@ -79,5 +83,25 @@ public class DrivingSchoolController : ControllerBase
         return result.IsSuccess
             ? Ok(result.Value!.Select(s => s.ToDto()))
             : BadRequest("Failed to retrieve students.");
+    }
+    
+    [HttpPost("{schoolId:guid}/student/invite")]
+    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid schoolId)
+    {
+        var idClaim = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
+
+        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
+
+        if (instructor.IsSuccess)
+            return this.Problem(instructor.Error!);
+        
+        var invite = await _drivingSchoolService.CreateStudentInvite(
+            DrivingSchoolKey.Create(schoolId), 
+            TimeSpan.FromDays(30)); // We just have the invite be available for 30 days for now
+
+        return invite.IsSuccess
+            ? Ok(invite.Value!)
+            : this.Problem(invite.Error!);
     }
 }

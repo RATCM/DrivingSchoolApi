@@ -28,7 +28,7 @@ internal class StudentService : IStudentService
         _passwordHasherService = passwordHasher;
     }
     
-        public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password)
+    public async Task<Result<(string AccessToken, string RefreshToken)>> LoginAsStudent(string email, string password)
     {
         var student = await _studentRepository.GetByEmail(Email.Create(email));
         if (student is null)

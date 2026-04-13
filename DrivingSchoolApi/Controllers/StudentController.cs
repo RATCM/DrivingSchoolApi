@@ -1,8 +1,11 @@
+using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.Common;
+using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
@@ -19,21 +22,23 @@ public class StudentController : ControllerBase
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
     private readonly IStudentService _studentService;
+    private readonly IStudentInviteService _studentInviteService;
 
     public StudentController(
         ILogger<StudentController> logger,
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService,
-        IStudentService studentService)
+        IStudentService studentService,
+        IStudentInviteService studentInviteService)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
+        _studentInviteService = studentInviteService;
     }
     
-    
     //TODO login
-    [HttpPost("/login")]
+    [HttpPost("login")]
     public async Task<ActionResult> LoginAsStudent([FromBody] StudentLoginRequestDto loginRequest)
     {
         var result = await _studentService.LoginAsStudent(loginRequest.Email, loginRequest.Password);
@@ -42,7 +47,6 @@ public class StudentController : ControllerBase
             ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
             : this.Problem(result.Error!);
     }
-    
     
     //TODO register (should be implemented studentInvite branch)
     [HttpGet]
@@ -57,7 +61,7 @@ public class StudentController : ControllerBase
     }
     
     
-    [HttpGet("/{studentId:guid}/theorylessons")]
+    [HttpGet("{studentId:guid}/theorylessons")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
     [UserFilter("studentId")]
     public async Task<IActionResult> GetTheoryLessonsFromStudent(Guid studentId)
@@ -70,7 +74,7 @@ public class StudentController : ControllerBase
     }
 
     
-    [HttpGet("{studentId:guid}/drivinglesson/")]
+    [HttpGet("{studentId:guid}/drivinglesson")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
     [UserFilter("studentId")]
     public async Task<IActionResult> GetDrivingLessonsFromStudent(Guid studentId)
@@ -84,18 +88,22 @@ public class StudentController : ControllerBase
     
     
     [HttpPost]
-    //TODO Add invite ID
     public async Task<IActionResult> CreateStudent([FromBody] StudentRegistryDto student)
     {
+        var studentInviteResult = await _studentInviteService.RedeemStudentInvite(
+            StudentInviteKey.Create(student.InviteId));
+
+        if (!studentInviteResult.IsSuccess)
+            return this.Problem(studentInviteResult.Error!);
+        
         var result = await _studentService.CreateStudent(
             Name.Create(student.StudentName.FirstName, student.StudentName.LastName),
             Email.Create(student.EmailAddress),
             student.Password,
             PhoneNumber.Create(student.PhoneNumber),
-            DrivingSchoolKey.Create(student.SchoolId));
+            studentInviteResult.Value!.Id);
         
         var created = result.Value!;
-
 
         return result.IsSuccess ?
             Created($"student/{created.Id}", result.Value!.ToDto()) :
@@ -103,7 +111,7 @@ public class StudentController : ControllerBase
     }
 
     
-    [HttpDelete("/{studentId:Guid}")]
+    [HttpDelete("{studentId:Guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrStudent)]
     [UserFilter("studentId", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteStudent(Guid studentId)
@@ -117,7 +125,7 @@ public class StudentController : ControllerBase
     }
     
     
-    [HttpGet("/{id:guid}")]
+    [HttpGet("{id:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("id", TargetEntity.Student,true)]
     public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)

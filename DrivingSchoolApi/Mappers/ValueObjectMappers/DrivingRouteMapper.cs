@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.ValueObject;
 
 namespace DrivingSchoolApi.Mappers.ValueObjectMappers;
 
@@ -12,7 +13,7 @@ public static class DrivingRouteMapper
         {
             return new DrivingRouteDto(
                 entity.DateTimeRange.ToDto(),
-                entity.RouteCoordinates.Select(x => x.ToDto()).ToImmutableArray()
+                [..entity.RouteCoordinates.Select(x => x.ToDto())]
             );
         }
     }
@@ -28,4 +29,3 @@ public static class DrivingRouteMapper
         }
     }
 }
-    

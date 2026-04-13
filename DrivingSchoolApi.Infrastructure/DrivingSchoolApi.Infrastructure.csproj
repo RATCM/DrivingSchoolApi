@@ -25,6 +25,7 @@
     
     <ItemGroup>
         <InternalsVisibleTo Include="DrivingSchoolApi.Infrastructure.IntegrationTest"/>
+        <InternalsVisibleTo Include="DrivingSchoolApi.E2ETest"/>
     </ItemGroup>
 
 </Project>
