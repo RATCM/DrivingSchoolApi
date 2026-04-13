@@ -3,7 +3,10 @@ using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
-using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.Common;
+using DrivingSchoolApi.DTOs.DrivingLesson;
+using DrivingSchoolApi.DTOs.Instructor;
+using DrivingSchoolApi.DTOs.TheoryLesson;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Utils;
@@ -36,7 +39,7 @@ public class InstructorController : ControllerBase
         _studentService = studentService;
     }
 
-    [HttpPost("/login")]
+    [HttpPost("login")]
     public async Task<ActionResult> LoginAsInstructor([FromBody] InstructorLoginRequestDto loginRequest)
     {
         var result = await _instructorService.LoginAsInstructor(loginRequest.Email, loginRequest.Password);
@@ -46,7 +49,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpPost("/register")]
+    [HttpPost("register")]
     [Authorize(Policy = AuthPolicies.AdminOnly)] 
     public async Task<ActionResult> RegisterInstructor([FromBody] InstructorRegistryDto registryDto)
     {
@@ -75,7 +78,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpGet("/{instructorId:guid}")]
+    [HttpGet("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
     {
@@ -90,7 +93,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpPut("/{instructorId:guid}")]
+    [HttpPut("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<ActionResult> UpdateInstructor(Guid instructorId, [FromBody] InstructorUpdateDto updateDto)
     {
@@ -112,7 +115,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpPut("/{instructorId:guid}/password")]
+    [HttpPut("{instructorId:guid}/password")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> UpdateInstructorPassword(Guid instructorId, [FromBody] UpdatePasswordDto updateDto)
     {
@@ -132,7 +135,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
 
-    [HttpDelete("/{instructorId:guid}")]
+    [HttpDelete("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     public async Task<IActionResult> DeleteInstructor(Guid instructorId)
     {
@@ -152,7 +155,7 @@ public class InstructorController : ControllerBase
             this.Problem(deleted.Error!);
     }
     
-    [HttpPost("/{instructorId:guid}/theoryLesson")]
+    [HttpPost("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromBody] TheoryLessonRegistryDto registryDto)
     {
@@ -175,7 +178,7 @@ public class InstructorController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    [HttpGet("/{instructorId:guid}/theoryLesson")]
+    [HttpGet("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
     {

@@ -1,10 +1,9 @@
 using DrivingSchoolApi.Application.Auth;
-using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
-using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
-using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Utils;
@@ -18,7 +17,6 @@ namespace DrivingSchoolApi.Controllers;
 public class DrivingSchoolController : ControllerBase
 {
     private readonly IDrivingSchoolService _drivingSchoolService;
-    private readonly IStudentRepository _studentRepository;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
 
@@ -26,7 +24,6 @@ public class DrivingSchoolController : ControllerBase
         ILogger<DrivingSchoolController> logger,
         IDrivingSchoolService drivingSchoolService,
         IStudentService studentService,
-        IStudentRepository studentRepository,
         IInstructorService instructorService)
     {
         _drivingSchoolService = drivingSchoolService;

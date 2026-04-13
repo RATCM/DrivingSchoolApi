@@ -1,15 +1,10 @@
 using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
-using DrivingSchoolApi.Application.Exceptions.Student;
-using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
-using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
-using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
-using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Mappers;
-using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

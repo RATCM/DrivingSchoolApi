@@ -1,5 +1,6 @@
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.DTOs.Student;
 
 namespace DrivingSchoolApi.Mappers;
 
