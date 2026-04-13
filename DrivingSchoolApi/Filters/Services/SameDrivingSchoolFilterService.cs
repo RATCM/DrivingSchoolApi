@@ -1,14 +1,14 @@
-﻿using DrivingSchoolApi.Application.Services;
+﻿using DrivingSchoolApi.Application.Enums;
+using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
-using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace DrivingSchoolApi.Filters.Services;
 
-public enum TargetRole
+public enum TargetEntity
 {
     Student,
     Instructor,
@@ -18,20 +18,20 @@ public enum TargetRole
 public class SameDrivingSchoolFilterService : IAsyncResourceFilter
 {
     private readonly string _key;
-    private readonly TargetRole _targetRole;
+    private readonly TargetEntity _targetEntity;
     private readonly bool _letAdminsBypass;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
 
     public SameDrivingSchoolFilterService(
         string key,
-        TargetRole targetRole,
+        TargetEntity targetEntity,
         bool letAdminsBypass,
         IStudentService studentService,
         IInstructorService instructorService)
     {
         _key = key;
-        _targetRole = targetRole;
+        _targetEntity = targetEntity;
         _letAdminsBypass = letAdminsBypass;
         _studentService = studentService;
         _instructorService = instructorService;
@@ -61,8 +61,8 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
 
         var callerId = new Guid(callerIdClaim.Value);
         
-        var callerRoleClaim = context.HttpContext.GetUserRoleClaim();
-        if (callerRoleClaim is null)
+        var callerRole = context.HttpContext.GetUserRoleClaim();
+        if (callerRole is null)
         {
             context.Result = CreateErrorResult(
                 StatusCodes.Status401Unauthorized
@@ -71,11 +71,12 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
         }
 
         // Admin bypass
-        if (_letAdminsBypass && callerRoleClaim == nameof(UserRole.Admin))
+        if (_letAdminsBypass && callerRole == UserRole.Admin)
         {
             await next();
+            return;
         } 
-        else if (!_letAdminsBypass && callerRoleClaim == nameof(UserRole.Admin))
+        else if (!_letAdminsBypass && callerRole == UserRole.Admin)
         {
             context.Result = CreateErrorResult(
                 StatusCodes.Status401Unauthorized
@@ -84,7 +85,7 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
         }
         
         // Find requestee corresponding schoolId
-        var callerSchoolResult = await GetSchoolIdForUser(callerRoleClaim, callerId);
+        var callerSchoolResult = await GetSchoolIdForUser(callerRole.Value, callerId);
         
         if (!callerSchoolResult.IsSuccess)
         {
@@ -95,12 +96,9 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
             return;
         }
         
-        var callerSchoolId = callerSchoolResult.Value!;
-        
-        
         // Find the targets corresponding schoolId
         var targetId = new Guid(providedIdStr);
-        var targetSchoolResult = await GetSchoolIdForUser(_targetRole.ToString(), targetId);
+        var targetSchoolResult = await GetSchoolIdForEntity(_targetEntity, targetId);
         
         if (!targetSchoolResult.IsSuccess)
         {
@@ -110,9 +108,7 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
             return;
         }
 
-        var targetSchoolId = targetSchoolResult.Value!;
-
-        var allowedAccess = callerSchoolId.Value == targetSchoolId.Value;
+        var allowedAccess = callerSchoolResult.Value!.Value == targetSchoolResult.Value!.Value;
         if (!allowedAccess)
         {
             context.Result = CreateErrorResult(
@@ -125,13 +121,23 @@ public class SameDrivingSchoolFilterService : IAsyncResourceFilter
         await next();
     }
     
-    private async Task<Result<DrivingSchoolKey>> GetSchoolIdForUser(string role, Guid id)
+    private async Task<Result<DrivingSchoolKey>> GetSchoolIdForUser(UserRole role, Guid id)
     {
         return role switch
         {
-            nameof(TargetRole.Student) => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(id)),
-            nameof(TargetRole.Instructor) => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(id)),
-            nameof(TargetRole.School) => DrivingSchoolKey.Create(id),
+            UserRole.Student => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(id)),
+            UserRole.Instructor => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(id)),
+            _ => new InvalidOperationException($"Unsupported role: {role}")
+        };
+    }
+    
+    private async Task<Result<DrivingSchoolKey>> GetSchoolIdForEntity(TargetEntity role, Guid id)
+    {
+        return role switch
+        {
+            TargetEntity.Student => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(id)),
+            TargetEntity.Instructor => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(id)),
+            TargetEntity.School => DrivingSchoolKey.Create(id),
             _ => new InvalidOperationException($"Unsupported role: {role}")
         };
     }

@@ -38,9 +38,9 @@ public class StudentController : ControllerBase
     {
         var result = await _studentService.LoginAsStudent(loginRequest.Email, loginRequest.Password);
         
-        return result.IsSuccess ? 
-            Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken}) :
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
+            : this.Problem(result.Error!);
     }
     
     
@@ -51,9 +51,9 @@ public class StudentController : ControllerBase
     {
         var result = await _studentService.GetAllStudents();
         const int PAGE_SIZE = 30;
-        return result.IsSuccess ? 
-            Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto())) : 
-            this.Problem(result.Error!);
+        return result.IsSuccess
+            ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
     }
     
     
@@ -119,7 +119,7 @@ public class StudentController : ControllerBase
     
     [HttpGet("/{id:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [SameDrivingSchoolFilter("id", TargetRole.Student,true)]
+    [SameDrivingSchoolFilter("id", TargetEntity.Student,true)]
     public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)
     {
         var student = await _studentService.GetStudentById(StudentKey.Create(id));

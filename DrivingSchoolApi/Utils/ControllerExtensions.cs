@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using ApplicationException = DrivingSchoolApi.Application.Exceptions.ApplicationException;
 
 namespace DrivingSchoolApi.Utils;
 
@@ -13,9 +15,12 @@ public static class ControllerExtensions
             return context.User.FindFirst(ClaimTypes.NameIdentifier);
         }
         
-        public string? GetUserRoleClaim()
+        public UserRole? GetUserRoleClaim()
         {
-            return context.User.FindFirst(ClaimTypes.Role)?.Value;
+            var role = context.User.FindFirst(ClaimTypes.Role)?.Value;
+            return role is null
+                ? null
+                : Enum.Parse<UserRole>(role);
         }
     }
 
@@ -25,7 +30,7 @@ public static class ControllerExtensions
         {
             return error switch
             {
-                ApplicationException ex => controller.BadRequest(ex.Message),
+                ApplicationException ex => controller.Problem(ex.Message, statusCode: ex.ResponseCode),
                 DomainException ex => controller.BadRequest(ex.Message),
                 _ => controller.Problem("An unexpected error occurred.", statusCode: 500)
             };

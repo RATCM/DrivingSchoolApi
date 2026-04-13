@@ -1,4 +1,4 @@
-﻿namespace DrivingSchoolApi.Models;
+﻿namespace DrivingSchoolApi.Application.Enums;
 
 public enum UserRole
 {
