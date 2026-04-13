@@ -51,7 +51,8 @@ internal class DrivingSchoolService : IDrivingSchoolService
     
     public async Task<Result<IEnumerable<DrivingSchool>>> GetAllDrivingSchools()
     {
-        return (await _drivingSchoolRepository.GetAll()).ToList();
+        var drivingSchools = await _drivingSchoolRepository.GetAll();
+        return drivingSchools.ToList();
     }
 
     public async Task<Result<StudentInvite>> CreateStudentInvite(DrivingSchoolKey id, TimeSpan timeValid)

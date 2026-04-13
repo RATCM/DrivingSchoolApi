@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Application.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -17,13 +18,13 @@ internal class TokenGeneratorService : ITokenGeneratorService
         _configuration = configuration;
     }
 
-    public string GenerateJwtAccessToken(Guid userId, string role)
+    public string GenerateJwtAccessToken(Guid userId, UserRole role)
     {
         var scheme = _configuration.GetSection("Authentication:Schemes:Access");
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim("role", role),
+            new Claim("role", role.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, _guidGenerator.NewGuid().ToString())
         };
 
@@ -41,13 +42,13 @@ internal class TokenGeneratorService : ITokenGeneratorService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string GenerateJwtRefreshToken(Guid userId, string role)
+    public string GenerateJwtRefreshToken(Guid userId, UserRole role)
     {
         var scheme = _configuration.GetSection("Authentication:Schemes:Refresh");
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim("role", role),
+            new Claim("role", role.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, _guidGenerator.NewGuid().ToString())
         };
 

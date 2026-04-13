@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using DrivingSchoolApi.Models;
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -99,4 +99,3 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
         await next();
     }
 }
-

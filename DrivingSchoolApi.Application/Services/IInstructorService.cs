@@ -20,11 +20,10 @@ public interface IInstructorService
     Task<Result<DrivingSchoolKey>> GetInstructorDrivingSchoolId(InstructorKey id);
     Task<Result<Instructor>> UpdateInstructor(
         InstructorKey id,
-        DrivingSchoolKey schoolId,
         Name name,
         Email email,
         PhoneNumber phoneNumber);
-    Task<Result<Instructor>> UpdateInstructorPassword(
+    Task<Result> UpdateInstructorPassword(
         InstructorKey id,
         string oldPassword,
         string newPassword);

@@ -1,4 +1,4 @@
-using DrivingSchoolApi.Application.Exceptions.Admin;
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Application.Exceptions.Common;
 using DrivingSchoolApi.Application.Exceptions.Instructor;
 using DrivingSchoolApi.Application.Repositories;
@@ -37,14 +37,28 @@ internal class InstructorService : IInstructorService
         if (!_passwordHasherService.VerifyHashedPassword(password, instructor.HashedPassword))
             return new InvalidLoginRequestException();
         
-        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(instructor.Id.Value, "Instructor");
-        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(instructor.Id.Value, "Instructor");
+        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(instructor.Id.Value, UserRole.Instructor);
+        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(instructor.Id.Value, UserRole.Instructor);
         return (accessToken, refreshToken);
     }
     
     public async Task<Result<Instructor>> CreateInstructor(Name name, Email email, string password, PhoneNumber phoneNumber, DrivingSchoolKey schoolId)
     {
-        return new NotImplementedException();
+        var instructor = Instructor.Create(
+            InstructorKey.Create(_guidGeneratorService.NewGuid()),
+            schoolId,
+            name,
+            email,
+            _passwordHasherService.HashPassword(password),
+            phoneNumber);
+        
+        var result = await _instructorRepository.Create(instructor);
+
+        if(!result)
+            return new Exception("Unable to create instructor.");
+        
+        await _instructorRepository.Save();
+        return instructor;
     }
 
     //Admin only
@@ -57,10 +71,9 @@ internal class InstructorService : IInstructorService
     public async Task<Result<Instructor>> GetInstructorById(InstructorKey id)
     {
         var result = await _instructorRepository.Get(id);
-        
-        return result is not null ? 
-            result : 
-            new InstructorNotFoundException("Instructor not found in DB.");
+        return result is not null
+            ? result 
+            : new InstructorNotFoundException("Instructor not found in DB.");
     }
 
     public async Task<Result<IEnumerable<Instructor>>> GetAllInstructorsFromSchool(DrivingSchoolKey schoolId)
@@ -74,19 +87,63 @@ internal class InstructorService : IInstructorService
     public async Task<Result<DrivingSchoolKey>> GetInstructorDrivingSchoolId(InstructorKey id)
     {
         var instructor = await _instructorRepository.Get(id);
-        if (instructor is null)
+        return instructor is null
+            ? new InstructorNotFoundException("Instructor not found in DB.")
+            : instructor.SchoolId;
+    }
+
+    public async Task<Result<Instructor>> UpdateInstructor(InstructorKey id, Name name, Email email, PhoneNumber phoneNumber)
+    {
+        var instructorResult = await _instructorRepository.Get(id);
+        if (instructorResult is null)
             return new InstructorNotFoundException("Instructor not found in DB.");
-        return instructor.SchoolId;
+
+        var updatedInstructor = Instructor.Create(
+            instructorResult.Id,
+            instructorResult.SchoolId,
+            name,
+            email, 
+            instructorResult.HashedPassword,
+            phoneNumber);
+        
+        bool succes = await _instructorRepository.Update(updatedInstructor);
+
+        if (!succes)
+            return  new Exception("Internal error: Unable to update instructor.");
+        
+        await _instructorRepository.Save();
+        return updatedInstructor;
     }
 
-    public async Task<Result<Instructor>> UpdateInstructor(InstructorKey id, DrivingSchoolKey schoolId, Name name, Email email, PhoneNumber phoneNumber)
+    public async Task<Result> UpdateInstructorPassword(InstructorKey id, string oldPassword, string newPassword)
     {
-        return new NotImplementedException();
-    }
+        if (oldPassword == newPassword)
+            return new InvalidPasswordException("New password cannot be the same as the old password.");
+        
+        var instructorResult = await _instructorRepository.Get(id);
+        if (instructorResult is null)
+            return new InstructorNotFoundException("Instructor not found in DB.");
+        
+        var correctPassword = _passwordHasherService.VerifyHashedPassword(oldPassword, instructorResult.HashedPassword);
 
-    public async Task<Result<Instructor>> UpdateInstructorPassword(InstructorKey id, string oldPassword, string newPassword)
-    {
-        return new NotImplementedException();
+        if (!correctPassword)
+            return new InvalidPasswordException("Old password doesn't match.");
+        
+        var updatedInstructor = Instructor.Create(
+            instructorResult.Id,
+            instructorResult.SchoolId,
+            instructorResult.InstructorName,
+            instructorResult.EmailAddress,
+            _passwordHasherService.HashPassword(newPassword),
+            instructorResult.PhoneNumber);
+        
+        bool succes = await _instructorRepository.Update(updatedInstructor);
+
+        if (!succes)
+            return  new Exception("Internal error: Unable to update instructor.");
+        
+        await _instructorRepository.Save();
+        return Result.Success();
     }
     
     

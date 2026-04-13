@@ -1,4 +1,4 @@
-using DrivingSchoolApi.Application.Exceptions.Admin;
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Application.Exceptions.Common;
 using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Repositories;
@@ -37,8 +37,8 @@ internal class StudentService : IStudentService
         if (!_passwordHasherService.VerifyHashedPassword(password, student.HashedPassword))
             return new InvalidLoginRequestException();
         
-        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(student.Id.Value, "Student");
-        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(student.Id.Value, "Student");
+        var accessToken = _tokenGeneratorService.GenerateJwtAccessToken(student.Id.Value, UserRole.Student);
+        var refreshToken = _tokenGeneratorService.GenerateJwtRefreshToken(student.Id.Value, UserRole.Student);
         return (accessToken, refreshToken);
     }
     
@@ -78,7 +78,6 @@ internal class StudentService : IStudentService
     public async Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId)
     {
         var students = await _studentRepository.GetAll();
-
         return students.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
