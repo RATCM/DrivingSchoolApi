@@ -1,12 +1,13 @@
 using DrivingSchoolApi.Application.Auth;
-using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
-using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
+using DrivingSchoolApi.Filters.Attributes;
+using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Mappers.ValueObjectMappers;
+using DrivingSchoolApi.Models;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,6 @@ namespace DrivingSchoolApi.Controllers;
 public class DrivingSchoolController : ControllerBase
 {
     private readonly IDrivingSchoolService _drivingSchoolService;
-    private readonly IStudentRepository _studentRepository;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
 
@@ -26,11 +26,13 @@ public class DrivingSchoolController : ControllerBase
         ILogger<DrivingSchoolController> logger,
         IDrivingSchoolService drivingSchoolService,
         IStudentService studentService,
-        IStudentRepository studentRepository,
         IInstructorService instructorService)
     {
         _drivingSchoolService = drivingSchoolService;
+        _studentService = studentService;
+        _instructorService = instructorService;
     }
+    
     
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
@@ -50,6 +52,7 @@ public class DrivingSchoolController : ControllerBase
             null)));
     }
     
+    
     //[HttpGet("{id}")]
     //public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
     //{
@@ -64,6 +67,7 @@ public class DrivingSchoolController : ControllerBase
     //        null,
     //        null)));
     //}
+    
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
@@ -88,14 +92,18 @@ public class DrivingSchoolController : ControllerBase
             created.WebAddress.ToDto(),
             created.Packages.Select(x => x.ToDto()).ToList()));
     }
-    [HttpGet]
+    
+    
+    [HttpGet("{schoolId:guid}/students")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool()
+    [SameDrivingSchoolFilter("schoolId", TargetRole.School)]
+    public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var idClaim = HttpContext.GetUserIdClaim();
-        var roleClaim = HttpContext.GetUserRoleClaim().Equals("Instructor");
+        var userId = new Guid(idClaim.Value);
+        var roleClaim = HttpContext.User.IsInRole(nameof(UserRole.Instructor));
         
-        var instructor = await _instructorService.GetInstructorById(idClaim, roleClaim, InstructorKey.Create(idClaim));
+        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(userId));
         
         if  (!instructor.IsSuccess)
             return this.Problem(instructor.Error!);

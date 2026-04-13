@@ -1,0 +1,161 @@
+﻿using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
+using DrivingSchoolApi.Models;
+using DrivingSchoolApi.Utils;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace DrivingSchoolApi.Filters.Services;
+
+public enum TargetRole
+{
+    Student,
+    Instructor,
+    School
+}
+
+public class SameDrivingSchoolFilterService : IAsyncResourceFilter
+{
+    private readonly string _key;
+    private readonly TargetRole _targetRole;
+    private readonly bool _letAdminsBypass;
+    private readonly IStudentService _studentService;
+    private readonly IInstructorService _instructorService;
+
+    public SameDrivingSchoolFilterService(
+        string key,
+        TargetRole targetRole,
+        bool letAdminsBypass,
+        IStudentService studentService,
+        IInstructorService instructorService)
+    {
+        _key = key;
+        _targetRole = targetRole;
+        _letAdminsBypass = letAdminsBypass;
+        _studentService = studentService;
+        _instructorService = instructorService;
+    }
+
+    public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
+    {
+        // Validate that the URI-guid exists
+        var providedIdStr = context.HttpContext.GetRouteValue(_key) as string;
+        if (providedIdStr is null)
+        {
+            context.Result = CreateErrorResult(
+            StatusCodes.Status500InternalServerError);
+            return;
+        }
+        
+        
+        var callerIdClaim = context.HttpContext.GetUserIdClaim();
+        if (callerIdClaim is null)
+        {
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized,
+                "You need to be logged-in to access this resource"
+                );
+            return;
+        }
+
+        var callerId = new Guid(callerIdClaim.Value);
+        
+        var callerRoleClaim = context.HttpContext.GetUserRoleClaim();
+        if (callerRoleClaim is null)
+        {
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized
+                );
+            return;
+        }
+
+        // Admin bypass
+        if (_letAdminsBypass && callerRoleClaim == nameof(UserRole.Admin))
+        {
+            await next();
+        } 
+        else if (!_letAdminsBypass && callerRoleClaim == nameof(UserRole.Admin))
+        {
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized
+                );
+            return;
+        }
+        
+        // Find requestee corresponding schoolId
+        var callerSchoolResult = await GetSchoolIdForUser(callerRoleClaim, callerId);
+        
+        if (!callerSchoolResult.IsSuccess)
+        {
+            context.Result = CreateErrorResult(
+                StatusCodes.Status404NotFound,
+                callerSchoolResult.Error!.Message
+                );
+            return;
+        }
+        
+        var callerSchoolId = callerSchoolResult.Value!;
+        
+        
+        // Find the targets corresponding schoolId
+        var targetId = new Guid(providedIdStr);
+        var targetSchoolResult = await GetSchoolIdForUser(_targetRole.ToString(), targetId);
+        
+        if (!targetSchoolResult.IsSuccess)
+        {
+            context.Result = CreateErrorResult(
+                StatusCodes.Status404NotFound,
+                targetSchoolResult.Error!.Message);
+            return;
+        }
+
+        var targetSchoolId = targetSchoolResult.Value!;
+
+        var allowedAccess = callerSchoolId.Value == targetSchoolId.Value;
+        if (!allowedAccess)
+        {
+            context.Result = CreateErrorResult(
+                StatusCodes.Status401Unauthorized,
+                "You don't have access to resources outside your school");
+            return;
+        }
+        
+        
+        await next();
+    }
+    
+    private async Task<Result<DrivingSchoolKey>> GetSchoolIdForUser(string role, Guid id)
+    {
+        return role switch
+        {
+            nameof(TargetRole.Student) => await _studentService.GetStudentDrivingSchoolId(StudentKey.Create(id)),
+            nameof(TargetRole.Instructor) => await _instructorService.GetInstructorDrivingSchoolId(InstructorKey.Create(id)),
+            nameof(TargetRole.School) => DrivingSchoolKey.Create(id),
+            _ => new InvalidOperationException($"Unsupported role: {role}")
+        };
+    }
+    
+    private static JsonResult CreateErrorResult(int statusCode)
+    {
+        return new JsonResult(new
+        {
+            Status = statusCode
+        })
+        {
+            StatusCode = statusCode
+        };
+    }
+    
+    private static JsonResult CreateErrorResult(int statusCode, string message)
+    {
+        return new JsonResult(new
+        {
+            Status = statusCode,
+            Message = message
+        })
+        {
+            StatusCode = statusCode
+        };
+    }
+}
