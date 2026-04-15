@@ -112,4 +112,14 @@ public class DrivingSchoolController : ControllerBase
             ? NoContent()
             : this.Problem(deleted.Error!);
     }
+    //TODO
+    //GetDrivingSchoolDrivingLessons
+    //GetDrivingSchoolTheoryLessons
+    //GetDrivingSchoolInstructors
+    //UpdateDrivingSchool
+    //GetDrivingSchoolInvites
+    //GetDrivingSchoolInviteById
+    //DeleteDrivingSchoolInvite
+    
+    //invitecontroller??
 }
