@@ -8,7 +8,17 @@ builder.Services.AddOpenApi();
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure();
+    .AddInfrastructure()
+    .AddCors(options =>
+    {
+        options.AddDefaultPolicy(
+            policy =>
+            {
+                policy.WithOrigins(builder.Configuration["WEB_URL_ENV"]!)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+    });
 
 var app = builder.Build();
 
@@ -18,12 +28,16 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     
     app.ApplyMigrations();
+
+    app.MapControllers().AllowAnonymous();
+}
+else
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
+app.UseCors();
 
 app.Run();
