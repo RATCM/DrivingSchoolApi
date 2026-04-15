@@ -15,6 +15,7 @@
       - Authentication__Schemes__Access__SigningKeys__0__Value=${JWT_ACCESS_SIGNING_KEY}
       - Authentication__Schemes__Refresh__SigningKeys__0__Value=${JWT_REFRESH_SIGNING_KEY}
       - ASPNETCORE_ENVIRONMENT=$BUILD_ENVIRONMENT
+      - WEB_URL_ENV=${WEB_URL:-http://localhost:3000}
   driving-school-db:
     container_name: "driving-school-db"
     image: postgres:latest
