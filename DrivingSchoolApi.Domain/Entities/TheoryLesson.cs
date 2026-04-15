@@ -13,8 +13,7 @@ public sealed class TheoryLesson : Entity<TheoryLessonKey>
     public required ImmutableArray<StudentKey> StudentIds { get; init; }
     public required DateTime LessonDateTime { get; init; }
     public required Money Price { get; init; }
-    
-    //TODO Instructor signature
+    public required Signature InstructorSignature { get; init; }
 
     private TheoryLesson() {} // EF
     
@@ -24,7 +23,8 @@ public sealed class TheoryLesson : Entity<TheoryLessonKey>
         DateTime lessonDateTime,
         Money price,
         InstructorKey instructorId,
-        IEnumerable<StudentKey> studentIds)
+        IEnumerable<StudentKey> studentIds,
+        Signature instructorSignature)
     {
         // I don't know if it's right to do validation here
         var temp = studentIds as StudentKey[] ?? studentIds.ToArray();
@@ -38,7 +38,8 @@ public sealed class TheoryLesson : Entity<TheoryLessonKey>
             LessonDateTime = lessonDateTime,
             Price = price,
             InstructorId = instructorId,
-            StudentIds = [..temp]
+            StudentIds = [..temp],
+            InstructorSignature = instructorSignature
         };
     }
 }

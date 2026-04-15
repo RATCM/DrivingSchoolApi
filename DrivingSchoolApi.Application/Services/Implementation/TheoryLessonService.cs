@@ -32,7 +32,8 @@ internal class TheoryLessonService : ITheoryLessonService
         InstructorKey instructorId,
         DateTime dateTime,
         Money price, 
-        IEnumerable<StudentKey> studentIds)
+        IEnumerable<StudentKey> studentIds,
+        byte[] instructorSignature)
     {
         // Materialize studentIds once to avoid multiple enumeration
         var studentIdsList = studentIds.ToList();
@@ -63,7 +64,8 @@ internal class TheoryLessonService : ITheoryLessonService
             dateTime,
             price,
             instructorId, 
-            studentIdsList);
+            studentIdsList,
+            Signature.Create(instructorSignature));
 
         var created = await _theoryLessonRepository.Create(lesson);
 

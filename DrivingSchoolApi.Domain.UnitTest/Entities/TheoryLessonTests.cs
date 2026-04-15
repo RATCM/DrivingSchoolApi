@@ -20,7 +20,8 @@ public class TheoryLessonTests
                 [
                     StudentKey.Create(Guid.Empty), 
                     StudentKey.Create(Guid.Empty)
-                ]));
+                ],
+                Signature.Create([0])));
     }
     
     [Test]
@@ -36,7 +37,7 @@ public class TheoryLessonTests
                 [
                     StudentKey.Create(Guid.Empty), 
                     StudentKey.Create(Guid.AllBitsSet)
-                ]));
+                ],
+                Signature.Create([0])));
     }
-
 }

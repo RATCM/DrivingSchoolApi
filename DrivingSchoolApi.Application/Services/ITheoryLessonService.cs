@@ -11,7 +11,8 @@ public interface ITheoryLessonService
         InstructorKey instructorId,
         DateTime dateTime, 
         Money price,
-        IEnumerable<StudentKey> studentIds);
+        IEnumerable<StudentKey> studentIds,
+        byte[] instructorSignature);
     Task<Result<TheoryLesson>> GetTheoryLessonById(TheoryLessonKey id);
     Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId);
     Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromStudent(StudentKey studentId);

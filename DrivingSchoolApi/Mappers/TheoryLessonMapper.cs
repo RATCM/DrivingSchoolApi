@@ -22,21 +22,5 @@ public static class TheoryLessonMapper
                 studentIds?.Select(x=> x.Value).ToList()
             );
         }
-        
-    }
-    
-    extension(TheoryLessonDto dto)
-    {
-        public TheoryLesson ToDomain()
-        {
-            return TheoryLesson.Create(
-                TheoryLessonKey.Create(dto.Id),
-                DrivingSchoolKey.Create(dto.SchoolId),
-                dto.LessonDateTime,
-                Money.Create(dto.Price.Amount, dto.Price.Currency),
-                InstructorKey.Create(dto.InstructorId),
-                dto.StudentIds.Select(x=> StudentKey.Create(x)).ToList()
-            );
-        }
     }
 }
