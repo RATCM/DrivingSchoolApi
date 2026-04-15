@@ -102,4 +102,14 @@ public class DrivingSchoolController : ControllerBase
             ? Ok(invite.Value!)
             : this.Problem(invite.Error!);
     }
+    
+    [HttpDelete("{drivingSchool:guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOnly)]
+    public async Task<IActionResult> DeleteDrivingSchool(Guid schoolId)
+    {
+        var deleted  = await _drivingSchoolService.DeleteDrivingSchool(DrivingSchoolKey.Create(schoolId));
+        return deleted.IsSuccess
+            ? NoContent()
+            : this.Problem(deleted.Error!);
+    }
 }
