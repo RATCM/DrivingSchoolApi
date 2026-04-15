@@ -32,30 +32,6 @@ public class DrivingSchoolController : ControllerBase
         _instructorService = instructorService;
     }
     
-    
-    //TODO Add paging
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
-    {
-        var result = await _drivingSchoolService.GetAllDrivingSchools();
-
-        return result.IsSuccess
-            ? Ok(result.Value!.Select(x => x.ToDto()))
-            : this.Problem(result.Error!);
-    }
-    
-    
-    [HttpGet("/{id}")]
-    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
-    {
-        var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(id));
-        
-        return result.IsSuccess
-            ? Ok(result.Value!.ToDto())
-            : this.Problem(result.Error!);
-    }
-    
-    
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<IActionResult> CreateDrivingSchool([FromBody] DrivingSchoolRegistryDto drivingSchool)
@@ -68,9 +44,31 @@ public class DrivingSchoolController : ControllerBase
             []);
         
         return result.IsSuccess
-            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto())
+            ? Created($"drivingSchool/{result.Value!.Id}", result.Value.ToDto())
             : this.Problem(result.Error!);
     }
+    
+    [HttpGet("/{id}")]
+    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
+    {
+        var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(id));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
+    }
+    
+    //TODO Add paging
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
+    {
+        var result = await _drivingSchoolService.GetAllDrivingSchools();
+
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
+    }
+    
     
     //TODO Add paging
     [HttpGet("{schoolId:guid}/students")]
