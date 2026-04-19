@@ -157,9 +157,26 @@ public class DrivingSchoolController : ControllerBase
             Ok(result.Value!.Select(x => x.ToDto())) : 
             this.Problem(result.Error!);
     }
-    //TODO
-    //UpdateDrivingSchool
     
-    
-
+    //TODO add filter
+    [HttpPut("{schoolId:guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOnly)] //TODO who can update driving school?
+    //[UserFilter("")]
+    public async Task<ActionResult> UpdateDrivingSchool(Guid schoolId, [FromBody] DrivingSchoolUpdateDto updateDto)
+    {
+        var result = await _drivingSchoolService.UpdateDrivingSchool(
+            DrivingSchoolKey.Create(schoolId),
+            DrivingSchoolName.Create(updateDto.Name),
+            StreetAddress.Create(
+                updateDto.StreetAddress.PostalCode,
+                updateDto.StreetAddress.City,
+                updateDto.StreetAddress.Region,
+                updateDto.StreetAddress.AddressLine),
+            PhoneNumber.Create(updateDto.PhoneNumber),
+            WebAddress.Create(updateDto.WebAddress));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
+    }
 }
