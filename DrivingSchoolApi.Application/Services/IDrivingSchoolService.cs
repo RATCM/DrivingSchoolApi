@@ -12,4 +12,11 @@ public interface IDrivingSchoolService
     Task<Result<IEnumerable<DrivingSchool>>> GetAllDrivingSchools();
     Task<Result<StudentInvite>> CreateStudentInvite(DrivingSchoolKey id, TimeSpan timeValid);
     Task<Result> DeleteDrivingSchool(DrivingSchoolKey id);
+
+    Task<Result<DrivingSchool>> UpdateDrivingSchool(
+        DrivingSchoolKey id,
+        DrivingSchoolName name,
+        StreetAddress streetAddress,
+        PhoneNumber phoneNumber,
+        WebAddress webAddress);
 }
