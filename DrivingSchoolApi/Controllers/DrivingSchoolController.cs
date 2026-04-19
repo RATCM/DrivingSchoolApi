@@ -17,16 +17,22 @@ namespace DrivingSchoolApi.Controllers;
 [Route("[controller]")]
 public class DrivingSchoolController : ControllerBase
 {
+    private readonly ITheoryLessonService _theoryLessonService;
+    private readonly IDrivingLessonService _drivingLessonService;
     private readonly IDrivingSchoolService _drivingSchoolService;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
 
     public DrivingSchoolController(
         ILogger<DrivingSchoolController> logger,
+        ITheoryLessonService theoryLessonService,
+        IDrivingLessonService drivingLessonService,
         IDrivingSchoolService drivingSchoolService,
         IStudentService studentService,
         IInstructorService instructorService)
     {
+        _theoryLessonService = theoryLessonService;
+        _drivingLessonService = drivingLessonService;
         _drivingSchoolService = drivingSchoolService;
         _studentService = studentService;
         _instructorService = instructorService;
@@ -103,7 +109,7 @@ public class DrivingSchoolController : ControllerBase
             : this.Problem(invite.Error!);
     }
     
-    [HttpDelete("{drivingSchool:guid}")]
+    [HttpDelete("{schoolId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<IActionResult> DeleteDrivingSchool(Guid schoolId)
     {
@@ -112,14 +118,37 @@ public class DrivingSchoolController : ControllerBase
             ? NoContent()
             : this.Problem(deleted.Error!);
     }
+    
+    //TODO add paging
+    [HttpGet("{schoolId:guid}/theoryLessons")]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    //[UserFilter("")]
+    public async Task<IActionResult> GetDrivingSchoolTheoryLessons(Guid schoolId)
+    {
+        var result = await _theoryLessonService.GetAllTheoryLessonsFromSchool(DrivingSchoolKey.Create(schoolId));
+        
+        return result.IsSuccess ?
+            Ok(result.Value!.Select(x => x.ToDto())) : 
+            this.Problem(result.Error!);
+    }
+    
+    //TODO add paging
+    [HttpGet("{schoolId:guid}/drivingLessons")]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    //[UserFilter("")]
+    public async Task<IActionResult> GetDrivingSchoolDrivingLessons(Guid schoolId)
+    {
+        var result = await _drivingLessonService.GetAllDrivingLessonsFromSchool(DrivingSchoolKey.Create(schoolId));
+        
+        return result.IsSuccess ?
+            Ok(result.Value!.Select(x => x.ToDto())) : 
+            this.Problem(result.Error!);
+    }
     //TODO
-    //GetDrivingSchoolDrivingLessons
-    //GetDrivingSchoolTheoryLessons
+
     //GetDrivingSchoolInstructors
     //UpdateDrivingSchool
-    //GetDrivingSchoolInvites
-    //GetDrivingSchoolInviteById
-    //DeleteDrivingSchoolInvite
     
-    //invitecontroller??
+    
+
 }
