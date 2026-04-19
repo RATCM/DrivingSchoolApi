@@ -119,7 +119,7 @@ public class DrivingSchoolController : ControllerBase
             : this.Problem(deleted.Error!);
     }
     
-    //TODO add paging
+    //TODO add paging and filters
     [HttpGet("{schoolId:guid}/theoryLessons")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     //[UserFilter("")]
@@ -132,7 +132,7 @@ public class DrivingSchoolController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    //TODO add paging
+    //TODO add paging and filters
     [HttpGet("{schoolId:guid}/drivingLessons")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     //[UserFilter("")]
@@ -144,9 +144,20 @@ public class DrivingSchoolController : ControllerBase
             Ok(result.Value!.Select(x => x.ToDto())) : 
             this.Problem(result.Error!);
     }
+    
+    //TODO add paging and filters
+    [HttpGet("{schoolId:guid}/schoolInstructors")]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    //[UserFilter("")]
+    public async Task<IActionResult> GetDrivingSchoolInstructors(Guid schoolId)
+    {
+        var result = await _instructorService.GetAllInstructorsFromSchool(DrivingSchoolKey.Create(schoolId));
+        
+        return result.IsSuccess ?
+            Ok(result.Value!.Select(x => x.ToDto())) : 
+            this.Problem(result.Error!);
+    }
     //TODO
-
-    //GetDrivingSchoolInstructors
     //UpdateDrivingSchool
     
     
