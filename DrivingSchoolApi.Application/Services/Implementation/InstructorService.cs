@@ -106,9 +106,9 @@ internal class InstructorService : IInstructorService
             instructorResult.HashedPassword,
             phoneNumber);
         
-        bool succes = await _instructorRepository.Update(updatedInstructor);
+        bool success = await _instructorRepository.Update(updatedInstructor);
 
-        if (!succes)
+        if (!success)
             return  new Exception("Internal error: Unable to update instructor.");
         
         await _instructorRepository.Save();
