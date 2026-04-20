@@ -1,4 +1,5 @@
 ﻿using DrivingSchoolApi.Application.Auth;
+using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Utils;
@@ -11,15 +12,26 @@ namespace DrivingSchoolApi.Controllers;
 [Route("drivingSchool/{drivingSchoolId:guid}/student/invite")]
 public class StudentInviteController : ControllerBase
 {
+    private readonly IInstructorService _instructorService;
+    private readonly IDrivingSchoolService _drivingSchoolService;
+
+    public StudentInviteController(
+        IInstructorService instructorService,
+        IDrivingSchoolService drivingSchoolService)
+    {
+        _instructorService = instructorService;
+        _drivingSchoolService = drivingSchoolService;
+    }
+    
     [HttpPost]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid drivingSchoolId)
+    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid schoolId)
     {
         var idClaim = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
 
         var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
 
-        if (instructor.IsSuccess)
+        if (!instructor.IsSuccess)
             return this.Problem(instructor.Error!);
         
         var invite = await _drivingSchoolService.CreateStudentInvite(
@@ -30,5 +42,7 @@ public class StudentInviteController : ControllerBase
             ? Ok(invite.Value!)
             : this.Problem(invite.Error!);
     }
-
+    //GetDrivingSchoolInvites
+    //GetDrivingSchoolInviteById
+    //InvalidateInviteById
 }
