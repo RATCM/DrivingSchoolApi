@@ -29,41 +29,26 @@ internal class TheoryLessonService : ITheoryLessonService
     }
     
     public async Task<Result<TheoryLesson>> CreateTheoryLesson(
+        byte[] instructorSignature,
+        byte[] studentSignature,
         InstructorKey instructorId,
         DateTime dateTime,
         Money price, 
-        IEnumerable<StudentKey> studentIds)
+        StudentKey studentId)
     {
-        // Materialize studentIds once to avoid multiple enumeration
-        var studentIdsList = studentIds.ToList();
-        
-        // No duplicates
-        if (studentIdsList.Count != studentIdsList.Distinct().Count())
-            return new StudentDuplicateException("Cannot add duplicate students to theory lesson.");
-        
         var instructor = await _instructorRepository.Get(instructorId);
         if (instructor is null)
             return new InstructorNotFoundException($"Instructor was not found.");
-        
-        // Build allowed student id set for the instructor's school.
-        var schoolStudents = await _studentRepository.GetAllFromDrivingSchool(instructor.SchoolId);
-        var allowedStudentIds = schoolStudents.Select(x => x.Id).ToHashSet();
-        
-        // Validate all requested students are from the same school as the instructor.
-        var invalidStudentIds = studentIdsList
-            .Where(id => !allowedStudentIds.Contains(id))
-            .ToList();
-        
-        if (invalidStudentIds.Count != 0)
-            return new Exception("One or more students are not in the instructor's school.");
         
         var lesson = TheoryLesson.Create(
             TheoryLessonKey.Create(_guidGeneratorService.NewGuid()),
             instructor.SchoolId,
             dateTime,
             price,
-            instructorId, 
-            studentIdsList);
+            instructorId,
+            studentId,
+            Signature.Create(instructorSignature),
+            Signature.Create(studentSignature));
 
         var created = await _theoryLessonRepository.Create(lesson);
 
@@ -90,7 +75,7 @@ internal class TheoryLessonService : ITheoryLessonService
     {
         var lessons = await _theoryLessonRepository.GetAll();
 
-        return lessons.Where(x => x.StudentIds.Contains(studentId)).ToList();
+        return lessons.Where(x => x.StudentId.Equals(studentId)).ToList();
     }
 
     public async Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromInstructor(InstructorKey instructorId)

@@ -132,16 +132,23 @@ public class InstructorController : ControllerBase
     [HttpPost("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
-    public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromBody] TheoryLessonRegistryDto registryDto)
+    public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromForm] TheoryLessonRegistryDto registryDto)
     {
+        using MemoryStream instructorMs = new();
+        using MemoryStream studentMs = new();
+        await registryDto.InstructorSignature.CopyToAsync(instructorMs);
+        await registryDto.StudentSignature.CopyToAsync(studentMs);
+
         var result = await _theoryLessonService.CreateTheoryLesson(
+            instructorMs.ToArray(),
+            studentMs.ToArray(),
             InstructorKey.Create(instructorId),
             registryDto.LessonDateTime,
             Money.Create(registryDto.Price.Amount, registryDto.Price.Currency),
-            registryDto.StudentIds.Select(StudentKey.Create).ToList());
+            StudentKey.Create(registryDto.StudentId));
         
         return result.IsSuccess
-            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto(result.Value.StudentIds))
+            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto())
             : this.Problem(result.Error!);
     }
     
@@ -161,7 +168,7 @@ public class InstructorController : ControllerBase
     [HttpPost("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("instructorId")]
-    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromBody] DrivingLessonRegistryDto registryDto)
+    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromForm] DrivingLessonRegistryDto registryDto)
     {
         using MemoryStream instructorMs = new();
         using MemoryStream studentMs = new();
