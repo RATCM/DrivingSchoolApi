@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.DTOs.Common;
+using DrivingSchoolApi.DTOs.CompletedCourse;
 using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
@@ -23,18 +25,21 @@ public class StudentController : ControllerBase
     private readonly IDrivingLessonService _drivingLessonService;
     private readonly IStudentService _studentService;
     private readonly IStudentInviteService _studentInviteService;
+    private readonly ICompletedCourseService _completedCourseService;
 
     public StudentController(
         ILogger<StudentController> logger,
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService,
         IStudentService studentService,
-        IStudentInviteService studentInviteService)
+        IStudentInviteService studentInviteService,
+        ICompletedCourseService completedCourseService)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
         _studentInviteService = studentInviteService;
+        _completedCourseService = completedCourseService;
     }
     
     //TODO login
@@ -138,4 +143,53 @@ public class StudentController : ControllerBase
             Ok(student.Value!.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value)) :
             this.Problem(student.Error!);
     }
+
+    [HttpGet("{id:guid}/course/{courseId:guid}")]
+    [Authorize]
+    [UserFilter("id")]
+    public async Task<IActionResult> GetCompletedCourseById(Guid id, Guid courseId)
+    {
+        var course = await _completedCourseService.GetCompletedCourseById(CompletedCourseKey.Create(courseId));
+
+        if (!course.IsSuccess)
+            return this.Problem(course.Error!);
+
+        if (!StudentKey.Create(id).Equals(course.Value!.StudentId))
+            return Forbid();
+
+        return Ok(course);
+    }
+    
+    [HttpGet("{id:guid}/course")]
+    [Authorize]
+    [UserFilter("id")]
+    public async Task<IActionResult> GetAllCompletedCourses(Guid id)
+    {
+        var courses = await _completedCourseService.GetAllCompletedCoursesFromStudent(StudentKey.Create(id));
+
+        if (!courses.IsSuccess)
+            return this.Problem(courses.Error!);
+        
+        return Ok(courses);
+    }
+
+    [HttpPost("{id:guid}/course")]
+    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [SameDrivingSchoolFilter("id", TargetEntity.Student)]
+    public async Task<IActionResult> CompleteCourse(Guid id, [FromBody] CompletedCourseRegistryDto registry)
+    {
+        var parsed = Enum.TryParse<CourseCompletionReason>(registry.Reason, out var reason);
+        if (!parsed) return BadRequest("Reason must be a valid value");
+        
+        var result = await _completedCourseService.CreateCompletedCourseForStudent(
+            StudentKey.Create(id),
+            registry.IncludeLessonsFrom,
+            reason);
+
+        return result.IsSuccess
+            ? Created($"student/{id}/course/{result.Value!.Id.Value}", result.Value!)
+            : this.Problem(result.Error!);
+    }
+    
+    
 }
