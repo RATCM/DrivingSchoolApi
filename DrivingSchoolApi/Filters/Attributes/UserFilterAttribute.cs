@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using DrivingSchoolApi.Application.Enums;
+using DrivingSchoolApi.Filters.Extensions;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace DrivingSchoolApi.Filters.Attributes;
 
-public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
+public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter, IFilter
 {
     private readonly string _key;
     private readonly bool _letAdminsBypass;
@@ -19,9 +21,9 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
     /// <param name="letAdminsBypass">Whether admins should be allowed to bypass this restriction</param>
     /// <example>
     /// <code>
-    /// [HttpPut("{id}")] // Route template
+    /// [HttpPut("{id:guid}")] // Route template
     /// [Authorize]
-    /// [UserFilter("id")] // Put the name of the id from the route template
+    /// [UserFilter("{id:guid}")] // Put the name of the id from the route template
     /// public async Task&lt;IActionResult&gt; UpdateUser(Guid id, [FromBody] UserRegistry user)
     /// {
     ///     ...
@@ -32,9 +34,9 @@ public class UserFilterAttribute : AuthorizeAttribute, IAsyncActionFilter
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public UserFilterAttribute(string key, bool letAdminsBypass = false)
+    public UserFilterAttribute([StringSyntax("Route")] string key, bool letAdminsBypass = false)
     {
-        _key = key;
+        _key = IFilter.RouteToKey(key);
         _letAdminsBypass = letAdminsBypass;
     }
 

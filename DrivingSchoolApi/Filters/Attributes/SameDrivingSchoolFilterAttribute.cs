@@ -1,9 +1,11 @@
-﻿using DrivingSchoolApi.Filters.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+using DrivingSchoolApi.Filters.Extensions;
+using DrivingSchoolApi.Filters.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrivingSchoolApi.Filters.Attributes;
 
-public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
+public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute, IFilter
 {
     /// <summary>
     /// When applied to an endpoint or controller, it checks
@@ -14,9 +16,9 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// <param name="letAdminsBypass">Whether admins should be allowed to bypass this restriction</param>
     /// <example>
     /// <code>
-    /// [HttpPut("{id}")] // Route template
+    /// [HttpPut("{id:guid}")] // Route template
     /// [Authorize]
-    /// [SameDrivingSchoolFilterAttribute("id")] // Put the name of the id from the route template
+    /// [SameDrivingSchoolFilterAttribute("{id:guid}")] // Put the name of the id from the route template
     /// public async Task&lt;IActionResult&gt; UpdateStudent(Guid id, [FromBody] StudentRegistry student)
     /// {
     ///     ...
@@ -27,9 +29,9 @@ public class SameDrivingSchoolFilterAttribute : TypeFilterAttribute
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public SameDrivingSchoolFilterAttribute(string key, TargetEntity targetEntity, bool letAdminsBypass = false) : base(typeof(SameDrivingSchoolFilterService))
+    public SameDrivingSchoolFilterAttribute([StringSyntax("Route")] string key, TargetEntity targetEntity, bool letAdminsBypass = false) : base(typeof(SameDrivingSchoolFilterService))
     {
-        Arguments = [key, targetEntity, letAdminsBypass];
+        Arguments = [IFilter.RouteToKey(key), targetEntity, letAdminsBypass];
         Order = 2;
     }
 }

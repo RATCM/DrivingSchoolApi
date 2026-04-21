@@ -50,10 +50,10 @@ public class DrivingSchoolController : ControllerBase
     }
     
     
-    [HttpGet("{id}")]
-    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
+    [HttpGet("{schoolId:guid}")]
+    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid schoolId)
     {
-        var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(id));
+        var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(schoolId));
         
         return result.IsSuccess
             ? Ok(result.Value!.ToDto())
@@ -61,10 +61,10 @@ public class DrivingSchoolController : ControllerBase
     }
     
         
-    [HttpGet("{id}/rating")]
-    public async Task<IActionResult> GetDrivingSchoolRating(Guid id)
+    [HttpGet("{schoolId:guid}/rating")]
+    public async Task<IActionResult> GetDrivingSchoolRating(Guid schoolId)
     {
-        var courses = await _completedCourseService.GetAllCompletedCoursesFromSchool(DrivingSchoolKey.Create(id));
+        var courses = await _completedCourseService.GetAllCompletedCoursesFromSchool(DrivingSchoolKey.Create(schoolId));
         if (!courses.IsSuccess) 
             return this.Problem(courses.Error!);
 
@@ -102,9 +102,9 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO Add paging
-    [HttpGet("{schoolId:guid}/students")]
+    [HttpGet("{schoolId:guid}/student")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [SameDrivingSchoolFilter("schoolId", TargetEntity.School)]
+    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var result = await _studentService.GetAllStudentsFromSchool(DrivingSchoolKey.Create(schoolId));
