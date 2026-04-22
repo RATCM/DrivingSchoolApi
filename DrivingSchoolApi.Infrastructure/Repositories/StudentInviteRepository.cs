@@ -14,6 +14,11 @@ internal class StudentInviteRepository : Repository, IStudentInviteRepository
     {
         return await DbContext.StudentInvites.FindAsync(id);
     }
+
+    public async Task<IEnumerable<StudentInvite?>> GetAll()
+    {
+        return DbContext.StudentInvites;
+    }
     
     public async Task<bool> Delete(StudentInviteKey id)
     {

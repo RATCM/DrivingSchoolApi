@@ -14,13 +14,16 @@ public class StudentInviteController : ControllerBase
 {
     private readonly IInstructorService _instructorService;
     private readonly IDrivingSchoolService _drivingSchoolService;
+    private readonly IStudentInviteService _studentInviteService;
 
     public StudentInviteController(
         IInstructorService instructorService,
-        IDrivingSchoolService drivingSchoolService)
+        IDrivingSchoolService drivingSchoolService,
+        IStudentInviteService studentInviteService)
     {
         _instructorService = instructorService;
         _drivingSchoolService = drivingSchoolService;
+        _studentInviteService = studentInviteService;
     }
     
     [HttpPost]
@@ -41,6 +44,18 @@ public class StudentInviteController : ControllerBase
         return invite.IsSuccess
             ? Ok(invite.Value!)
             : this.Problem(invite.Error!);
+    }
+    
+    [HttpGet]
+    [Authorize(Policy = AuthPolicies.AdminOnly)]
+    public async Task<ActionResult> GetAllDrivingSchoolInvites(int page = 1)
+    {
+        var result = await _
+        const int PAGE_SIZE = 30;
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
     }
     //GetDrivingSchoolInvites
     //GetDrivingSchoolInviteById
