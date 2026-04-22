@@ -58,6 +58,8 @@ internal class StudentService : IStudentService
         if (!created)
             return new Exception("Unable to create new student");
         
+        await _studentRepository.Save();
+        
         return student;
     }
 

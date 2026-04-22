@@ -1,5 +1,4 @@
 using DrivingSchoolApi.Application.Exceptions.Instructor;
-using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Exceptions.TheoryLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
@@ -13,18 +12,15 @@ internal class TheoryLessonService : ITheoryLessonService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly ITheoryLessonRepository _theoryLessonRepository;
-    private readonly IStudentRepository _studentRepository;
     private readonly IInstructorRepository _instructorRepository;
 
     public TheoryLessonService(
         IGuidGeneratorService guidGeneratorService, 
         ITheoryLessonRepository theoryLessonRepository,
-        IStudentRepository studentRepository,
         IInstructorRepository instructorRepository)
     {
         _guidGeneratorService = guidGeneratorService;
         _theoryLessonRepository = theoryLessonRepository;
-        _studentRepository = studentRepository;
         _instructorRepository = instructorRepository;
     }
     
@@ -61,7 +57,12 @@ internal class TheoryLessonService : ITheoryLessonService
 
     public async Task<Result<TheoryLesson>> GetTheoryLessonById(TheoryLessonKey id)
     {
-        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException("Theory lesson not found.");
+        var result = await _theoryLessonRepository.Get(id);
+        
+        if (result is null)
+            return new TheoryLessonNotFoundException("Theory lesson not found.");
+        
+        return result;
     }
 
     public async Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId)
