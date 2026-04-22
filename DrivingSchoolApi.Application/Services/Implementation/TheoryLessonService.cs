@@ -1,4 +1,3 @@
-using DrivingSchoolApi.Application.Exceptions.Instructor;
 using DrivingSchoolApi.Application.Exceptions.TheoryLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;

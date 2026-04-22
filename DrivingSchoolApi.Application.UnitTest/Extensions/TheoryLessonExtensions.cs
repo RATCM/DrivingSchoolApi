@@ -1,7 +1,6 @@
 ﻿using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
-using NUnit.Framework.Constraints;
 
 namespace DrivingSchoolApi.Application.UnitTest.Extensions;
 
