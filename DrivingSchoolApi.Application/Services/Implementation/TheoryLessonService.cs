@@ -12,16 +12,16 @@ internal class TheoryLessonService : ITheoryLessonService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly ITheoryLessonRepository _theoryLessonRepository;
-    private readonly IInstructorRepository _instructorRepository;
+    private readonly IInstructorService _instructorService;
 
     public TheoryLessonService(
-        IGuidGeneratorService guidGeneratorService, 
+        IGuidGeneratorService guidGeneratorService,
         ITheoryLessonRepository theoryLessonRepository,
-        IInstructorRepository instructorRepository)
+        IInstructorService instructorService)
     {
         _guidGeneratorService = guidGeneratorService;
         _theoryLessonRepository = theoryLessonRepository;
-        _instructorRepository = instructorRepository;
+        _instructorService = instructorService;
     }
     
     public async Task<Result<TheoryLesson>> CreateTheoryLesson(
@@ -32,13 +32,13 @@ internal class TheoryLessonService : ITheoryLessonService
         Money price, 
         StudentKey studentId)
     {
-        var instructor = await _instructorRepository.Get(instructorId);
-        if (instructor is null)
-            return new InstructorNotFoundException($"Instructor was not found.");
+        var instructor = await _instructorService.GetInstructorById(instructorId);
+        if (!instructor.IsSuccess)
+            return instructor.Error!;
         
         var lesson = TheoryLesson.Create(
             TheoryLessonKey.Create(_guidGeneratorService.NewGuid()),
-            instructor.SchoolId,
+            instructor.Value!.SchoolId,
             dateTime,
             price,
             instructorId,

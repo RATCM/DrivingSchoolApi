@@ -10,27 +10,29 @@ public static class TheoryLessonExtensions
     extension(TheoryLesson theoryLesson)
     {
         public static TheoryLesson CreateTestTheoryLesson(
-            DateTime dateTime,
+            DateTime? dateTime = null,
             Guid? id = null, 
             Guid? schoolId = null,
-            Guid? instructorId = null
+            Guid? instructorId = null,
+            Guid? studentId = null
             )
         {
+            dateTime ??=  new DateTime(2026, 01, 01, 10, 00, 00);;
             id ??= Guid.NewGuid();
             schoolId ??= Guid.NewGuid();
             instructorId ??= Guid.NewGuid();
+            studentId ??= Guid.NewGuid();
             var price = Money.Create(100, "DKK");
-            var studentId = StudentKey.Create(Guid.NewGuid());
             var instructorSignature = Signature.Create([0]);
             var studentSignature = Signature.Create([0]);
             
             return TheoryLesson.Create(
                 TheoryLessonKey.Create(id.Value),
                 DrivingSchoolKey.Create(schoolId.Value),
-                dateTime,
+                dateTime.Value,
                 price,
                 InstructorKey.Create(instructorId.Value),
-                studentId,
+                StudentKey.Create(studentId.Value),
                 instructorSignature,
                 studentSignature);
         }
