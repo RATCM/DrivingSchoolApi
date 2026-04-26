@@ -7,7 +7,18 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 public record DrivingRoute : ValueObject
 {
     public required DateTimeRange DateTimeRange { get; init; }
-    public required ImmutableArray<CoordinatePoint> RouteCoordinates { get; init; }
+    public required ICollection<CoordinatePoint> RouteCoordinates { get; init; }
+    
+    public virtual bool Equals(DrivingRoute? other)
+    {
+        return DateTimeRange.Equals(other?.DateTimeRange)
+            && RouteCoordinates.SequenceEqual(other.RouteCoordinates);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), DateTimeRange, RouteCoordinates);
+    }
 
     private DrivingRoute() {} // EF
     

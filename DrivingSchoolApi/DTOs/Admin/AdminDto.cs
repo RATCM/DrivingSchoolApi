@@ -1,3 +1,3 @@
 namespace DrivingSchoolApi.DTOs.Admin;
 
-public class AdminDto(Guid id, string email);
+public record AdminDto(Guid Id, string Email);

@@ -32,7 +32,7 @@ internal class AdminRepository : Repository, IAdminRepository
     public async Task<IEnumerable<Admin>> GetAll()
     {
         // Don't implement this without good reason
-        throw new NotImplementedException();
+        return await DbContext.Admins.ToListAsync();
     }
 
     public async Task<bool> Update(Admin admin)

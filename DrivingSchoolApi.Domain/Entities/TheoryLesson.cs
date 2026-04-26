@@ -35,7 +35,7 @@ public sealed class TheoryLesson : Entity<TheoryLessonKey>
         {
             Id = id,
             SchoolId = schoolId,
-            LessonDateTime = lessonDateTime,
+            LessonDateTime = lessonDateTime.ToUniversalTime(),
             Price = price,
             InstructorId = instructorId,
             StudentId = studentId,

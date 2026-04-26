@@ -30,7 +30,7 @@ public sealed class CompletedCourse : Entity<CompletedCourseKey>
             SchoolId = schoolId,
             StudentId = studentId,
             Cost = cost,
-            CompletionDate = completionDate,
+            CompletionDate = completionDate.ToUniversalTime(),
             Reason = reason
         };
     }
