@@ -2,6 +2,7 @@
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -73,6 +74,15 @@ public class StudentInviteController : ControllerBase
         return Ok(schoolInvites.Select(x => x.ToDto()));
     }
 
-    
-    // TODO InvalidateInviteById
+    [HttpDelete("{inviteId:guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [UserFilter("{instructorId:guid}", letAdminsBypass: true)]
+    public async Task<ActionResult> DeleteInvite(Guid inviteId)
+    {
+        var deleted = await _studentInviteService.DeleteInvite(StudentInviteKey.Create(inviteId));
+        return deleted.IsSuccess
+            ? NoContent()
+            : this.Problem(deleted.Error!);
+
+    }
 }

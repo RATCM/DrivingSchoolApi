@@ -8,4 +8,5 @@ public interface IStudentInviteService
 {
     Task<Result<DrivingSchool>> RedeemStudentInvite(StudentInviteKey id);
     Task<Result<IEnumerable<StudentInvite>>> GetAll();
+    Task<Result> DeleteInvite(StudentInviteKey id);
 }
