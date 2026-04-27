@@ -58,6 +58,21 @@ public class StudentInviteController : ControllerBase
             ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
             : this.Problem(result.Error!);
     }
-    // TODO GetDrivingSchoolInviteById
+
+    [HttpGet]
+    [Authorize(Policy = AuthPolicies.AdminOnly)]
+    public async Task<ActionResult> GetDrivingSchoolInviteBySchoolId(Guid schoolId)
+    {
+        var result = await _studentInviteService.GetAll();
+        if (!result.IsSuccess)
+        {
+            return this.Problem(result.Error!);
+        }
+        var schoolInvites = result.Value!.Where(x => x.DrivingSchoolId.Equals(DrivingSchoolKey.Create(schoolId)));
+        
+        return Ok(schoolInvites.Select(x => x.ToDto()));
+    }
+
+    
     // TODO InvalidateInviteById
 }
