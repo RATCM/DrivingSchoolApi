@@ -10,16 +10,16 @@ namespace DrivingSchoolApi.Application.Services.Implementation;
 public class StudentInviteService : IStudentInviteService
 {
     private readonly IStudentInviteRepository _studentInviteRepository;
-    private readonly IDrivingSchoolRepository _drivingSchoolRepository;
+    private readonly IDrivingSchoolService _drivingSchoolService;
     private readonly IDateTimeProviderService _dateTimeProviderService;
 
     public StudentInviteService(
         IStudentInviteRepository studentInviteRepository,
-        IDrivingSchoolRepository drivingSchoolRepository,
+        IDrivingSchoolService drivingSchoolService,
         IDateTimeProviderService dateTimeProviderService)
     {
         _studentInviteRepository = studentInviteRepository;
-        _drivingSchoolRepository = drivingSchoolRepository;
+        _drivingSchoolService = drivingSchoolService;
         _dateTimeProviderService = dateTimeProviderService;
     }
     
@@ -33,18 +33,29 @@ public class StudentInviteService : IStudentInviteService
         // connection, for now we just throw an exception
         var deleted = await _studentInviteRepository.Delete(id);
         if (!deleted) 
-            throw new Exception("Some error happened");
+            return new Exception("Some error happened");
 
         // We check the expiration datetime
         if (invite.ExpirationDateTime < _dateTimeProviderService.Now())
             return new StudentInviteExpiredException("Student invite has expired");
         
-        var drivingSchool = await _drivingSchoolRepository.Get(invite.DrivingSchoolId);
-        if (drivingSchool is null)
-            return new DrivingSchoolNotFoundException("Driving school not found");
+        var drivingSchool = await _drivingSchoolService.GetDrivingSchoolById(invite.DrivingSchoolId);
+        if (!drivingSchool.IsSuccess)
+            return drivingSchool.Error!;
 
         await _studentInviteRepository.Save();
         
         return drivingSchool;
     }
+
+    public async Task<Result<IEnumerable<StudentInvite>>> GetAll()
+    {
+        var result = await _studentInviteRepository.GetAll();
+        
+        return result.ToList();
+    }
+    
+    //GetDrivingSchoolInvites
+    //GetDrivingSchoolInviteById
+    //InvalidateInviteById
 }

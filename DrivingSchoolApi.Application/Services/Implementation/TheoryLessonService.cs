@@ -1,5 +1,3 @@
-using DrivingSchoolApi.Application.Exceptions.Instructor;
-using DrivingSchoolApi.Application.Exceptions.Student;
 using DrivingSchoolApi.Application.Exceptions.TheoryLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
@@ -13,19 +11,16 @@ internal class TheoryLessonService : ITheoryLessonService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly ITheoryLessonRepository _theoryLessonRepository;
-    private readonly IStudentRepository _studentRepository;
-    private readonly IInstructorRepository _instructorRepository;
+    private readonly IInstructorService _instructorService;
 
     public TheoryLessonService(
-        IGuidGeneratorService guidGeneratorService, 
+        IGuidGeneratorService guidGeneratorService,
         ITheoryLessonRepository theoryLessonRepository,
-        IStudentRepository studentRepository,
-        IInstructorRepository instructorRepository)
+        IInstructorService instructorService)
     {
         _guidGeneratorService = guidGeneratorService;
         _theoryLessonRepository = theoryLessonRepository;
-        _studentRepository = studentRepository;
-        _instructorRepository = instructorRepository;
+        _instructorService = instructorService;
     }
     
     public async Task<Result<TheoryLesson>> CreateTheoryLesson(
@@ -36,13 +31,13 @@ internal class TheoryLessonService : ITheoryLessonService
         Money price, 
         StudentKey studentId)
     {
-        var instructor = await _instructorRepository.Get(instructorId);
-        if (instructor is null)
-            return new InstructorNotFoundException($"Instructor was not found.");
+        var instructor = await _instructorService.GetInstructorById(instructorId);
+        if (!instructor.IsSuccess)
+            return instructor.Error!;
         
         var lesson = TheoryLesson.Create(
             TheoryLessonKey.Create(_guidGeneratorService.NewGuid()),
-            instructor.SchoolId,
+            instructor.Value!.SchoolId,
             dateTime,
             price,
             instructorId,
@@ -61,7 +56,12 @@ internal class TheoryLessonService : ITheoryLessonService
 
     public async Task<Result<TheoryLesson>> GetTheoryLessonById(TheoryLessonKey id)
     {
-        return await _theoryLessonRepository.Get(id) ?? throw new TheoryLessonNotFoundException("Theory lesson not found.");
+        var result = await _theoryLessonRepository.Get(id);
+        
+        if (result is null)
+            return new TheoryLessonNotFoundException("Theory lesson not found.");
+        
+        return result;
     }
 
     public async Task<Result<IEnumerable<TheoryLesson>>> GetAllTheoryLessonsFromSchool(DrivingSchoolKey schoolId)

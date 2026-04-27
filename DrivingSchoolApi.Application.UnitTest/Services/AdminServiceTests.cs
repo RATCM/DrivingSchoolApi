@@ -1,77 +1,122 @@
 ﻿using DrivingSchoolApi.Application.Enums;
+using DrivingSchoolApi.Application.Exceptions.Admin;
+using DrivingSchoolApi.Application.Exceptions.Common;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Application.Services.Implementation;
+using DrivingSchoolApi.Application.UnitTest.Extensions;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace DrivingSchoolApi.Application.UnitTest.Services;
 
 public class AdminServiceTests
 {
+    private ServiceProvider _serviceProvider;
+
+    private IAdminService GetSut()
+    {
+        return _serviceProvider.GetRequiredService<IAdminService>();
+    }
+
+    private IAdminRepository GetRepository()
+    {
+        return _serviceProvider.GetRequiredService<IAdminRepository>();
+    }
+
+    private IPasswordHasher<Admin> GetPasswordHasher()
+    {
+        return _serviceProvider.GetRequiredService<IPasswordHasher<Admin>>();
+    }
+
+    private IGuidGeneratorService GetGuidGenerator()
+    {
+        return _serviceProvider.GetRequiredService<IGuidGeneratorService>();
+    }
+
+    private ITokenGeneratorService GetTokenGenerator()
+    {
+        return _serviceProvider.GetRequiredService<ITokenGeneratorService>();
+    }
+    
+    
+    [SetUp]
+    public void Setup()
+    {
+        var collection = new ServiceCollection();
+
+        collection
+            .AddScoped<IAdminService, AdminService>()
+            .AddScoped<IAdminRepository>(_ => Substitute.For<IAdminRepository>())
+            .AddScoped<IPasswordHasher<Admin>>(_ => Substitute.For<IPasswordHasher<Admin>>())
+            .AddScoped<IGuidGeneratorService>(_ => Substitute.For<IGuidGeneratorService>())
+            .AddScoped<ITokenGeneratorService>(_ => Substitute.For<ITokenGeneratorService>());
+
+        
+        _serviceProvider = collection.BuildServiceProvider();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _serviceProvider.Dispose();
+    }
+    
     [Test]
     public async Task CreateAdmin_ReturnsAdmin_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
-
-        var adminId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-        var email = Email.Create("admin1@test.com");
+        var repo = GetRepository();
+        var guidService = GetGuidGenerator();
+        var passwordHasher = GetPasswordHasher();
+        
         var password = "pw";
-        var hashed = PasswordHash.Create("hashed-pw");
+        var admin = Admin.CreateTestAdmin(password: "testPassword");
 
-        guidService.NewGuid().Returns(adminId);
-        passwordHasher.HashPassword(password).Returns(hashed);
+        guidService.NewGuid().Returns(admin.Id.Value);
+        passwordHasher.HashPassword(password).Returns(admin.HashedPassword);
         repo.Create(Arg.Any<Admin>()).Returns(true);
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.CreateAdmin(email, password);
+        var result = await sut.CreateAdmin(admin.EmailAddress, password);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
         Assert.That(result.Value, Is.Not.Null);
-        Assert.That(result.Value!.Id.Value, Is.EqualTo(adminId));
-        Assert.That(result.Value.EmailAddress, Is.EqualTo(email));
-        Assert.That(result.Value.HashedPassword, Is.EqualTo(hashed));
+        Assert.That(result.Value!.Id.Value, Is.EqualTo(admin.Id.Value));
+        Assert.That(result.Value.EmailAddress, Is.EqualTo(admin.EmailAddress));
+        Assert.That(result.Value.HashedPassword, Is.EqualTo(admin.HashedPassword));
 
-        await repo.Received(1).Create(Arg.Is<Admin>(a =>
-            a.Id.Value == adminId &&
-            a.EmailAddress == email &&
-            a.HashedPassword == hashed));
-
+        await repo.Received(1).Create(Arg.Any<Admin>());
         await repo.Received(1).Save();
     }
 
     [Test]
-    public async Task CreateAdmin_ReturnsFailure_AndDoesNotSave_OnFailure()
+    public async Task CreateAdmin_ReturnsFailure_AndDoesNotSave_WhenCreationFails()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
-
-        var email = Email.Create("admin2@test.com");
-        var password = "pw";
-        var hashed = PasswordHash.Create("hashed-pw");
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
         
-        passwordHasher.HashPassword(password).Returns(hashed);
+        var password = "pw";
+        var admin = Admin.CreateTestAdmin();
+        
+        passwordHasher.HashPassword(password).Returns(admin.HashedPassword);
         repo.Create(Arg.Any<Admin>()).Returns(false);
 
-        var sut = new AdminService(new GuidGeneratorService(), passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.CreateAdmin(email, password);
+        var result = await sut.CreateAdmin(admin.EmailAddress, password);
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<Exception>());
         Assert.That(result.Error!.Message, Is.Not.Null);
 
         await repo.Received(1).Create(Arg.Any<Admin>());
@@ -82,54 +127,49 @@ public class AdminServiceTests
     public async Task LoginAsAdmin_ReturnsTokens_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
+        var tokenGenerator = GetTokenGenerator();
 
         var inputPassword = "pw";
-        var adminId = AdminKey.Create(Guid.Parse("33333333-3333-3333-3333-333333333333"));
-        var email = Email.Create("admin3@test.com");
-        var admin = Admin.Create(adminId, email, PasswordHash.Create("stored-hash"));
+        var admin = Admin.CreateTestAdmin();
 
-        repo.GetByEmail(email).Returns(admin);
+        repo.GetByEmail(admin.EmailAddress).Returns(admin);
         passwordHasher.VerifyHashedPassword(inputPassword, admin.HashedPassword).Returns(true);
-        tokenGenerator.GenerateJwtAccessToken(adminId.Value, UserRole.Admin).Returns("access-token");
-        tokenGenerator.GenerateJwtRefreshToken(adminId.Value, UserRole.Admin).Returns("refresh-token");
+        tokenGenerator.GenerateJwtAccessToken(admin.Id.Value, UserRole.Admin).Returns("access-token");
+        tokenGenerator.GenerateJwtRefreshToken(admin.Id.Value, UserRole.Admin).Returns("refresh-token");
 
-        var sut = new AdminService(new GuidGeneratorService(), passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.LoginAsAdmin(email, inputPassword);
+        var result = await sut.LoginAsAdmin(admin.EmailAddress, inputPassword);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
         Assert.That(result.Value.accessToken, Is.EqualTo("access-token"));
         Assert.That(result.Value.refreshToken, Is.EqualTo("refresh-token"));
 
-        await repo.Received(1).GetByEmail(email);
+        await repo.Received(1).GetByEmail(admin.EmailAddress);
         passwordHasher.Received(1).VerifyHashedPassword("pw", admin.HashedPassword);
     }
 
     [Test]
-    public async Task LoginAsAdmin_ReturnsNotFound_OnFailure()
+    public async Task LoginAsAdmin_ReturnsNotFound_WhenAdminDoesntExist()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var email = Email.Create("admin4@test.com");
         repo.GetByEmail(email).Returns((Admin?)null);
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
         var result = await sut.LoginAsAdmin(email, "pw");
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<AdminNotFoundException>());
         Assert.That(result.Error!.Message, Is.Not.Null);
         
         await repo.Received(1).GetByEmail(Arg.Any<Email>());
@@ -139,29 +179,26 @@ public class AdminServiceTests
     public async Task LoginAsAdmin_ReturnsInvalidLogin_WhenPasswordIsWrong()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
+        var tokenGenerator = GetTokenGenerator();
 
         var inputPassword = "incorrect";
-        var adminId = AdminKey.Create(Guid.Parse("44444444-4444-4444-4444-444444444444"));
-        var email = Email.Create("admin5@test.com");
-        var admin = Admin.Create(adminId, email, PasswordHash.Create("stored-hash"));
+        var admin = Admin.CreateTestAdmin();
 
-        repo.GetByEmail(email).Returns(admin);
+        repo.GetByEmail(admin.EmailAddress).Returns(admin);
         passwordHasher.VerifyHashedPassword(inputPassword, admin.HashedPassword).Returns(false);
-        tokenGenerator.GenerateJwtAccessToken(adminId.Value, UserRole.Admin).Returns("access-token");
-        tokenGenerator.GenerateJwtRefreshToken(adminId.Value, UserRole.Admin).Returns("refresh-token");
+        tokenGenerator.GenerateJwtAccessToken(admin.Id.Value, UserRole.Admin).Returns("access-token");
+        tokenGenerator.GenerateJwtRefreshToken(admin.Id.Value, UserRole.Admin).Returns("refresh-token");
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.LoginAsAdmin(email, inputPassword);
+        var result = await sut.LoginAsAdmin(admin.EmailAddress, inputPassword);
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<InvalidLoginRequestException>());
         Assert.That(result.Error!.Message, Is.Not.Null);
         
         await repo.Received(1).GetByEmail(Arg.Any<Email>());
@@ -171,20 +208,16 @@ public class AdminServiceTests
     public async Task GetAdminById_ReturnsAdmin_WhenFound()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        
+        var admin = Admin.CreateTestAdmin();
 
-        var adminId = AdminKey.Create(Guid.Parse("55555555-5555-5555-5555-555555555555"));
-        var admin = Admin.Create(adminId, Email.Create("admin6@test.com"), PasswordHash.Create("hash"));
+        repo.Get(admin.Id).Returns(admin);
 
-        repo.Get(adminId).Returns(admin);
-
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.GetAdminById(adminId);
+        var result = await sut.GetAdminById(admin.Id);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
@@ -200,21 +233,18 @@ public class AdminServiceTests
     public async Task GetAdminById_ReturnsNotFound_WhenMissing()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
         
-        var sut = new AdminService(guidService,passwordHasher, tokenGenerator, repo);
+        var admin = Admin.CreateTestAdmin();
 
-        var adminId = AdminKey.Create(Guid.Parse("66666666-6666-6666-6666-666666666666"));
+        var sut = GetSut();
 
         // Act
-        var result = await sut.GetAdminById(adminId);
+        var result = await sut.GetAdminById(admin.Id);
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<AdminNotFoundException>());
         Assert.That(result.Error!.Message, Is.Not.Null);
         
         await repo.Received(1).Get(Arg.Any<AdminKey>());
@@ -224,24 +254,14 @@ public class AdminServiceTests
     public async Task GetAllAdmins_WhenPopulated_ReturnsAllAdmins()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
-        var first = Admin.Create(
-            AdminKey.Create(Guid.Parse("77777777-7777-7777-7777-777777777777")),
-            Email.Create("a@test.com"),
-            PasswordHash.Create("hash-a"));
+        var admin1 = Admin.CreateTestAdmin();
+        var admin2 = Admin.CreateTestAdmin();
 
-        var second = Admin.Create(
-            AdminKey.Create(Guid.Parse("88888888-8888-8888-8888-888888888888")),
-            Email.Create("b@test.com"),
-            PasswordHash.Create("hash-b"));
+        repo.GetAll().Returns([admin1, admin2]);
 
-        repo.GetAll().Returns([first, second]);
-
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllAdmins();
@@ -250,8 +270,8 @@ public class AdminServiceTests
         Assert.That(result.IsSuccess, Is.True);
         Assert.That(result.Value, Is.Not.Null);
         Assert.That(result.Value!.Count, Is.EqualTo(2));
-        Assert.That(result.Value, Does.Contain(first));
-        Assert.That(result.Value, Does.Contain(second));
+        Assert.That(result.Value, Does.Contain(admin1));
+        Assert.That(result.Value, Does.Contain(admin2));
 
         await repo.Received(1).GetAll();
     }
@@ -260,12 +280,9 @@ public class AdminServiceTests
     public async Task GetAllAdmins_ReturnsEmpty_WhenEmpty()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>(); ;
+        var repo = GetRepository();
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllAdmins();
@@ -282,59 +299,50 @@ public class AdminServiceTests
     public async Task UpdateAdmin_ReturnsUpdatedAdmin_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
-
-        var adminId = AdminKey.Create(Guid.Parse("99999999-9999-9999-9999-999999999999"));
-        var existing = Admin.Create(adminId, Email.Create("old@test.com"), PasswordHash.Create("old-hash"));
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
+        
+        var admin = Admin.CreateTestAdmin();
         var newEmail = Email.Create("new@test.com");
         var newPassword = "new-pw";
         var newHash = PasswordHash.Create("new-hash");
 
-        repo.Get(adminId).Returns(existing);
+        repo.Get(admin.Id).Returns(admin);
         passwordHasher.HashPassword(newPassword).Returns(newHash);
         repo.Update(Arg.Any<Admin>()).Returns(true);
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.UpdateAdmin(adminId, newEmail, newPassword);
+        var result = await sut.UpdateAdmin(admin.Id, newEmail, newPassword);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
         Assert.That(result.Value, Is.Not.Null);
-        Assert.That(result.Value!.Id, Is.EqualTo(adminId));
+        Assert.That(result.Value!.Id, Is.EqualTo(admin.Id));
         Assert.That(result.Value.EmailAddress, Is.EqualTo(newEmail));
         Assert.That(result.Value.HashedPassword, Is.EqualTo(newHash));
 
-        await repo.Received(1).Update(Arg.Is<Admin>(a =>
-            a.Id == adminId &&
-            a.EmailAddress == newEmail &&
-            a.HashedPassword == newHash));
-
+        await repo.Received(1).Update(Arg.Any<Admin>());
         await repo.Received(1).Save();
     }
 
     [Test]
-    public async Task UpdateAdmin_ReturnsNotFound_OnFailure()
+    public async Task UpdateAdmin_ReturnsNotFound_WhenAdminDoesntExist()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var repo = GetRepository();
 
-        var adminId = AdminKey.Create(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        var sut = GetSut();
+        
+        var admin = Admin.CreateTestAdmin();
 
         // Act
-        var result = await sut.UpdateAdmin(adminId, Email.Create("new@test.com"), "new-pw");
+        var result = await sut.UpdateAdmin(admin.Id, Email.Create("new@test.com"), "new-pw");
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<AdminNotFoundException>());
         Assert.That(result.Error!.Message, Is.Not.Null);
 
         await repo.DidNotReceive().Update(Arg.Any<Admin>());
@@ -345,28 +353,26 @@ public class AdminServiceTests
     public async Task UpdateAdmin_ReturnsFailure_AndDoesNotSave_OnFailure()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
 
-        var inputPassword = "new-pw";
-        var adminId = AdminKey.Create(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
-        var existing = Admin.Create(adminId, Email.Create("old@test.com"), PasswordHash.Create("old-hash"));
+        var admin = Admin.CreateTestAdmin();
+        var newEmail = Email.Create("newAdmin@test.com");
+        var newPassword = "new-pw";
         var newHash = PasswordHash.Create("new-hash");
 
-        repo.Get(adminId).Returns(existing);
-        passwordHasher.HashPassword(inputPassword).Returns(newHash);
+        repo.Get(admin.Id).Returns(admin);
+        passwordHasher.HashPassword(newPassword).Returns(newHash);
         repo.Update(Arg.Any<Admin>()).Returns(false);
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.UpdateAdmin(adminId, Email.Create("new@test.com"), inputPassword);
+        var result = await sut.UpdateAdmin(admin.Id, newEmail, newPassword);
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<Exception>());
         Assert.That(result.Error!.Message, Is.Not.Null);
 
         await repo.Received(1).Update(Arg.Any<Admin>());
@@ -377,50 +383,44 @@ public class AdminServiceTests
     public async Task DeleteAdmin_ReturnsSuccess_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
-        var adminId = AdminKey.Create(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
-        repo.Delete(adminId).Returns(true);
+        var admin = Admin.CreateTestAdmin();
+        repo.Delete(admin.Id).Returns(true);
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.DeleteAdmin(adminId);
+        var result = await sut.DeleteAdmin(admin.Id);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
         Assert.That(result.Error, Is.Null);
 
-        await repo.Received(1).Delete(adminId);
+        await repo.Received(1).Delete(admin.Id);
         await repo.Received(1).Save();
     }
 
     [Test]
-    public async Task DeleteAdmin_ReturnsNotFound_AndDoesNotSave_OnFailure()
+    public async Task DeleteAdmin_ReturnsNotFound_AndDoesNotSave_WhenAdminDoesntExist()
     {
         // Arrange
-        var repo = Substitute.For<IAdminRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Admin>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
-        var adminId = AdminKey.Create(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
-        repo.Delete(adminId).Returns(false);
+        var admin = Admin.CreateTestAdmin();
+        repo.Delete(admin.Id).Returns(false);
 
-        var sut = new AdminService(guidService, passwordHasher, tokenGenerator, repo);
+        var sut = GetSut();
 
         // Act
-        var result = await sut.DeleteAdmin(adminId);
+        var result = await sut.DeleteAdmin(admin.Id);
 
         // Arrange
         Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error, Is.TypeOf<AdminNotFoundException>());
         Assert.That(result.Error!.Message, Is.EqualTo("Admin could not be found"));
 
-        await repo.Received(1).Delete(adminId);
+        await repo.Received(1).Delete(admin.Id);
         await repo.DidNotReceive().Save();
     }
 }

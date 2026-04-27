@@ -8,9 +8,11 @@ using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.DTOs.Common;
 using DrivingSchoolApi.DTOs.CompletedCourse;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.DTOs.ValueObject;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
+using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,17 +44,6 @@ public class StudentController : ControllerBase
         _studentService = studentService;
         _studentInviteService = studentInviteService;
         _completedCourseService = completedCourseService;
-    }
-    
-    //TODO login
-    [HttpPost("login")]
-    public async Task<ActionResult> LoginAsStudent([FromBody] StudentLoginRequestDto loginRequest)
-    {
-        var result = await _studentService.LoginAsStudent(loginRequest.Email, loginRequest.Password);
-        
-        return result.IsSuccess
-            ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
-            : this.Problem(result.Error!, _logger);
     }
     
     //TODO register (should be implemented studentInvite branch)
@@ -146,6 +137,37 @@ public class StudentController : ControllerBase
             this.Problem(student.Error!, _logger);
     }
 
+    [HttpPut("{studentId:guid}")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    [UserFilter("{studentId:guid}")]
+    public async Task<IActionResult> UpdateStudent(Guid studentId, [FromBody] StudentUpdateDto updateDto)
+    {
+        var result = await _studentService.UpdateStudent(
+            StudentKey.Create(studentId),
+            updateDto.Name.ToDomain(),
+            Email.Create(updateDto.Email),
+            PhoneNumber.Create(updateDto.PhoneNumber));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!, _logger);
+    }
+    
+    [HttpPut("{studentId:guid}/password")]
+    [Authorize(Policy = AuthPolicies.AdminOrStudent)]
+    [UserFilter("{studentId:guid}")]
+    public async Task<IActionResult> UpdateStudentPassword(Guid studentId, [FromBody] UpdatePasswordDto updateDto)
+    {
+        var result = await _studentService.UpdateStudentPassword(
+            StudentKey.Create(studentId),
+            updateDto.OldPassword,
+            updateDto.NewPassword);
+        
+        return result.IsSuccess
+            ? NoContent()
+            : this.Problem(result.Error!, _logger);
+    }
+    
     [HttpGet("{studentId:guid}/course/{courseId:guid}")]
     [Authorize]
     [UserFilter("{studentId:guid}")]
@@ -193,5 +215,37 @@ public class StudentController : ControllerBase
             : this.Problem(result.Error!, _logger);
     }
     
+    [HttpPost("{studentId:guid}/calender")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> AddTimeSlotToStudentCalender(Guid studentId, [FromBody] TimeSlotDto timeSlot)
+    {
+        var result = await _studentService.AddTimeSlotToCalender(StudentKey.Create(studentId), timeSlot.ToDomain());
+        
+        return result.IsSuccess
+            ? Created($"student/{studentId}/calender", result.Value!)
+            : this.Problem(result.Error!, _logger);
+    }
+
+    [HttpGet("{studentId:guid}/calender")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> GetStudentCalender(Guid studentId)
+    {
+        var result = await _studentService.GetStudentById(StudentKey.Create(studentId));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.Calender.TimeSlots.Select(x => x.ToDto()))
+            : this.Problem(result.Error!, _logger);
+    }
+
+    [HttpDelete("{studentId:guid}/calender")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> RemoveTimeSlotFromStudentCalender(Guid studentId, [FromBody ] TimeSlotDto timeSlot)
+    {
+        var deleted = await _studentService.RemoveTimeSlotFromCalender(StudentKey.Create(studentId), timeSlot.ToDomain());
+        
+        return deleted.IsSuccess
+            ? NoContent()
+            : this.Problem(deleted.Error!, _logger);
+    }
     
 }

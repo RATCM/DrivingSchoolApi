@@ -18,5 +18,9 @@ public interface IStudentService
     Task<Result<IEnumerable<Student>>> GetAllStudents();
     Task<Result<IEnumerable<Student>>> GetAllStudentsFromSchool(DrivingSchoolKey schoolId);
     Task<Result<DrivingSchoolKey>> GetStudentDrivingSchoolId(StudentKey id);
+    Task<Result<Student>> UpdateStudent(StudentKey id, Name name, Email email, PhoneNumber phoneNumber);
+    Task<Result> UpdateStudentPassword(StudentKey id, string oldPassword, string newPassword);
+    Task<Result<TimeSlot>> AddTimeSlotToCalender(StudentKey id, TimeSlot timeSlot);
+    Task<Result<TimeSlot>> RemoveTimeSlotFromCalender(StudentKey id, TimeSlot timeSlot);
     Task<Result> DeleteStudent(StudentKey id);
 }

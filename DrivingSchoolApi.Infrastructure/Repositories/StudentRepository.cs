@@ -35,12 +35,7 @@ internal class StudentRepository : Repository, IStudentRepository
         return DbContext.Students;
     }
     
-    /// <summary>
-    /// Read-only query for students in a specific school.
-    /// </summary>
-    /// <remarks>
     /// Uses AsNoTracking() to avoid change tracking overhead.
-    /// </remarks>
     public async Task<IEnumerable<Student>> GetAllFromDrivingSchool(DrivingSchoolKey id)
     {
         return await DbContext.Students
