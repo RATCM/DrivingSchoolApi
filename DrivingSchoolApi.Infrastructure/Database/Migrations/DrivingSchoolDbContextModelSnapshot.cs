@@ -43,12 +43,38 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.ToTable("Admins");
                 });
 
+            modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.CompletedCourse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CompletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("CompletedCourses");
+                });
+
             modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.DrivingLesson", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("InstructorId")
+                    b.Property<Guid?>("InstructorId")
                         .HasColumnType("uuid");
 
                     b.Property<byte[]>("InstructorSignature")
@@ -58,7 +84,7 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.Property<Guid>("SchoolId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("StudentId")
+                    b.Property<Guid?>("StudentId")
                         .HasColumnType("uuid");
 
                     b.Property<byte[]>("StudentSignature")
@@ -163,8 +189,12 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("InstructorId")
+                    b.Property<Guid?>("InstructorId")
                         .HasColumnType("uuid");
+
+                    b.Property<byte[]>("InstructorSignature")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.Property<DateTime>("LessonDateTime")
                         .HasColumnType("timestamp with time zone");
@@ -172,13 +202,59 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.Property<Guid>("SchoolId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("StudentSignature")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
                     b.HasKey("Id");
 
                     b.HasIndex("InstructorId");
 
                     b.HasIndex("SchoolId");
 
+                    b.HasIndex("StudentId");
+
                     b.ToTable("TheoryLessons");
+                });
+
+            modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.CompletedCourse", b =>
+                {
+                    b.HasOne("DrivingSchoolApi.Domain.Entities.DrivingSchool", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrivingSchoolApi.Domain.Entities.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.OwnsOne("DrivingSchoolApi.Domain.ValueObjects.Money", "Cost", b1 =>
+                        {
+                            b1.Property<Guid>("CompletedCourseId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("numeric");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("CompletedCourseId");
+
+                            b1.ToTable("CompletedCourses");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CompletedCourseId");
+                        });
+
+                    b.Navigation("Cost")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DrivingSchoolApi.Domain.Entities.DrivingLesson", b =>
@@ -186,8 +262,7 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.HasOne("DrivingSchoolApi.Domain.Entities.Instructor", null)
                         .WithMany()
                         .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DrivingSchoolApi.Domain.Entities.DrivingSchool", null)
                         .WithMany()
@@ -198,8 +273,7 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.HasOne("DrivingSchoolApi.Domain.Entities.Student", null)
                         .WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.OwnsOne("DrivingSchoolApi.Domain.ValueObjects.Money", "Price", b1 =>
                         {
@@ -549,14 +623,18 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                     b.HasOne("DrivingSchoolApi.Domain.Entities.Instructor", null)
                         .WithMany()
                         .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("DrivingSchoolApi.Domain.Entities.DrivingSchool", null)
                         .WithMany()
                         .HasForeignKey("SchoolId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DrivingSchoolApi.Domain.Entities.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.OwnsOne("DrivingSchoolApi.Domain.ValueObjects.Money", "Price", b1 =>
                         {
@@ -578,37 +656,8 @@ namespace DrivingSchoolApi.Infrastructure.Database.Migrations
                                 .HasForeignKey("TheoryLessonId");
                         });
 
-                    b.OwnsMany("DrivingSchoolApi.Domain.Keys.StudentKey", "StudentIds", b1 =>
-                        {
-                            b1.Property<Guid>("TheoryLessonId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Guid>("StudentId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Guid>("Value")
-                                .HasColumnType("uuid");
-
-                            b1.HasKey("TheoryLessonId", "StudentId");
-
-                            b1.HasIndex("StudentId");
-
-                            b1.ToTable("StudentTheoryLesson", (string)null);
-
-                            b1.HasOne("DrivingSchoolApi.Domain.Entities.Student", null)
-                                .WithMany()
-                                .HasForeignKey("StudentId")
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b1.WithOwner()
-                                .HasForeignKey("TheoryLessonId");
-                        });
-
                     b.Navigation("Price")
                         .IsRequired();
-
-                    b.Navigation("StudentIds");
                 });
 #pragma warning restore 612, 618
         }

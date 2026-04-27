@@ -33,7 +33,7 @@ public class StudentInviteService : IStudentInviteService
         // connection, for now we just throw an exception
         var deleted = await _studentInviteRepository.Delete(id);
         if (!deleted) 
-            throw new Exception("Some error happened");
+            return new Exception("Some error happened");
 
         // We check the expiration datetime
         if (invite.ExpirationDateTime < _dateTimeProviderService.Now())

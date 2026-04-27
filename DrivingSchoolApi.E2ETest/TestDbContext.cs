@@ -13,6 +13,7 @@ public class TestDbContext : DbContext, IDrivingSchoolDbContext
     public DbSet<Student> Students { get; set; }
     public DbSet<Admin> Admins { get; set; }
     public DbSet<StudentInvite> StudentInvites { get; set; }
+    public DbSet<CompletedCourse> CompletedCourses { get; set; }
 
     public TestDbContext(DbContextOptions<TestDbContext> options) : base(options) {}
 

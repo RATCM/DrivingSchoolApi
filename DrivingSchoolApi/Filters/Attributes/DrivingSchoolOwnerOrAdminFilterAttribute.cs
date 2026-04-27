@@ -1,9 +1,11 @@
-﻿using DrivingSchoolApi.Filters.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+using DrivingSchoolApi.Filters.Extensions;
+using DrivingSchoolApi.Filters.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrivingSchoolApi.Filters.Attributes;
 
-public class DrivingSchoolOwnerOrAdminFilterAttribute : TypeFilterAttribute
+public class DrivingSchoolOwnerOrAdminFilterAttribute : TypeFilterAttribute, IFilter
 {
     /// <summary>
     /// When applied to an endpoint or controller, it checks
@@ -12,9 +14,9 @@ public class DrivingSchoolOwnerOrAdminFilterAttribute : TypeFilterAttribute
     /// <param name="key">The schools guid in the route template</param>
     /// <example>
     /// <code>
-    /// [HttpPut("{id}")] // Route template
+    /// [HttpPut("{id:guid}")] // Route template
     /// [Authorize]
-    /// [DrivingSchoolOwnerOrAdminFilterAttribute("id")] // Put the name of the id from the route template
+    /// [DrivingSchoolOwnerOrAdminFilterAttribute("{id:guid}")] // Put the name of the id from the route template
     /// public async Task&lt;IActionResult&gt; UpdateDrivingSchool(Guid id, [FromBody] DrivingSchoolRegistry drivingSchool)
     /// {
     ///     ...
@@ -25,9 +27,9 @@ public class DrivingSchoolOwnerOrAdminFilterAttribute : TypeFilterAttribute
     /// If the id is in the [Route] attribute instead (on the controller),
     /// then you should reference the id on the route attribute instead
     /// </remarks>
-    public DrivingSchoolOwnerOrAdminFilterAttribute(string key) : base(typeof(DrivingSchoolOwnerOrAdminFilterService))
+    public DrivingSchoolOwnerOrAdminFilterAttribute([StringSyntax("Route")] string key) : base(typeof(DrivingSchoolOwnerOrAdminFilterService))
     {
-        Arguments = [key];
+        Arguments = [IFilter.RouteToKey(key)];
         Order = 2;
     }
 }

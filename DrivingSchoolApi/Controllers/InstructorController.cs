@@ -77,7 +77,7 @@ public class InstructorController : ControllerBase
 
     [HttpGet("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [UserFilter("instructorId", letAdminsBypass: true)]
+    [UserFilter("{instructorId:guid}", letAdminsBypass: true)]
     public async Task<ActionResult> GetInstructorById(Guid instructorId)
     {
         var result = await _instructorService.GetInstructorById(InstructorKey.Create(instructorId));
@@ -89,7 +89,7 @@ public class InstructorController : ControllerBase
     
     [HttpPut("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [UserFilter("id")]
+    [UserFilter("{instructorId:guid}")]
     public async Task<ActionResult> UpdateInstructor(Guid instructorId, [FromBody] InstructorUpdateDto updateDto)
     {
         var result = await _instructorService.UpdateInstructor(
@@ -105,7 +105,7 @@ public class InstructorController : ControllerBase
 
     [HttpPut("{instructorId:guid}/password")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [UserFilter("instructorId", letAdminsBypass: true)]
+    [UserFilter("{instructorId:guid}", letAdminsBypass: true)]
     public async Task<IActionResult> UpdateInstructorPassword(Guid instructorId, [FromBody] UpdatePasswordDto updateDto)
     {
         var result = await _instructorService.UpdateInstructorPassword(
@@ -120,7 +120,7 @@ public class InstructorController : ControllerBase
 
     [HttpDelete("{instructorId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [UserFilter("instructorId", letAdminsBypass: true)]
+    [UserFilter("{instructorId:guid}", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteInstructor(Guid instructorId)
     {
         var deleted  = await _instructorService.DeleteInstructor(InstructorKey.Create(instructorId));
@@ -131,24 +131,31 @@ public class InstructorController : ControllerBase
     
     [HttpPost("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [UserFilter("instructorId")]
-    public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromBody] TheoryLessonRegistryDto registryDto)
+    [UserFilter("{instructorId:guid}")]
+    public async Task<IActionResult> CreateTheoryLesson(Guid instructorId, [FromForm] TheoryLessonRegistryDto registryDto)
     {
+        using MemoryStream instructorMs = new();
+        using MemoryStream studentMs = new();
+        await registryDto.InstructorSignature.CopyToAsync(instructorMs);
+        await registryDto.StudentSignature.CopyToAsync(studentMs);
+
         var result = await _theoryLessonService.CreateTheoryLesson(
+            instructorMs.ToArray(),
+            studentMs.ToArray(),
             InstructorKey.Create(instructorId),
             registryDto.LessonDateTime,
             Money.Create(registryDto.Price.Amount, registryDto.Price.Currency),
-            registryDto.StudentIds.Select(StudentKey.Create).ToList());
+            StudentKey.Create(registryDto.StudentId));
         
         return result.IsSuccess
-            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto(result.Value.StudentIds))
+            ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto())
             : this.Problem(result.Error!);
     }
     
     //TODO Add paging
     [HttpGet("{instructorId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [UserFilter("instructorId")]
+    [UserFilter("{instructorId:guid}")]
     public async Task<IActionResult> GetTheoryLessonsFromInstructor(Guid instructorId)
     {
         var result = await _theoryLessonService.GetAllTheoryLessonsFromInstructor(InstructorKey.Create(instructorId));
@@ -160,8 +167,8 @@ public class InstructorController : ControllerBase
     
     [HttpPost("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [UserFilter("instructorId")]
-    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromBody] DrivingLessonRegistryDto registryDto)
+    [UserFilter("{instructorId:guid}")]
+    public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromForm] DrivingLessonRegistryDto registryDto)
     {
         using MemoryStream instructorMs = new();
         using MemoryStream studentMs = new();
@@ -185,7 +192,7 @@ public class InstructorController : ControllerBase
     //TODO Add paging
     [HttpGet("{instructorId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [UserFilter("instructorId")]
+    [UserFilter("{instructorId:guid}")]
     public async Task<IActionResult> GetDrivingLessonFromInstructor(Guid instructorId)
     {
         var result = await _drivingLessonService.GetAllDrivingLessonsFromInstructor(InstructorKey.Create(instructorId));
