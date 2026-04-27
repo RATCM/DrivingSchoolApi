@@ -85,7 +85,8 @@ public class DrivingLessonServiceTests
             lesson.SchoolId, lesson.Route, 
             lesson.Price, 
             lesson.InstructorId!, 
-            lesson.StudentId!);
+            lesson.StudentId!,
+            lesson.CompletedObjective);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
@@ -130,7 +131,8 @@ public class DrivingLessonServiceTests
             lesson.Route,
             lesson.Price,
             lesson.InstructorId!,
-            lesson.StudentId!);
+            lesson.StudentId!,
+            lesson.CompletedObjective);
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);

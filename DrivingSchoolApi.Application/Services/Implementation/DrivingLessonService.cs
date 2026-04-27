@@ -1,6 +1,7 @@
 using DrivingSchoolApi.Application.Exceptions.DrivingLesson;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
@@ -36,7 +37,8 @@ internal class DrivingLessonService : IDrivingLessonService
         DrivingRoute route, 
         Money price, 
         InstructorKey instructorId,
-        StudentKey studentId)
+        StudentKey studentId,
+        DrivingLessonObjective completedObjectives)
     {
         var lesson = DrivingLesson.Create(
             DrivingLessonKey.Create(_guidGeneratorService.NewGuid()),
@@ -46,7 +48,8 @@ internal class DrivingLessonService : IDrivingLessonService
             instructorId,
             studentId,
             Signature.Create(instructorSignature),
-            Signature.Create(studentSignature));
+            Signature.Create(studentSignature),
+            completedObjectives);
 
         var created = await _drivingLessonRepository.Create(lesson);
 

@@ -1,4 +1,5 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -68,5 +69,7 @@ internal class DrivingLessonConfiguration : IEntityTypeConfiguration<DrivingLess
             .Property<Signature>(x => x.StudentSignature)
             .HasConversion(x => x.Blob,
                 x => Signature.Create(x));
+
+        builder.Property(x => x.CompletedObjective);
     }
 }

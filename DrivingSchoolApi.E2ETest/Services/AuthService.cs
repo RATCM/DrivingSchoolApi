@@ -16,7 +16,7 @@ public class AuthService
     public async Task<JwtTokenDto> LoginAsDefaultAdmin()
     {
         var tokenResponse = await _client.PostAsJsonAsync(
-            "/admin/login",
+            "auth/login/admin",
             new LoginDto("admin@test", "AdminPassword1!"));
         
         Bearer = await tokenResponse.Content.ReadFromJsonAsync<JwtTokenDto>();
@@ -27,7 +27,7 @@ public class AuthService
     public async Task<JwtTokenDto?> LoginAdmin(LoginDto dto)
     {
         var tokenResponse = await _client.PostAsJsonAsync(
-            "/admin/login",
+            "auth/login/admin",
             dto);
         
         Bearer = await tokenResponse.Content.ReadFromJsonAsync<JwtTokenDto>();
@@ -37,7 +37,7 @@ public class AuthService
     public async Task<JwtTokenDto?> LoginStudent(LoginDto dto)
     {
         var tokenResponse = await _client.PostAsJsonAsync(
-            "/student/login",
+            "auth/login/student",
             dto);
         
         Bearer = await tokenResponse.Content.ReadFromJsonAsync<JwtTokenDto>();
@@ -47,7 +47,7 @@ public class AuthService
     public async Task<JwtTokenDto?> LoginInstructor(LoginDto dto)
     {
         var tokenResponse = await _client.PostAsJsonAsync(
-            "/instructor/login",
+            "auth/login/instructor",
             dto);
         
         Bearer = await tokenResponse.Content.ReadFromJsonAsync<JwtTokenDto>();
