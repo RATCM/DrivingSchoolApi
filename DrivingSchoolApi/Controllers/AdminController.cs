@@ -50,6 +50,6 @@ public class AdminController : ControllerBase
                 AccessToken = result.Value!.accessToken,
                 RefreshToken = result.Value!.refreshToken
             })
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
 }

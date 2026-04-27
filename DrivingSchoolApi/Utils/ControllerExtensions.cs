@@ -35,6 +35,22 @@ public static class ControllerExtensions
                 _ => controller.Problem("An unexpected error occurred.", statusCode: 500)
             };
         }
+        
+        public ObjectResult Problem(Exception error, ILogger logger)
+        {
+            switch(error)
+            {
+                case ApplicationException ex:
+                    return controller.Problem(ex.Message, statusCode: ex.ResponseCode);
+                case DomainException ex:
+                    return controller.BadRequest(ex.Message);
+                case not null:
+                    logger.LogError("{Message}", error.Message);
+                    return controller.Problem("An unexpected error occurred.", statusCode: 500);
+                default:
+                    return controller.Problem("An unexpected error occurred.", statusCode: 500);
+            }
+        }
     }
     
 }

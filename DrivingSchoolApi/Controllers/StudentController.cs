@@ -21,6 +21,7 @@ namespace DrivingSchoolApi.Controllers;
 [Route("[controller]")]
 public class StudentController : ControllerBase
 {
+    private readonly ILogger<StudentController> _logger;
     private readonly ITheoryLessonService _theoryLessonService;
     private readonly IDrivingLessonService _drivingLessonService;
     private readonly IStudentService _studentService;
@@ -35,6 +36,7 @@ public class StudentController : ControllerBase
         IStudentInviteService studentInviteService,
         ICompletedCourseService completedCourseService)
     {
+        _logger = logger;
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
@@ -50,7 +52,7 @@ public class StudentController : ControllerBase
         
         return result.IsSuccess
             ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     //TODO register (should be implemented studentInvite branch)
@@ -62,7 +64,7 @@ public class StudentController : ControllerBase
         const int PAGE_SIZE = 30;
         return result.IsSuccess
             ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     
@@ -75,7 +77,7 @@ public class StudentController : ControllerBase
         
         return result.IsSuccess ?
             Ok(result.Value!.Select(x => x.ToDto())) : 
-            this.Problem(result.Error!);
+            this.Problem(result.Error!, _logger);
     }
 
     
@@ -88,7 +90,7 @@ public class StudentController : ControllerBase
 
         return result.IsSuccess ? 
             Ok(result.Value!.Select(x => x.ToDto())) : 
-            this.Problem(result.Error!);
+            this.Problem(result.Error!, _logger);
     }
     
     
@@ -112,7 +114,7 @@ public class StudentController : ControllerBase
 
         return result.IsSuccess ?
             Created($"student/{created.Id}", result.Value!.ToDto()) :
-            this.Problem(result.Error!);
+            this.Problem(result.Error!, _logger);
     }
 
     
@@ -126,7 +128,7 @@ public class StudentController : ControllerBase
 
         return deleted.IsSuccess ? 
             NoContent() : 
-            this.Problem(deleted.Error!);
+            this.Problem(deleted.Error!, _logger);
     }
     
     
@@ -141,7 +143,7 @@ public class StudentController : ControllerBase
 
         return student.IsSuccess ?
             Ok(student.Value!.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value)) :
-            this.Problem(student.Error!);
+            this.Problem(student.Error!, _logger);
     }
 
     [HttpGet("{studentId:guid}/course/{courseId:guid}")]
@@ -152,7 +154,7 @@ public class StudentController : ControllerBase
         var course = await _completedCourseService.GetCompletedCourseById(CompletedCourseKey.Create(courseId));
 
         if (!course.IsSuccess)
-            return this.Problem(course.Error!);
+            return this.Problem(course.Error!, _logger);
 
         if (!StudentKey.Create(studentId).Equals(course.Value!.StudentId))
             return Forbid();
@@ -168,7 +170,7 @@ public class StudentController : ControllerBase
         var courses = await _completedCourseService.GetAllCompletedCoursesFromStudent(StudentKey.Create(studentId));
 
         if (!courses.IsSuccess)
-            return this.Problem(courses.Error!);
+            return this.Problem(courses.Error!, _logger);
         
         return Ok(courses);
     }
@@ -188,7 +190,7 @@ public class StudentController : ControllerBase
 
         return result.IsSuccess
             ? Created($"student/{studentId}/course/{result.Value!.Id.Value}", result.Value!)
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     
