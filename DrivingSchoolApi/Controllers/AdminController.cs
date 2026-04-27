@@ -38,18 +38,5 @@ public class AdminController : ControllerBase
         _logger.LogInformation("Admin created with id: {Id}", result.Value!.Id.Value);
         return Ok(result.Value!);
     }
-    
-    [HttpPost("login")]
-    public async Task<IActionResult> LoginAsAdmin(LoginDto login)
-    {
-        var result = await _adminService.LoginAsAdmin(Email.Create(login.Email), login.Password);
 
-        return result.IsSuccess
-            ? Ok(new JwtTokenDto 
-            {
-                AccessToken = result.Value!.accessToken,
-                RefreshToken = result.Value!.refreshToken
-            })
-            : this.Problem(result.Error!, _logger);
-    }
 }
