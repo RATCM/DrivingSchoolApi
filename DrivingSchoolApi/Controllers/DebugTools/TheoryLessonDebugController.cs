@@ -12,18 +12,15 @@ namespace DrivingSchoolApi.Controllers.DebugTools;
 [Route("debug/theoryLesson")]
 public class TheoryLessonDebugController : ControllerBase
 {
-    private readonly IDrivingSchoolRepository _drivingSchoolRepository;
     private readonly IInstructorRepository _instructorRepository;
     private readonly IStudentRepository _studentRepository;
     private readonly ITheoryLessonRepository _theoryLessonRepository;
 
     public TheoryLessonDebugController(
-        IDrivingSchoolRepository drivingSchoolRepository,
         IInstructorRepository instructorRepository,
         IStudentRepository studentRepository,
         ITheoryLessonRepository theoryLessonRepository)
     {
-        _drivingSchoolRepository = drivingSchoolRepository;
         _instructorRepository = instructorRepository;
         _studentRepository = studentRepository;
         _theoryLessonRepository = theoryLessonRepository;
@@ -78,13 +75,11 @@ public class TheoryLessonDebugController : ControllerBase
         // Random seed if none provided
         seed ??= Guid.NewGuid().GetHashCode();
 
-        var drivingSchools = await _drivingSchoolRepository.GetAll();
         var instructors = await _instructorRepository.GetAll();
         var students = await _studentRepository.GetAll();
         var theoryLessonFaker = 
             TheoryLessonFaker.Create(
                 seed.Value, 
-                drivingSchools, 
                 instructors, 
                 students);
 

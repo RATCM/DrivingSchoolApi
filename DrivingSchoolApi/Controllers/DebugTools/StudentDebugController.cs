@@ -77,6 +77,42 @@ public class StudentDebugController : ControllerBase
         return Ok(students.Select(x => x.ToDto()));
     }
     
+    [HttpPost("scramble")]
+    public async Task<IActionResult> ScrambleStudents(int? seed = null)
+    {
+        // Random seed if none provided
+        seed ??= Guid.NewGuid().GetHashCode();
+        
+        var drivingSchools = await _drivingSchoolRepository.GetAll();
+        var drivingSchoolIds = drivingSchools.Select(x => x.Id).ToList();
+        if (drivingSchoolIds.Count == 0)
+            return BadRequest("Cannot scramble students if there are no driving schools");
+        
+        var faker = StudentFaker.Create(seed.Value, drivingSchoolIds, _studentPasswordHasher);
+        
+        var students = (await _studentRepository.GetAll()).ToList();
+        var newStudents = new List<Student>();
+        
+        foreach (var student in students)
+        {
+            var newStudent = faker.UseId(student.Id).Generate();
+            if (newStudent is null)
+                return Problem("Error generating students");
+
+            Console.WriteLine(newStudent.Id.Value);
+
+            var updated = await _studentRepository.Update(newStudent);
+            if (!updated)
+                return Problem("Error updating students");
+            
+            newStudents.Add(newStudent);
+        }
+        
+        await _studentRepository.Save();
+        
+        return Ok(newStudents.Select(x => x.ToDto()));
+    }
+    
     [HttpPost("course/create")]
     public async Task<IActionResult> CreateCompletedCourses([Required] int num, int? seed=null)
     {

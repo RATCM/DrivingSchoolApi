@@ -14,22 +14,26 @@ public sealed class TheoryLessonFaker : Faker<TheoryLesson>
 
     public static Result<TheoryLessonFaker> Create(
         int seed,
-        IEnumerable<DrivingSchool> drivingSchools,
         IEnumerable<Instructor> instructors,
         IEnumerable<Student> students
         )
     {
-        var drivingSchoolIds = drivingSchools.Select(x => x.Id).ToList();
-        if (drivingSchoolIds.Count == 0)
-            return new BadRequestException("Cannot add theory lessons if there are no driving schools");
-
-        var instructorIds = instructors.GroupBy(x => x.SchoolId, x => x.Id).ToList();
+        var instructorList = instructors.ToList();
+        var studentList = students.ToList();
+        
+        var instructorIds = instructorList.GroupBy(x => x.SchoolId, x => x.Id).ToList();
         if(instructorIds.Count == 0)
             return new BadRequestException("Cannot add theory lessons if there are no instructors");
         
-        var studentIds = students.GroupBy(x => x.SchoolId, x => x.Id).ToList();
+        var studentIds = studentList.GroupBy(x => x.SchoolId, x => x.Id).ToList();
         if(studentIds.Count == 0)
             return new BadRequestException("Cannot add theory lessons if there are no students");
+
+        // Only include driving schools that has both students and instructors
+        var drivingSchoolIds = instructorList.Select(x => x.SchoolId)
+            .Intersect(studentList.Select(x => x.SchoolId)).ToList();
+        if (drivingSchoolIds.Count == 0)
+            return new BadRequestException("Cannot add theory lessons if there are no driving schools");
         
         var signatureFaker = SignatureFaker.Create(seed);
 
