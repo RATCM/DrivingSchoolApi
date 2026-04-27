@@ -74,14 +74,17 @@ public class DrivingLessonDebugController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateDrivingLessons(int num, int seed = 3)
+    public async Task<IActionResult> CreateDrivingLessons(int num, int? seed = null)
     {
+        // Random seed if none provided
+        seed ??= Guid.NewGuid().GetHashCode();
+
         var drivingSchools = await _drivingSchoolRepository.GetAll();
         var instructors = await _instructorRepository.GetAll();
         var students = await _studentRepository.GetAll();
         var drivingLessonFaker = 
             DrivingLessonFaker.Create(
-                seed, 
+                seed.Value, 
                 drivingSchools, 
                 instructors, 
                 students);

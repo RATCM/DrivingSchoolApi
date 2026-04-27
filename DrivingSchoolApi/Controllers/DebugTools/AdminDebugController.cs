@@ -23,9 +23,12 @@ public class AdminDebugController : ControllerBase
     }
     
     [HttpPost("create")]
-    public async Task<IActionResult> CreateAdmins(int num = 1, int seed = 1, string? password = null)
+    public async Task<IActionResult> CreateAdmins(int num = 1, int? seed = null, string? password = null)
     {
-        var adminFaker = AdminFaker.Create(seed, _adminPasswordHasher);
+        // Random seed if none provided
+        seed ??= Guid.NewGuid().GetHashCode();
+        
+        var adminFaker = AdminFaker.Create(seed.Value, _adminPasswordHasher);
 
         var admins = adminFaker.UsePassword(password).Generate(num);
 

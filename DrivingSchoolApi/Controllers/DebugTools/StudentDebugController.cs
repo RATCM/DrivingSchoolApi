@@ -46,14 +46,17 @@ public class StudentDebugController : ControllerBase
     }
     
     [HttpPost("create")]
-    public async Task<IActionResult> CreateStudents(int num = 1, int seed = 2, string? password = null)
+    public async Task<IActionResult> CreateStudents(int num = 1, int? seed = null, string? password = null)
     {
+        // Random seed if none provided
+        seed ??= Guid.NewGuid().GetHashCode();
+
         var drivingSchools = await _drivingSchoolRepository.GetAll();
         var drivingSchoolIds = drivingSchools.Select(x => x.Id).ToList();
         if (drivingSchoolIds.Count == 0)
             return BadRequest("Cannot add students if there are no driving schools");
 
-        var studentFaker = StudentFaker.Create(seed, drivingSchoolIds, _studentPasswordHasher);
+        var studentFaker = StudentFaker.Create(seed.Value, drivingSchoolIds, _studentPasswordHasher);
         
         var students = studentFaker.UsePassword(password).Generate(num);
 
