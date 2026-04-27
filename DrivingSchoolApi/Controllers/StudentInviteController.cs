@@ -58,7 +58,6 @@ public class StudentInviteController : ControllerBase
             ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
             : this.Problem(result.Error!);
     }
-    //GetDrivingSchoolInvites
-    //GetDrivingSchoolInviteById
-    //InvalidateInviteById
+    // TODO GetDrivingSchoolInviteById
+    // TODO InvalidateInviteById
 }
