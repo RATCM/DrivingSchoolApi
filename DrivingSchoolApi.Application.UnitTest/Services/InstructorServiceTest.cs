@@ -8,20 +8,67 @@ using DrivingSchoolApi.Application.UnitTest.Extensions;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace DrivingSchoolApi.Application.UnitTest.Services;
 
 public class InstructorServiceTest
 {
+    private ServiceProvider _serviceProvider;
+
+    private IInstructorService GetSut()
+    {
+        return _serviceProvider.GetRequiredService<IInstructorService>();
+    }
+
+    private IInstructorRepository GetRepository()
+    {
+        return _serviceProvider.GetRequiredService<IInstructorRepository>();
+    }
+
+    private IGuidGeneratorService GetGuidGenerator()
+    {
+        return _serviceProvider.GetRequiredService<IGuidGeneratorService>();
+    }
+
+    private ITokenGeneratorService GetTokenGenerator()
+    {
+        return _serviceProvider.GetRequiredService<ITokenGeneratorService>();
+    }
+
+    private IPasswordHasher<Instructor> GetPasswordHasher()
+    {
+        return _serviceProvider.GetRequiredService<IPasswordHasher<Instructor>>();
+    }
+    
+    [SetUp]
+    public void Setup()
+    {
+        var collection = new ServiceCollection();
+        collection
+            .AddScoped<IInstructorService, InstructorService>()
+            .AddScoped<IInstructorRepository>(_ => Substitute.For<IInstructorRepository>())
+            .AddScoped<IGuidGeneratorService>(_ => Substitute.For<IGuidGeneratorService>())
+            .AddScoped<ITokenGeneratorService>(_ => Substitute.For<ITokenGeneratorService>())
+            .AddScoped<IPasswordHasher<Instructor>>(_ =>  Substitute.For<IPasswordHasher<Instructor>>());
+        
+        _serviceProvider = collection.BuildServiceProvider();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _serviceProvider.Dispose();
+    }
+    
     [Test]
     public async Task LoginAsInstructor_ReturnsTokens_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
+        var tokenGenerator = GetTokenGenerator();
         
         var inputPassword = "password123";
         var instructor = Instructor.CreateTestInstructor();
@@ -31,7 +78,7 @@ public class InstructorServiceTest
         tokenGenerator.GenerateJwtAccessToken(instructor.Id.Value, UserRole.Instructor).Returns("access-token");
         tokenGenerator.GenerateJwtRefreshToken(instructor.Id.Value, UserRole.Instructor).Returns("refresh-token");
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.LoginAsInstructor(instructor.EmailAddress.Address, inputPassword);
@@ -49,16 +96,13 @@ public class InstructorServiceTest
     public async Task LoginAsInstructor_ReturnsNotFound_WhenInstructorDoesntExist()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var email = Email.Create("instructor@test.com");
         
         repo.GetByEmail(email).Returns((Instructor?)null);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.LoginAsInstructor(email.Address, "pw");
@@ -75,10 +119,8 @@ public class InstructorServiceTest
     public async Task LoginAsInstructor_ReturnsInvalidLogin_WhenPasswordIsWrong()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
 
         var inputPassword = "incorrect";
         var instructor = Instructor.CreateTestInstructor();
@@ -86,7 +128,7 @@ public class InstructorServiceTest
         repo.GetByEmail(instructor.EmailAddress).Returns(instructor);
         passwordHasher.VerifyHashedPassword(inputPassword, instructor.HashedPassword).Returns(false);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.LoginAsInstructor(instructor.EmailAddress.Address, inputPassword);
@@ -103,10 +145,9 @@ public class InstructorServiceTest
     public async Task CreateInstructor_ReturnsInstructor_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var guidService = GetGuidGenerator();
+        var passwordHasher = GetPasswordHasher();
         
         var password = "pw";
         var instructor = Instructor.CreateTestInstructor();
@@ -115,7 +156,7 @@ public class InstructorServiceTest
         passwordHasher.HashPassword(password).Returns(instructor.HashedPassword);
         repo.Create(Arg.Any<Instructor>()).Returns(true);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.CreateInstructor(instructor.InstructorName, instructor.EmailAddress, password, instructor.PhoneNumber, instructor.SchoolId);
@@ -138,10 +179,8 @@ public class InstructorServiceTest
     public async Task CreateInstructor_ReturnsFailure_AndDoesNotSave_WhenCreationFails()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
         
         var password = "pw";
         var instructor = Instructor.CreateTestInstructor();
@@ -149,7 +188,7 @@ public class InstructorServiceTest
         passwordHasher.HashPassword(password).Returns(instructor.HashedPassword);
         repo.Create(Arg.Any<Instructor>()).Returns(false);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.CreateInstructor(instructor.InstructorName, instructor.EmailAddress, password, instructor.PhoneNumber, instructor.SchoolId);
@@ -167,17 +206,14 @@ public class InstructorServiceTest
     public async Task GetAllInstructors_ReturnsAllInstructors_WhenPopulated()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
         
         var instructor1 = Instructor.CreateTestInstructor();
         var instructor2 = Instructor.CreateTestInstructor();
 
         repo.GetAll().Returns([instructor1, instructor2]);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllInstructors();
@@ -196,14 +232,11 @@ public class InstructorServiceTest
     public async Task GetAllInstructors_ReturnsEmpty_WhenEmpty()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         repo.GetAll().Returns(Array.Empty<Instructor>());
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllInstructors();
@@ -220,16 +253,13 @@ public class InstructorServiceTest
     public async Task GetInstructorById_ReturnsInstructor_WhenFound()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
         
         var instructor = Instructor.CreateTestInstructor();
 
         repo.Get(instructor.Id).Returns(instructor);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetInstructorById(instructor.Id);
@@ -248,14 +278,11 @@ public class InstructorServiceTest
     public async Task GetInstructorById_ReturnsNotFound_WhenMissing()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructorId = InstructorKey.Create(Guid.Parse("55555555-5555-5555-5555-555555555555"));
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetInstructorById(instructorId);
@@ -272,10 +299,7 @@ public class InstructorServiceTest
     public async Task GetAllInstructorsFromSchool_ReturnsInstructors_WhenRepoHasData()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
         
         var instructor1 = Instructor.CreateTestInstructor();
 
@@ -283,7 +307,7 @@ public class InstructorServiceTest
 
         repo.GetAll().Returns([instructor1, instructor2]);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllInstructorsFromSchool(instructor1.SchoolId);
@@ -302,17 +326,14 @@ public class InstructorServiceTest
     public async Task GetAllInstructorsFromSchool_ReturnsEmpty_WhenNoMatchingInstructors()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
         
         var instructor = Instructor.CreateTestInstructor();
         var otherSchoolId = DrivingSchoolKey.Create(Guid.NewGuid());
         
         repo.GetAll().Returns([instructor]);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllInstructorsFromSchool(otherSchoolId);
@@ -329,16 +350,13 @@ public class InstructorServiceTest
     public async Task GetInstructorDrivingSchoolId_ReturnsDrivingSchoolId_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructor = Instructor.CreateTestInstructor();
 
         repo.Get(instructor.Id).Returns(instructor);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetInstructorDrivingSchoolId(instructor.Id);
@@ -354,14 +372,11 @@ public class InstructorServiceTest
     public async Task GetInstructorDrivingSchoolId_ReturnsNotFound_WhenInstructorNotExists()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var randomInstructorId = InstructorKey.Create(Guid.NewGuid());
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetInstructorDrivingSchoolId(randomInstructorId);
@@ -378,10 +393,7 @@ public class InstructorServiceTest
     public async Task UpdateInstructor_ReturnsUpdatedInstructor_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructor = Instructor.CreateTestInstructor();
 
@@ -392,7 +404,7 @@ public class InstructorServiceTest
         repo.Get(instructor.Id).Returns(instructor);
         repo.Update(Arg.Any<Instructor>()).Returns(true);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructor(instructor.Id, newName, newEmail, newPhoneNumber);
@@ -415,14 +427,11 @@ public class InstructorServiceTest
     public async Task UpdateInstructor_ReturnsNotFound_WhenInstructorNotExists()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructor = Instructor.CreateTestInstructor();
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructor(
@@ -444,17 +453,14 @@ public class InstructorServiceTest
     public async Task UpdateInstructor_ReturnsFailure_AndDoesNotSave_OnRepositoryFailure()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
         
         var instructor = Instructor.CreateTestInstructor();
 
         repo.Get(instructor.Id).Returns(instructor);
         repo.Update(Arg.Any<Instructor>()).Returns(false);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructor(
@@ -476,10 +482,8 @@ public class InstructorServiceTest
     public async Task UpdateInstructorPassword_ReturnsSuccess_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
 
         var instructor = Instructor.CreateTestInstructor();
         var oldPassword = "oldPassword123";
@@ -491,7 +495,7 @@ public class InstructorServiceTest
         passwordHasher.HashPassword(newPassword).Returns(newHash);
         repo.Update(Arg.Any<Instructor>()).Returns(true);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructorPassword(instructor.Id, oldPassword, newPassword);
@@ -510,15 +514,12 @@ public class InstructorServiceTest
     public async Task UpdateInstructorPassword_ReturnsFailure_WhenNewPasswordSameAsOld()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructorId = InstructorKey.Create(Guid.NewGuid());
         var samePassword = "samePassword";
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructorPassword(instructorId, samePassword, samePassword);
@@ -537,14 +538,11 @@ public class InstructorServiceTest
     public async Task UpdateInstructorPassword_ReturnsNotFound_WhenInstructorDoesntExists()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructorId = InstructorKey.Create(Guid.NewGuid());
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructorPassword(instructorId, "oldPassword", "newPassword");
@@ -563,10 +561,8 @@ public class InstructorServiceTest
     public async Task UpdateInstructorPassword_ReturnsFailure_WhenOldPasswordIncorrect()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
         
         var instructor = Instructor.CreateTestInstructor();
         var oldPassword = "wrongPassword";
@@ -575,7 +571,7 @@ public class InstructorServiceTest
         repo.Get(instructor.Id).Returns(instructor);
         passwordHasher.VerifyHashedPassword(oldPassword, instructor.HashedPassword).Returns(false);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructorPassword(instructor.Id, oldPassword, newPassword);
@@ -595,10 +591,8 @@ public class InstructorServiceTest
     public async Task UpdateInstructorPassword_ReturnsFailure_AndDoesNotSave_OnRepositoryFailure()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
+        var passwordHasher = GetPasswordHasher();
         
         var instructor = Instructor.CreateTestInstructor();
         var oldPassword = "oldPassword123";
@@ -610,7 +604,7 @@ public class InstructorServiceTest
         passwordHasher.HashPassword(newPassword).Returns(newHash);
         repo.Update(Arg.Any<Instructor>()).Returns(false);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.UpdateInstructorPassword(instructor.Id, oldPassword, newPassword);
@@ -628,15 +622,12 @@ public class InstructorServiceTest
     public async Task DeleteInstructor_ReturnsSuccess_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructorId = InstructorKey.Create(Guid.NewGuid());
         repo.Delete(instructorId).Returns(true);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.DeleteInstructor(instructorId);
@@ -653,15 +644,12 @@ public class InstructorServiceTest
     public async Task DeleteInstructor_ReturnsNotFound_AndDoesNotSave_WhenInstructorNotFound()
     {
         // Arrange
-        var repo = Substitute.For<IInstructorRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var passwordHasher = Substitute.For<IPasswordHasher<Instructor>>();
-        var tokenGenerator = Substitute.For<ITokenGeneratorService>();
+        var repo = GetRepository();
 
         var instructorId = InstructorKey.Create(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
         repo.Delete(instructorId).Returns(false);
 
-        var sut = new InstructorService(guidService, repo, tokenGenerator, passwordHasher);
+        var sut = GetSut();
 
         // Act
         var result = await sut.DeleteInstructor(instructorId);

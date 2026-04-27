@@ -4,6 +4,6 @@ public class DateTimeProviderService : IDateTimeProviderService
 {
     public DateTime Now()
     {
-        return DateTime.Now;
+        return DateTime.Now.ToUniversalTime();
     }
 }

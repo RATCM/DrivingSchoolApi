@@ -16,8 +16,8 @@ public record DateTimeRange : ValueObject
 
         return new DateTimeRange
         {
-            StartDateTime = startDateTime,
-            EndDateTime = endDateTime
+            StartDateTime = startDateTime.ToUniversalTime(),
+            EndDateTime = endDateTime.ToUniversalTime()
         };
     }
 }
