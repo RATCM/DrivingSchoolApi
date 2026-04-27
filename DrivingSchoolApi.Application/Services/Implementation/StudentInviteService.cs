@@ -48,7 +48,7 @@ public class StudentInviteService : IStudentInviteService
         return drivingSchool;
     }
 
-    public async Task<Result<IEnumerable<StudentInvite>>> GetAllDrivingSchoolInvites(DrivingSchoolKey id)
+    public async Task<Result<IEnumerable<StudentInvite>>> GetAll()
     {
         var result = await _studentInviteRepository.GetAll();
         

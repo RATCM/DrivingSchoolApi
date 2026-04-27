@@ -2,6 +2,7 @@
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +51,7 @@ public class StudentInviteController : ControllerBase
     [Authorize(Policy = AuthPolicies.AdminOnly)]
     public async Task<ActionResult> GetAllDrivingSchoolInvites(int page = 1)
     {
-        var result = await _
+        var result = await _studentInviteService.GetAll();
         const int PAGE_SIZE = 30;
         
         return result.IsSuccess
