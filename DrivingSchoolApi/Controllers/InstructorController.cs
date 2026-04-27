@@ -36,16 +36,6 @@ public class InstructorController : ControllerBase
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
     }
-
-    [HttpPost("login")]
-    public async Task<ActionResult> LoginAsInstructor([FromBody] InstructorLoginRequestDto loginRequest)
-    {
-        var result = await _instructorService.LoginAsInstructor(loginRequest.Email, loginRequest.Password);
-        
-        return result.IsSuccess
-            ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
-            : this.Problem(result.Error!);
-    }
     
     [HttpPost("register")]
     [Authorize(Policy = AuthPolicies.AdminOnly)] 
