@@ -1,9 +1,11 @@
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs.DrivingSchool;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.DTOs.ValueObject;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
@@ -22,6 +24,7 @@ public class DrivingSchoolController : ControllerBase
     private readonly IDrivingSchoolService _drivingSchoolService;
     private readonly IStudentService _studentService;
     private readonly IInstructorService _instructorService;
+    private readonly ICompletedCourseService _completedCourseService;
 
     public DrivingSchoolController(
         ILogger<DrivingSchoolController> logger,
@@ -29,14 +32,64 @@ public class DrivingSchoolController : ControllerBase
         IDrivingLessonService drivingLessonService,
         IDrivingSchoolService drivingSchoolService,
         IStudentService studentService,
-        IInstructorService instructorService)
+        IInstructorService instructorService,
+        ICompletedCourseService completedCourseService)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _drivingSchoolService = drivingSchoolService;
         _studentService = studentService;
         _instructorService = instructorService;
+        _completedCourseService = completedCourseService;
     }
+    
+    
+    //TODO Add paging
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetAllDrivingSchools()
+    {
+        var result = await _drivingSchoolService.GetAllDrivingSchools();
+
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
+    }
+    
+    
+    [HttpGet("{schoolId:guid}")]
+    public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid schoolId)
+    {
+        var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(schoolId));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
+    }
+    
+        
+    [HttpGet("{schoolId:guid}/rating")]
+    public async Task<IActionResult> GetDrivingSchoolRating(Guid schoolId)
+    {
+        var courses = await _completedCourseService.GetAllCompletedCoursesFromSchool(DrivingSchoolKey.Create(schoolId));
+        if (!courses.IsSuccess) 
+            return this.Problem(courses.Error!);
+
+        // Ensure that we aren't dividing by zero
+        var numTotal = courses.Value!.Count != 0 ? courses.Value!.Count : 1;
+        var numPasses = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Finished);
+        var numFail = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Failed);
+        var numQuit = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Quit);
+
+        // .Average() throws an exception if the collection is empty
+        var avgPrice = courses.Value.Count != 0 ? courses.Value!.Select(x => x.Cost.Amount).Average() : 0;
+
+        return Ok(new DrivingSchoolRatingDto(
+            (float)numPasses/numTotal,
+            (float)numFail/numTotal,
+            (float)numQuit/numTotal,
+            new MoneyDto(avgPrice, "DKK")));
+    }
+    
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.AdminOnly)]
@@ -54,7 +107,7 @@ public class DrivingSchoolController : ControllerBase
             : this.Problem(result.Error!);
     }
     
-    [HttpGet("/{id}")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<IEnumerable<DrivingSchoolDto>>> GetDrivingSchool(Guid id)
     {
         var result = await _drivingSchoolService.GetDrivingSchoolById(DrivingSchoolKey.Create(id));
@@ -77,9 +130,9 @@ public class DrivingSchoolController : ControllerBase
     
     
     //TODO Add paging
-    [HttpGet("{schoolId:guid}/students")]
+    [HttpGet("{schoolId:guid}/student")]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [SameDrivingSchoolFilter("schoolId", TargetEntity.School)]
+    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var result = await _studentService.GetAllStudentsFromSchool(DrivingSchoolKey.Create(schoolId));

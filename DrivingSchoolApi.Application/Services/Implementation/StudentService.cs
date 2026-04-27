@@ -58,6 +58,8 @@ internal class StudentService : IStudentService
         if (!created)
             return new Exception("Unable to create new student");
         
+        await _studentRepository.Save();
+        
         return student;
     }
 
@@ -88,6 +90,93 @@ internal class StudentService : IStudentService
         if (student is null)
             return new StudentNotFoundException("Student not found.");
         return student.SchoolId;
+    }
+    
+    public async Task<Result<Student>> UpdateStudent(StudentKey id, Name name, Email email, PhoneNumber phoneNumber)
+    {
+        var student = await _studentRepository.Get(id);
+        if (student is null)
+            return new StudentNotFoundException("Student not found.");
+        
+        var updatedStudent = Student.Create(
+            student.Id,
+            student.SchoolId,
+            name,
+            email, 
+            student.HashedPassword,
+            phoneNumber);
+        
+        bool succes = await _studentRepository.Update(updatedStudent);
+
+        if (!succes)
+            return  new Exception("Internal error: Unable to update instructor.");
+        
+        await _studentRepository.Save();
+        return updatedStudent;
+    }
+    
+    public async Task<Result> UpdateStudentPassword(StudentKey id, string oldPassword, string newPassword)
+    {
+        if (oldPassword == newPassword)
+            return new InvalidPasswordException("New password cannot be the same as the old password.");
+        
+        var student = await _studentRepository.Get(id);
+        
+        if (student is null)
+            return new StudentNotFoundException("Student not found in DB.");
+        
+        var correctPassword = _passwordHasherService.VerifyHashedPassword(oldPassword, student.HashedPassword);
+
+        if (!correctPassword)
+            return new InvalidPasswordException("Old password doesn't match.");
+        
+        var updatedStudent = Student.Create(
+            student.Id,
+            student.SchoolId,
+            student.StudentName,
+            student.EmailAddress,
+            _passwordHasherService.HashPassword(newPassword),
+            student.PhoneNumber);
+        
+        bool succes = await _studentRepository.Update(updatedStudent);
+
+        if (!succes)
+            return  new Exception("Internal error: Unable to update student.");
+        
+        await _studentRepository.Save();
+        return Result.Success();
+    }
+    
+    public async Task<Result<TimeSlot>> AddTimeSlotToCalender(StudentKey id, TimeSlot timeSlot)
+    {
+        var student = await _studentRepository.Get(id);
+        if (student is null)
+            return new StudentNotFoundException("Student not found.");
+        
+        student.Calender.AddTimeSlot(timeSlot);
+        
+        var updateSuccess = await _studentRepository.Update(student);
+        if (!updateSuccess)
+            return  new Exception("Internal error: Unable to update student.");
+        
+        await _studentRepository.Save();
+        return timeSlot;
+    }
+
+    public async Task<Result<TimeSlot>> RemoveTimeSlotFromCalender(StudentKey id, TimeSlot timeSlot)
+    {
+        var student = await _studentRepository.Get(id);
+        if (student is null)
+            return new StudentNotFoundException("Student not found.");
+        
+        student.Calender.RemoveTimeSlot(timeSlot);
+        
+        var updateSuccess = await _studentRepository.Update(student);
+        if (!updateSuccess)
+            return  new Exception("Internal error: Unable to update student.");
+        
+        await _studentRepository.Save();
+        return timeSlot;
     }
 
     public async Task<Result> DeleteStudent(StudentKey id)

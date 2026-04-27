@@ -51,7 +51,14 @@ internal class DrivingLessonConfiguration : IEntityTypeConfiguration<DrivingLess
         builder
             .HasOne<Instructor>()
             .WithMany()
-            .HasForeignKey(x => x.InstructorId);
+            .HasForeignKey(x => x.InstructorId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        builder
+            .HasOne<Student>()
+            .WithMany()
+            .HasForeignKey(x => x.StudentId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder
             .Property<Signature>(x => x.InstructorSignature)

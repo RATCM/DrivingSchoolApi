@@ -11,13 +11,22 @@ internal class DrivingLessonService : IDrivingLessonService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IDrivingLessonRepository _drivingLessonRepository;
+    private readonly IDrivingSchoolService _drivingSchoolService;
+    private readonly IInstructorService _instructorService;
+    private readonly IStudentService _studentService;
 
     public DrivingLessonService(
         IGuidGeneratorService guidGeneratorService,
-        IDrivingLessonRepository drivingLessonRepository)
+        IDrivingLessonRepository drivingLessonRepository,
+        IDrivingSchoolService drivingSchoolService,
+        IInstructorService instructorService,
+        IStudentService studentService)
     {
         _guidGeneratorService = guidGeneratorService;
         _drivingLessonRepository = drivingLessonRepository;
+        _drivingSchoolService = drivingSchoolService;
+        _instructorService = instructorService;
+        _studentService = studentService;
     }
     
     public async Task<Result<DrivingLesson>> CreateDrivingLesson(
@@ -58,18 +67,31 @@ internal class DrivingLessonService : IDrivingLessonService
 
     public async Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromSchool(DrivingSchoolKey schoolId)
     {
+        var drivingSchool = await _drivingSchoolService.GetDrivingSchoolById(schoolId);
+        if (!drivingSchool.IsSuccess)
+            return drivingSchool.Error!;
+        
         var lessons = await _drivingLessonRepository.GetAll();
+        
         return lessons.Where(x => x.SchoolId.Equals(schoolId)).ToList();
     }
 
     public async Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromStudent(StudentKey studentId)
     {
+        var student = await _studentService.GetStudentById(studentId);
+        if (!student.IsSuccess) 
+            return student.Error!;
+        
         var lessons = await _drivingLessonRepository.GetAll();
         return lessons.Where(x => x.StudentId.Equals(studentId)).ToList();
     }
 
     public async Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromInstructor(InstructorKey instructorId)
     {
+        var instructor = await _instructorService.GetInstructorById(instructorId);
+        if (!instructor.IsSuccess) 
+            return instructor.Error!;
+        
         var lessons = await _drivingLessonRepository.GetAll();
         return lessons.Where(x => x.InstructorId.Equals(instructorId)).ToList();
     }

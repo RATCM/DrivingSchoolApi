@@ -8,22 +8,6 @@ namespace DrivingSchoolApi.Domain.UnitTest.Entities;
 public class TheoryLessonTests
 {
     [Test]
-    public void TheoryLesson_Fails_WhenStudentIdsContainsDuplicates()
-    {
-        Assert.Throws<InvalidInputException>(
-            () => TheoryLesson.Create(
-                TheoryLessonKey.Create(Guid.Empty),
-                DrivingSchoolKey.Create(Guid.Empty),
-                DateTime.UnixEpoch,
-                Money.Create(10, "USD"),
-                InstructorKey.Create(Guid.Empty),
-                [
-                    StudentKey.Create(Guid.Empty), 
-                    StudentKey.Create(Guid.Empty)
-                ]));
-    }
-    
-    [Test]
     public void TheoryLesson_Succeeds_WhenStudentIdsAreDistinct()
     {
         Assert.DoesNotThrow(
@@ -33,10 +17,9 @@ public class TheoryLessonTests
                 DateTime.UnixEpoch,
                 Money.Create(10, "USD"),
                 InstructorKey.Create(Guid.Empty),
-                [
-                    StudentKey.Create(Guid.Empty), 
-                    StudentKey.Create(Guid.AllBitsSet)
-                ]));
+                StudentKey.Create(Guid.Empty),
+                Signature.Create([0]),
+                Signature.Create([0])));
     }
 
 }

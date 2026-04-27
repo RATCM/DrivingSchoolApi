@@ -5,7 +5,8 @@ namespace DrivingSchoolApi.DTOs.TheoryLesson;
 public record TheoryLessonRegistryDto(
     DateTime LessonDateTime,
     MoneyDto Price,
-    List<Guid> StudentIds
-    //TODO Instructor Signature
+    Guid StudentId,
+    IFormFile InstructorSignature,
+    IFormFile StudentSignature
     );
     

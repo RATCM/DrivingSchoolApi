@@ -45,6 +45,10 @@ internal class StudentConfiguration : IEntityTypeConfiguration<Student>
             .WithOne()
             .HasForeignKey(x => x.StudentId);
 
+        builder.HasMany<TheoryLesson>()
+            .WithOne()
+            .HasForeignKey(x => x.StudentId);
+
         // It's a bit weird that an entity is owned but,
         // I don't really see a way around this
         builder

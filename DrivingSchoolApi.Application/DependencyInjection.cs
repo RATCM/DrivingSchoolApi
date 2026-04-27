@@ -19,7 +19,8 @@ public static class DependencyInjection
                 .AddScoped<ITheoryLessonService, TheoryLessonService>()
                 .AddScoped<IStudentInviteService, StudentInviteService>()
                 .AddScoped<IAdminService, AdminService>()
-                .AddScoped<IDateTimeProviderService, DateTimeProviderService>();
+                .AddScoped<IDateTimeProviderService, DateTimeProviderService>()
+                .AddScoped<ICompletedCourseService, CompletedCourseService>();
         }
     }
 }

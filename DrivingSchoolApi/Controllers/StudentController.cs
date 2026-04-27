@@ -1,14 +1,18 @@
 using System.Security.Claims;
 using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.DTOs.Common;
+using DrivingSchoolApi.DTOs.CompletedCourse;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.DTOs.ValueObject;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
+using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,29 +27,21 @@ public class StudentController : ControllerBase
     private readonly IDrivingLessonService _drivingLessonService;
     private readonly IStudentService _studentService;
     private readonly IStudentInviteService _studentInviteService;
+    private readonly ICompletedCourseService _completedCourseService;
 
     public StudentController(
         ILogger<StudentController> logger,
         ITheoryLessonService theoryLessonService,
         IDrivingLessonService drivingLessonService,
         IStudentService studentService,
-        IStudentInviteService studentInviteService)
+        IStudentInviteService studentInviteService,
+        ICompletedCourseService completedCourseService)
     {
         _theoryLessonService = theoryLessonService;
         _drivingLessonService = drivingLessonService;
         _studentService = studentService;
         _studentInviteService = studentInviteService;
-    }
-    
-    //TODO login
-    [HttpPost("login")]
-    public async Task<ActionResult> LoginAsStudent([FromBody] StudentLoginRequestDto loginRequest)
-    {
-        var result = await _studentService.LoginAsStudent(loginRequest.Email, loginRequest.Password);
-        
-        return result.IsSuccess
-            ? Ok(new JwtTokenDto{AccessToken = result.Value!.AccessToken, RefreshToken = result.Value.RefreshToken})
-            : this.Problem(result.Error!);
+        _completedCourseService = completedCourseService;
     }
     
     //TODO register (should be implemented studentInvite branch)
@@ -61,9 +57,9 @@ public class StudentController : ControllerBase
     }
     
     
-    [HttpGet("{studentId:guid}/theorylessons")]
+    [HttpGet("{studentId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
-    [UserFilter("studentId")]
+    [UserFilter("{studentId:guid}")]
     public async Task<IActionResult> GetTheoryLessonsFromStudent(Guid studentId)
     {
         var result = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(studentId));
@@ -74,9 +70,9 @@ public class StudentController : ControllerBase
     }
 
     
-    [HttpGet("{studentId:guid}/drivinglesson")]
+    [HttpGet("{studentId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.StudentOnly)]
-    [UserFilter("studentId")]
+    [UserFilter("{studentId:guid}")]
     public async Task<IActionResult> GetDrivingLessonsFromStudent(Guid studentId)
     {
         var result = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(studentId));
@@ -113,7 +109,7 @@ public class StudentController : ControllerBase
     
     [HttpDelete("{studentId:Guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrStudent)]
-    [UserFilter("studentId", letAdminsBypass: true)]
+    [UserFilter("{studentId:guid}", letAdminsBypass: true)]
     public async Task<IActionResult> DeleteStudent(Guid studentId)
     {
 
@@ -125,17 +121,129 @@ public class StudentController : ControllerBase
     }
     
     
-    [HttpGet("{id:guid}")]
+    [HttpGet("{studentId:guid}")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
-    [SameDrivingSchoolFilter("id", TargetEntity.Student,true)]
-    public async Task<ActionResult<StudentDto>> GetStudentById(Guid id)
+    [SameDrivingSchoolFilter("{studentId:guid}", TargetEntity.Student,true)]
+    public async Task<ActionResult<StudentDto>> GetStudentById(Guid studentId)
     {
-        var student = await _studentService.GetStudentById(StudentKey.Create(id));
-        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(id));
-        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(id));
+        var student = await _studentService.GetStudentById(StudentKey.Create(studentId));
+        var theoryLessons = await _theoryLessonService.GetAllTheoryLessonsFromStudent(StudentKey.Create(studentId));
+        var drivingLessons = await _drivingLessonService.GetAllDrivingLessonsFromStudent(StudentKey.Create(studentId));
 
         return student.IsSuccess ?
             Ok(student.Value!.ToDto(theoryLessons: theoryLessons.Value, drivingLessons: drivingLessons.Value)) :
             this.Problem(student.Error!);
     }
+
+    [HttpPut("{studentId:guid}")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    [UserFilter("{studentId:guid}")]
+    public async Task<IActionResult> UpdateStudent(Guid studentId, [FromBody] StudentUpdateDto updateDto)
+    {
+        var result = await _studentService.UpdateStudent(
+            StudentKey.Create(studentId),
+            updateDto.Name.ToDomain(),
+            Email.Create(updateDto.Email),
+            PhoneNumber.Create(updateDto.PhoneNumber));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.ToDto())
+            : this.Problem(result.Error!);
+    }
+    
+    [HttpPut("{studentId:guid}/password")]
+    [Authorize(Policy = AuthPolicies.AdminOrStudent)]
+    [UserFilter("{studentId:guid}")]
+    public async Task<IActionResult> UpdateStudentPassword(Guid studentId, [FromBody] UpdatePasswordDto updateDto)
+    {
+        var result = await _studentService.UpdateStudentPassword(
+            StudentKey.Create(studentId),
+            updateDto.OldPassword,
+            updateDto.NewPassword);
+        
+        return result.IsSuccess
+            ? NoContent()
+            : this.Problem(result.Error!);
+    }
+
+    [HttpGet("{studentId:guid}/course/{courseId:guid}")]
+    [Authorize]
+    [UserFilter("{studentId:guid}")]
+    public async Task<IActionResult> GetCompletedCourseById(Guid studentId, Guid courseId)
+    {
+        var course = await _completedCourseService.GetCompletedCourseById(CompletedCourseKey.Create(courseId));
+
+        if (!course.IsSuccess)
+            return this.Problem(course.Error!);
+
+        if (!StudentKey.Create(studentId).Equals(course.Value!.StudentId))
+            return Forbid();
+
+        return Ok(course);
+    }
+    
+    [HttpGet("{studentId:guid}/course")]
+    [Authorize]
+    [UserFilter("{studentId:guid}")]
+    public async Task<IActionResult> GetAllCompletedCourses(Guid studentId)
+    {
+        var courses = await _completedCourseService.GetAllCompletedCoursesFromStudent(StudentKey.Create(studentId));
+
+        if (!courses.IsSuccess)
+            return this.Problem(courses.Error!);
+        
+        return Ok(courses);
+    }
+
+    [HttpPost("{studentId:guid}/course")]
+    [Authorize(Policy = AuthPolicies.InstructorOnly)]
+    [SameDrivingSchoolFilter("{studentId:guid}", TargetEntity.Student)]
+    public async Task<IActionResult> CompleteCourse(Guid studentId, [FromBody] CompletedCourseRegistryDto registry)
+    {
+        var parsed = Enum.TryParse<CourseCompletionReason>(registry.Reason, out var reason);
+        if (!parsed) return BadRequest("Reason must be a valid value");
+        
+        var result = await _completedCourseService.CreateCompletedCourseForStudent(
+            StudentKey.Create(studentId),
+            registry.IncludeLessonsFrom,
+            reason);
+
+        return result.IsSuccess
+            ? Created($"student/{studentId}/course/{result.Value!.Id.Value}", result.Value!)
+            : this.Problem(result.Error!);
+    }
+    
+    [HttpPost("{studentId:guid}/calender")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> AddTimeSlotToStudentCalender(Guid studentId, [FromBody] TimeSlotDto timeSlot)
+    {
+        var result = await _studentService.AddTimeSlotToCalender(StudentKey.Create(studentId), timeSlot.ToDomain());
+        
+        return result.IsSuccess
+            ? Created($"student/{studentId}/calender", result.Value!)
+            : this.Problem(result.Error!);
+    }
+
+    [HttpGet("{studentId:guid}/calender")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> GetStudentCalender(Guid studentId)
+    {
+        var result = await _studentService.GetStudentById(StudentKey.Create(studentId));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.Calender.TimeSlots.Select(x => x.ToDto()))
+            : this.Problem(result.Error!);
+    }
+
+    [HttpDelete("{studentId:guid}/calender")]
+    [Authorize(Policy = AuthPolicies.StudentOnly)]
+    public async Task<IActionResult> RemoveTimeSlotFromStudentCalender(Guid studentId, [FromBody ] TimeSlotDto timeSlot)
+    {
+        var deleted = await _studentService.RemoveTimeSlotFromCalender(StudentKey.Create(studentId), timeSlot.ToDomain());
+        
+        return deleted.IsSuccess
+            ? NoContent()
+            : this.Problem(deleted.Error!);
+    }
+    
 }

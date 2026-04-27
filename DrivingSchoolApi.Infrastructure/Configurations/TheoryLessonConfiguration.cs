@@ -1,5 +1,6 @@
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -28,24 +29,21 @@ internal class TheoryLessonConfiguration : IEntityTypeConfiguration<TheoryLesson
         builder
             .HasOne<Instructor>()
             .WithMany()
-            .HasForeignKey(x => x.InstructorId);
-        
-        // Configures many-to-many relationship with students
-        builder.OwnsMany(a => a.StudentIds, b =>
-        {
-            b.ToTable("StudentTheoryLesson");
-            b.WithOwner().HasForeignKey("TheoryLessonId");
-            
-            b.Property<StudentKey>("StudentId")
-                .HasConversion(
-                    x => x.Value,
-                    x => StudentKey.Create(x));
-            
-            b.HasKey("TheoryLessonId", "StudentId");
+            .HasForeignKey(x => x.InstructorId)
+            .OnDelete(DeleteBehavior.SetNull);
 
-            b.HasOne<Student>()
-                .WithMany()
-                .HasForeignKey("StudentId");
-        });
+        builder.HasOne<Student>()
+            .WithMany()
+            .HasForeignKey(x => x.StudentId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        builder
+            .Property<Signature>(x => x.InstructorSignature)
+            .HasConversion(x => x.Blob,
+                x => Signature.Create(x));
+        builder
+            .Property<Signature>(x => x.StudentSignature)
+            .HasConversion(x => x.Blob,
+                x => Signature.Create(x));
     }
 }
