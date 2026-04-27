@@ -9,7 +9,7 @@ using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Services.Implementation;
 
-internal class InstructorService : IInstructorService
+internal class  InstructorService : IInstructorService
 {
     private readonly IGuidGeneratorService _guidGeneratorService;
     private readonly IInstructorRepository _instructorRepository;

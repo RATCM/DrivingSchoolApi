@@ -10,16 +10,16 @@ namespace DrivingSchoolApi.Application.Services.Implementation;
 public class StudentInviteService : IStudentInviteService
 {
     private readonly IStudentInviteRepository _studentInviteRepository;
-    private readonly IDrivingSchoolRepository _drivingSchoolRepository;
+    private readonly IDrivingSchoolService _drivingSchoolService;
     private readonly IDateTimeProviderService _dateTimeProviderService;
 
     public StudentInviteService(
         IStudentInviteRepository studentInviteRepository,
-        IDrivingSchoolRepository drivingSchoolRepository,
+        IDrivingSchoolService drivingSchoolService,
         IDateTimeProviderService dateTimeProviderService)
     {
         _studentInviteRepository = studentInviteRepository;
-        _drivingSchoolRepository = drivingSchoolRepository;
+        _drivingSchoolService = drivingSchoolService;
         _dateTimeProviderService = dateTimeProviderService;
     }
     
@@ -39,9 +39,9 @@ public class StudentInviteService : IStudentInviteService
         if (invite.ExpirationDateTime < _dateTimeProviderService.Now())
             return new StudentInviteExpiredException("Student invite has expired");
         
-        var drivingSchool = await _drivingSchoolRepository.Get(invite.DrivingSchoolId);
-        if (drivingSchool is null)
-            return new DrivingSchoolNotFoundException("Driving school not found");
+        var drivingSchool = await _drivingSchoolService.GetDrivingSchoolById(invite.DrivingSchoolId);
+        if (!drivingSchool.IsSuccess)
+            return drivingSchool.Error!;
 
         await _studentInviteRepository.Save();
         

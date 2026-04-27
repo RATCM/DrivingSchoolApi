@@ -7,7 +7,7 @@ namespace DrivingSchoolApi.Domain.ValueObjects;
 public record DrivingRoute : ValueObject
 {
     public required DateTimeRange DateTimeRange { get; init; }
-    public required ImmutableArray<CoordinatePoint> RouteCoordinates { get; init; }
+    public required ICollection<CoordinatePoint> RouteCoordinates { get; init; }
 
     private DrivingRoute() {} // EF
     

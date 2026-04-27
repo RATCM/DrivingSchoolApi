@@ -3,29 +3,80 @@ using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Application.Services.Implementation;
 using DrivingSchoolApi.Application.UnitTest.Extensions;
 using DrivingSchoolApi.Domain.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace DrivingSchoolApi.Application.UnitTest.Services;
 
 public class DrivingLessonServiceTests
 {
+    private ServiceProvider _serviceProvider;
+
+    public IDrivingLessonService GetSut()
+    {
+        return _serviceProvider.GetRequiredService<IDrivingLessonService>();
+    }
+
+    public IDrivingLessonRepository GetRepository()
+    {
+        return _serviceProvider.GetRequiredService<IDrivingLessonRepository>();
+    }
+
+    public IGuidGeneratorService GetGuidGenerator()
+    {
+        return _serviceProvider.GetRequiredService<IGuidGeneratorService>();
+    }
+
+    public IDrivingSchoolService GetDrivingSchoolService()
+    {
+        return _serviceProvider.GetRequiredService<IDrivingSchoolService>();
+    }
+
+    public IInstructorService GetInstructorService()
+    {
+        return _serviceProvider.GetRequiredService<IInstructorService>();
+    }
+
+    public IStudentService GetStudentService()
+    {
+        return _serviceProvider.GetRequiredService<IStudentService>();
+    }
+    
+    [SetUp]
+    public void Setup()
+    {
+        var collection = new ServiceCollection();
+
+        collection
+            .AddScoped<IDrivingLessonService, DrivingLessonService>()
+            .AddScoped<IDrivingLessonRepository>(_ => Substitute.For<IDrivingLessonRepository>())
+            .AddScoped<IGuidGeneratorService>(_ => Substitute.For<IGuidGeneratorService>())
+            .AddScoped<IDrivingSchoolService>(_ => Substitute.For<IDrivingSchoolService>())
+            .AddScoped<IInstructorService>(_ => Substitute.For<IInstructorService>())
+            .AddScoped<IStudentService>(_ => Substitute.For<IStudentService>());
+        
+        _serviceProvider = collection.BuildServiceProvider();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _serviceProvider.Dispose();
+    }
     
     [Test]
     public async Task CreateDrivingLesson_ReturnsDrivingLesson_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var guidService = GetGuidGenerator();
 
         var lesson = DrivingLesson.CreateTestLesson();
 
         guidService.NewGuid().Returns(lesson.Id.Value);
         repo.Create(Arg.Any<DrivingLesson>()).Returns(true);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.CreateDrivingLesson(
@@ -33,8 +84,8 @@ public class DrivingLessonServiceTests
             lesson.StudentSignature.Blob, 
             lesson.SchoolId, lesson.Route, 
             lesson.Price, 
-            lesson.InstructorId, 
-            lesson.StudentId);
+            lesson.InstructorId!, 
+            lesson.StudentId!);
 
         // Assert
         Assert.That(result.IsSuccess, Is.True);
@@ -61,18 +112,15 @@ public class DrivingLessonServiceTests
     public async Task CreateDrivingLesson_ReturnsFailure_AndDoesNotSave_OnFailure()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var guidService = GetGuidGenerator();
         
         var lesson = DrivingLesson.CreateTestLesson();
 
         guidService.NewGuid().Returns(lesson.Id.Value);
         repo.Create(Arg.Any<DrivingLesson>()).Returns(false);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.CreateDrivingLesson(
@@ -81,8 +129,8 @@ public class DrivingLessonServiceTests
             lesson.SchoolId,
             lesson.Route,
             lesson.Price,
-            lesson.InstructorId,
-            lesson.StudentId);
+            lesson.InstructorId!,
+            lesson.StudentId!);
 
         // Assert
         Assert.That(result.IsSuccess, Is.False);
@@ -97,17 +145,13 @@ public class DrivingLessonServiceTests
     public async Task GetDrivingLessonById_ReturnsDrivingLesson_WhenFound()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
 
         var lesson = DrivingLesson.CreateTestLesson();
 
         repo.Get(lesson.Id).Returns(lesson);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetDrivingLessonById(lesson.Id);
@@ -123,16 +167,12 @@ public class DrivingLessonServiceTests
     public async Task GetDrivingLessonById_ReturnsNotFound_WhenNotFound()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
 
         var lesson = DrivingLesson.CreateTestLesson();
         repo.Get(lesson.Id).Returns((DrivingLesson?)null);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetDrivingLessonById(lesson.Id);
@@ -149,11 +189,8 @@ public class DrivingLessonServiceTests
     public async Task GetAllDrivingLessonsFromSchool_ReturnsDrivingLessons_WhenRepoHasData()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var drivingSchoolService = GetDrivingSchoolService();
 
         var drivingSchool = DrivingSchool.CreateTestSchool();
         var lesson1 = DrivingLesson.CreateTestLesson(schoolGuid: drivingSchool.Id.Value);
@@ -162,7 +199,7 @@ public class DrivingLessonServiceTests
         drivingSchoolService.GetDrivingSchoolById(lesson1.SchoolId).Returns(drivingSchool);
         repo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllDrivingLessonsFromSchool(lesson1.SchoolId);
@@ -181,11 +218,8 @@ public class DrivingLessonServiceTests
     public async Task GetAllDrivingLessonsFromSchool_ReturnsEmpty_WhenNoMatchingLessons()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var drivingSchoolService = GetDrivingSchoolService();
 
         var drivingSchool = DrivingSchool.CreateTestSchool();
         var lesson1 = DrivingLesson.CreateTestLesson();
@@ -194,7 +228,7 @@ public class DrivingLessonServiceTests
         drivingSchoolService.GetDrivingSchoolById(drivingSchool.Id).Returns(drivingSchool);
         repo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllDrivingLessonsFromSchool(drivingSchool.Id);
@@ -211,11 +245,8 @@ public class DrivingLessonServiceTests
     public async Task GetAllDrivingLessonsFromStudent_ReturnsDrivingLessons_WhenRepoHasData()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var studentService = GetStudentService();
 
         var student = Student.CreateTestStudent();
         var lesson1 = DrivingLesson.CreateTestLesson(studentGuid: student.Id.Value);
@@ -224,7 +255,7 @@ public class DrivingLessonServiceTests
         studentService.GetStudentById(student.Id).Returns(student);
         repo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllDrivingLessonsFromStudent(student.Id);
@@ -243,11 +274,8 @@ public class DrivingLessonServiceTests
     public async Task GetAllDrivingLessonsFromStudent_ReturnsEmpty_WhenNoMatchingLessons()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var studentService = GetStudentService();
         
         var student = Student.CreateTestStudent();
         var lesson1 = DrivingLesson.CreateTestLesson();
@@ -256,7 +284,7 @@ public class DrivingLessonServiceTests
         studentService.GetStudentById(student.Id).Returns(student);
         repo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllDrivingLessonsFromStudent(student.Id);
@@ -273,11 +301,8 @@ public class DrivingLessonServiceTests
     public async Task GetAllDrivingLessonsFromInstructor_ReturnsDrivingLessons_WhenRepoHasData()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var instructorService = GetInstructorService();
 
         var instructor = Instructor.CreateTestInstructor();
         var lesson1 = DrivingLesson.CreateTestLesson(instructorGuid: instructor.Id.Value);
@@ -286,7 +311,7 @@ public class DrivingLessonServiceTests
         instructorService.GetInstructorById(instructor.Id).Returns(instructor);
         repo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllDrivingLessonsFromInstructor(instructor.Id);
@@ -305,11 +330,8 @@ public class DrivingLessonServiceTests
     public async Task GetAllDrivingLessonsFromInstructor_ReturnsEmpty_WhenNoMatchingLessons()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
+        var instructorService = GetInstructorService();
 
         var instructor = Instructor.CreateTestInstructor();
         var lesson1 = DrivingLesson.CreateTestLesson();
@@ -318,7 +340,7 @@ public class DrivingLessonServiceTests
         instructorService.GetInstructorById(instructor.Id).Returns(instructor);
         repo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllDrivingLessonsFromInstructor(instructor.Id);
@@ -335,17 +357,13 @@ public class DrivingLessonServiceTests
     public async Task DeleteDrivingLesson_ReturnsSuccess_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
 
         var lesson = DrivingLesson.CreateTestLesson();
         
         repo.Delete(lesson.Id).Returns(true);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.DeleteDrivingLesson(lesson.Id);
@@ -362,17 +380,13 @@ public class DrivingLessonServiceTests
     public async Task DeleteDrivingLesson_ReturnsNotFound_AndDoesNotSave_OnFailure()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingLessonRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var drivingSchoolService = Substitute.For<IDrivingSchoolService>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var studentService = Substitute.For<IStudentService>();
+        var repo = GetRepository();
 
         var lesson = DrivingLesson.CreateTestLesson();
         
         repo.Delete(lesson.Id).Returns(false);
 
-        var sut = new DrivingLessonService(guidService, repo, drivingSchoolService, instructorService, studentService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.DeleteDrivingLesson(lesson.Id);

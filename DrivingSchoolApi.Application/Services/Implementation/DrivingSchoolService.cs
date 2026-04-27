@@ -64,7 +64,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
         var invite = StudentInvite.Create(
             StudentInviteKey.Create(_guidGeneratorService.NewGuid()),
             id,
-            DateTime.Now.Add(timeValid));
+            _dateTimeProviderService.Now().Add(timeValid));
         
         drivingSchool.AddStudentInvite(invite);
 

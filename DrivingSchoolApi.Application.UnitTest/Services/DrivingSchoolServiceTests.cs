@@ -4,25 +4,69 @@ using DrivingSchoolApi.Application.Services.Implementation;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace DrivingSchoolApi.Application.UnitTest.Services;
 
 public class DrivingSchoolServiceTests
 {
+    private ServiceProvider _serviceProvider;
+    
+    private IDrivingSchoolService GetSut()
+    {
+        return _serviceProvider.GetRequiredService<IDrivingSchoolService>();
+    }
+
+    private IDrivingSchoolRepository GetRepository()
+    {
+        return _serviceProvider.GetRequiredService<IDrivingSchoolRepository>();
+    }
+
+    private IGuidGeneratorService GetGuidGenerator()
+    {
+        return _serviceProvider.GetRequiredService<IGuidGeneratorService>();
+    }
+
+    private IDateTimeProviderService GetDateTimeProvider()
+    {
+        return _serviceProvider.GetRequiredService<IDateTimeProviderService>();
+    }
+    
+    [SetUp]
+    public void Setup()
+    {
+        var collection = new ServiceCollection();
+
+        collection
+            .AddScoped<IDrivingSchoolService, DrivingSchoolService>()
+            .AddScoped<IDrivingSchoolRepository>(_ => Substitute.For<IDrivingSchoolRepository>())
+            .AddScoped<IGuidGeneratorService>(_ => Substitute.For<IGuidGeneratorService>())
+            .AddScoped<IDateTimeProviderService>(_ => Substitute.For<IDateTimeProviderService>());
+
+        
+        _serviceProvider = collection.BuildServiceProvider();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _serviceProvider.Dispose();
+    }
+
+    
     [Test]
     public async Task CreateDrivingSchool_ReturnsDrivingSchool_AndSaves_OnSucces()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
+        var repo = GetRepository();
         repo.Create(Arg.Any<DrivingSchool>()).Returns(true);
         
         var expectedId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        guidService.NewGuid().Returns(expectedId);
-    
-        var sut = new DrivingSchoolService(guidService, repo, new DateTimeProviderService());
+        GetGuidGenerator().NewGuid().Returns(expectedId);
+
+        var sut = GetSut();
     
         var name = DrivingSchoolName.Create("Test School");
         var address = StreetAddress.Create("12345", "City", "Region", "Main St 1");
@@ -57,10 +101,10 @@ public class DrivingSchoolServiceTests
     public async Task CreateDrivingSchool_ReturnsFailure_AndDoesNotSave_OnFailure()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
+        var repo = GetRepository();
         repo.Create(Arg.Any<DrivingSchool>()).Returns(false);
-    
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), repo, new DateTimeProviderService());
+
+        var sut = GetSut();
     
         // Act
         var result = await sut.CreateDrivingSchool(
@@ -83,7 +127,7 @@ public class DrivingSchoolServiceTests
     public async Task GetDrivingSchoolById_ReturnsDrivingSchool_WhenFound()
     {
         // Arrange
-        var mock = Substitute.For<IDrivingSchoolRepository>();
+        var mock = GetRepository();
         mock
             .Get(DrivingSchoolKey.Create(Guid.Empty))
             .Returns(DrivingSchool.Create(
@@ -93,8 +137,8 @@ public class DrivingSchoolServiceTests
                 PhoneNumber.Create("1234"), 
                 WebAddress.Create("url.com"),
                 []));
-        
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), mock, new DateTimeProviderService());
+
+        var sut = GetSut();
 
         // Act
         var drivingSchool = await sut.GetDrivingSchoolById(DrivingSchoolKey.Create(Guid.Empty));
@@ -113,8 +157,7 @@ public class DrivingSchoolServiceTests
     public async Task GetDrivingSchoolById_ReturnsNull_WhenNotFound()
     {
         // Arrange
-        var mock = Substitute.For<IDrivingSchoolRepository>();
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), mock, new DateTimeProviderService());
+        var sut = GetSut();
         
         // Act
         var drivingSchool = await sut.GetDrivingSchoolById(DrivingSchoolKey.Create(Guid.Empty));
@@ -127,7 +170,7 @@ public class DrivingSchoolServiceTests
     public async Task GetAllDrivingSchools_ReturnsDrivingSchools_WhenRepoHasData()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
+        var repo = GetRepository();
     
         var first = DrivingSchool.Create(
             DrivingSchoolKey.Create(Guid.Parse("11111111-1111-1111-1111-111111111111")),
@@ -146,12 +189,9 @@ public class DrivingSchoolServiceTests
             []);
     
         repo.GetAll().Returns([first, second]);
-    
-        var sut = new DrivingSchoolService(
-            new GuidGeneratorService(),
-            repo,
-            new DateTimeProviderService());
-    
+
+        var sut = GetSut();
+        
         // Act
         var result = await sut.GetAllDrivingSchools();
     
@@ -168,10 +208,10 @@ public class DrivingSchoolServiceTests
     [Test]
     public async Task GetAllDrivingSchools_ReturnsEmpty_WhenEmpty()
     {
-        var repo = Substitute.For<IDrivingSchoolRepository>();
+        var repo = GetRepository();
         repo.GetAll().Returns(Array.Empty<DrivingSchool>());
-    
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), repo, new DateTimeProviderService());
+
+        var sut = GetSut();
     
         var result = await sut.GetAllDrivingSchools();
     
@@ -186,9 +226,9 @@ public class DrivingSchoolServiceTests
     public async Task CreateStudentInvite_ReturnsInvite_AndAddsItToDrivingSchool_WhenDrivingSchoolExists()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
-        var dateTimeProvider = Substitute.For<IDateTimeProviderService>();
+        var repo = GetRepository();
+        var guidService = GetGuidGenerator();
+        var dateTimeProvider = GetDateTimeProvider();
     
         var drivingSchoolId = DrivingSchoolKey.Create(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
         var inviteId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
@@ -201,18 +241,20 @@ public class DrivingSchoolServiceTests
             PhoneNumber.Create("1234"),
             WebAddress.Create("test.com"),
             Array.Empty<Package>());
-    
+
+        var now = new DateTime(2000, 1, 1).ToUniversalTime();
         repo.Get(drivingSchoolId).Returns(school);
         guidService.NewGuid().Returns(inviteId);
-    
-        var sut = new DrivingSchoolService(guidService, repo, dateTimeProvider);
-    
-        var before = DateTime.Now;
+        dateTimeProvider.Now().Returns(now);
+
+        var sut = GetSut();
+
+        var before = now;
     
         // Act
         var result = await sut.CreateStudentInvite(drivingSchoolId, timeValid);
-    
-        var after = DateTime.Now;
+
+        var after = now.AddMinutes(60);
     
         // Assert
         Assert.That(result.IsSuccess, Is.True);
@@ -234,8 +276,8 @@ public class DrivingSchoolServiceTests
     public async Task CreateStudentInvite_ReturnsNotFound_WhenDrivingSchoolDoesNotExist()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), repo, new DateTimeProviderService());
+        var repo = GetRepository();
+        var sut = GetSut();
     
         var drivingSchoolId = DrivingSchoolKey.Create(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
     
@@ -254,10 +296,10 @@ public class DrivingSchoolServiceTests
     public async Task DeleteDrivingSchool_ReturnsSuccess_AndSaves_OnSuccess()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
+        var repo = GetRepository();
         repo.Delete(Arg.Any<DrivingSchoolKey>()).Returns(true);
 
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), repo, new DateTimeProviderService());
+        var sut = GetSut();
 
         var drivingSchoolId = DrivingSchoolKey.Create(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
 
@@ -276,10 +318,10 @@ public class DrivingSchoolServiceTests
     public async Task DeleteDrivingSchool_ReturnsNotFound_AndDoesNotSave_OnFailure()
     {
         // Arrange
-        var repo = Substitute.For<IDrivingSchoolRepository>();
+        var repo = GetRepository();
         repo.Delete(Arg.Any<DrivingSchoolKey>()).Returns(false);
 
-        var sut = new DrivingSchoolService(new GuidGeneratorService(), repo, new DateTimeProviderService());
+        var sut = GetSut();
 
         var drivingSchoolId = DrivingSchoolKey.Create(Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"));
 
