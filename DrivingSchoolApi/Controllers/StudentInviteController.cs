@@ -31,7 +31,7 @@ public class StudentInviteController : ControllerBase
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [SameDrivingSchoolFilter("{drivingSchoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
+    [SameDrivingSchoolFilter("{drivingSchoolId:guid}", TargetEntity.School)]
     public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid drivingSchoolId)
     {
         var idClaim = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
