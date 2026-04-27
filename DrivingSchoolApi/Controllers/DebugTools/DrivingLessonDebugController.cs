@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Fakers;
@@ -74,7 +75,7 @@ public class DrivingLessonDebugController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateDrivingLessons(int num, int? seed = null)
+    public async Task<IActionResult> CreateDrivingLessons([Required] int num, int? seed = null)
     {
         // Random seed if none provided
         seed ??= Guid.NewGuid().GetHashCode();

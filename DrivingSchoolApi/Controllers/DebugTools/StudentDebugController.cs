@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Bogus;
 using DrivingSchoolApi.Application.Repositories;
 using DrivingSchoolApi.Application.Services;
@@ -77,14 +78,18 @@ public class StudentDebugController : ControllerBase
     }
     
     [HttpPost("course/create")]
-    public async Task<IActionResult> CreateCompletedCourses(int num, int seed=2)
+    public async Task<IActionResult> CreateCompletedCourses([Required] int num, int? seed=null)
     {
+        // Random seed if none provided
+        seed ??= Guid.NewGuid().GetHashCode();
+
         var theoryLessons = (await _theoryLessonRepository.GetAll()).ToList();
         var drivingLessons = (await _drivingLessonRepository.GetAll()).ToList();
         if (theoryLessons.Count == 0 && drivingLessons.Count == 0)
             return BadRequest("Cannot add completed courses with no theory lessons or driving lessons");
         
-        var completedCourseFaker = CompletedCourseFaker.Create(seed,
+        var completedCourseFaker = CompletedCourseFaker.Create(
+            seed.Value,
             theoryLessons,
             drivingLessons
         );
