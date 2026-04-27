@@ -79,4 +79,32 @@ internal class DrivingSchoolService : IDrivingSchoolService
         await _drivingSchoolRepository.Save();
         return Result.Success();
     }
+
+    public async Task<Result<DrivingSchool>> UpdateDrivingSchool(DrivingSchoolKey id, DrivingSchoolName name,
+        StreetAddress streetAddress, PhoneNumber phoneNumber, WebAddress webAddress)
+    {
+        var result = await _drivingSchoolRepository.Get(id);
+        if (result is null)
+        {
+            return new DrivingSchoolNotFoundException("Driving school not found in DB");
+        }
+
+        var updatedDrivingSchool = DrivingSchool.Create(
+            result.Id,
+            name,
+            streetAddress,
+            phoneNumber,
+            webAddress,
+            result.Packages.ToArray());
+
+        bool success = await _drivingSchoolRepository.Update(updatedDrivingSchool);
+
+        if (!success)
+        {
+            return new Exception("Internal error: Unable to update driving school.");
+        }
+
+        await _drivingSchoolRepository.Save();
+        return updatedDrivingSchool;
+    }
 }
