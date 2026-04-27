@@ -2,6 +2,8 @@
 using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.DTOs.Student;
+using DrivingSchoolApi.Filters.Attributes;
+using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +31,8 @@ public class StudentInviteController : ControllerBase
     
     [HttpPost]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid schoolId)
+    [SameDrivingSchoolFilter("{drivingSchoolId:guid}", TargetEntity.School)]
+    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid drivingSchoolId)
     {
         var idClaim = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
 
@@ -39,7 +42,7 @@ public class StudentInviteController : ControllerBase
             return this.Problem(instructor.Error!);
         
         var invite = await _drivingSchoolService.CreateStudentInvite(
-            DrivingSchoolKey.Create(schoolId), 
+            DrivingSchoolKey.Create(drivingSchoolId), 
             TimeSpan.FromDays(30)); // We just have the invite be available for 30 days for now
 
         return invite.IsSuccess
@@ -48,16 +51,29 @@ public class StudentInviteController : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Policy = AuthPolicies.AdminOnly)]
-    public async Task<ActionResult> GetAllDrivingSchoolInvites(int page = 1)
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [SameDrivingSchoolFilter("{drivingSchoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
+    public async Task<ActionResult> GetDrivingSchoolInviteBySchoolId(Guid drivingSchoolId)
     {
         var result = await _studentInviteService.GetAll();
-        const int PAGE_SIZE = 30;
+        if (!result.IsSuccess)
+        {
+            return this.Problem(result.Error!);
+        }
+        var schoolInvites = result.Value!.Where(x => x.DrivingSchoolId.Equals(DrivingSchoolKey.Create(drivingSchoolId)));
         
-        return result.IsSuccess
-            ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
-            : this.Problem(result.Error!);
+        return Ok(schoolInvites.Select(x => x.ToDto()));
     }
-    // TODO GetDrivingSchoolInviteById
-    // TODO InvalidateInviteById
+
+    [HttpDelete("{inviteId:guid}")]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [SameDrivingSchoolFilter("{drivingSchoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
+    public async Task<ActionResult> DeleteInvite(Guid drivingSchoolId, Guid inviteId)
+    {
+        var deleted = await _studentInviteService.DeleteInvite(StudentInviteKey.Create(inviteId));
+        return deleted.IsSuccess
+            ? NoContent()
+            : this.Problem(deleted.Error!);
+
+    }
 }

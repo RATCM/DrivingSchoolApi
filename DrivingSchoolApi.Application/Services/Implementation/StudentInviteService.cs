@@ -55,7 +55,12 @@ public class StudentInviteService : IStudentInviteService
         return result.ToList();
     }
     
-    //GetDrivingSchoolInvites
-    //GetDrivingSchoolInviteById
-    //InvalidateInviteById
+    public async Task<Result> DeleteInvite(StudentInviteKey id)
+    {
+        var deleted = await _studentInviteRepository.Delete(id);
+        if (!deleted)
+            return new StudentInviteNotFoundException("Invite not found in DB.");
+        await _studentInviteRepository.Save();
+        return Result.Success();
+    }
 }
