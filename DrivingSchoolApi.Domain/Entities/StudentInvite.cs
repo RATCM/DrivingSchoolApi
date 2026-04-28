@@ -18,7 +18,7 @@ public class StudentInvite : Entity<StudentInviteKey>
         {
             Id = inviteKey,
             DrivingSchoolId = drivingSchoolId,
-            ExpirationDateTime = expirationDateTime
+            ExpirationDateTime = expirationDateTime.ToUniversalTime()
         };
     }
 }

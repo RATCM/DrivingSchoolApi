@@ -50,7 +50,7 @@ public class InstructorController : ControllerBase
         
         return result.IsSuccess
             ? Created($"instructor/{result.Value!.Id}", result.Value.ToDto())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
 
     [HttpGet]
@@ -62,7 +62,7 @@ public class InstructorController : ControllerBase
         
         return result.IsSuccess
             ? Ok(result.Value!.Skip(PAGE_SIZE*(page-1)).Take(PAGE_SIZE).Select(x => x.ToDto()))
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
 
     [HttpGet("{instructorId:guid}")]
@@ -74,7 +74,7 @@ public class InstructorController : ControllerBase
         
         return result.IsSuccess
             ? Ok(result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     [HttpPut("{instructorId:guid}")]
@@ -90,7 +90,7 @@ public class InstructorController : ControllerBase
         
         return result.IsSuccess
             ? Ok(result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
 
     [HttpPut("{instructorId:guid}/password")]
@@ -105,7 +105,7 @@ public class InstructorController : ControllerBase
         
         return result.IsSuccess
             ? NoContent()
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
 
     [HttpDelete("{instructorId:guid}")]
@@ -116,7 +116,7 @@ public class InstructorController : ControllerBase
         var deleted  = await _instructorService.DeleteInstructor(InstructorKey.Create(instructorId));
         return  deleted.IsSuccess
             ? NoContent()
-            : this.Problem(deleted.Error!);
+            : this.Problem(deleted.Error!, _logger);
     }
     
     [HttpPost("{instructorId:guid}/theoryLesson")]
@@ -139,7 +139,7 @@ public class InstructorController : ControllerBase
         
         return result.IsSuccess
             ? Created($"theoryLesson/{result.Value!.Id}", result.Value.ToDto())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     //TODO Add paging
@@ -152,7 +152,7 @@ public class InstructorController : ControllerBase
 
         return result.IsSuccess
             ? Ok(result.Value!.Select(x => x.ToDto()).ToList())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     [HttpPost("{instructorId:guid}/drivingLesson")]
@@ -172,11 +172,12 @@ public class InstructorController : ControllerBase
             registryDto.Route.ToDomain(),
             registryDto.Price.ToDomain(),
             InstructorKey.Create(instructorId),
-            StudentKey.Create(registryDto.StudentId));
+            StudentKey.Create(registryDto.StudentId),
+            registryDto.CompletedObjectives.ToDomain());
         
         return result.IsSuccess
             ? Created($"drivingLesson/{result.Value!.Id}", result.Value!.ToDto())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
     
     //TODO Add paging
@@ -189,6 +190,6 @@ public class InstructorController : ControllerBase
 
         return result.IsSuccess
             ? Ok(result.Value!.Select(x => x.ToDto()).ToList())
-            : this.Problem(result.Error!);
+            : this.Problem(result.Error!, _logger);
     }
 }

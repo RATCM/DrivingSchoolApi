@@ -1,4 +1,5 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
@@ -14,7 +15,8 @@ public interface IDrivingLessonService
         DrivingRoute route, 
         Money price, 
         InstructorKey instructorId, 
-        StudentKey studentId);
+        StudentKey studentId,
+        DrivingLessonObjective completedObjectives);
     Task<Result<DrivingLesson>> GetDrivingLessonById(DrivingLessonKey id);
     Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromSchool(DrivingSchoolKey schoolId);
     Task<Result<IEnumerable<DrivingLesson>>> GetAllDrivingLessonsFromStudent(StudentKey studentId);

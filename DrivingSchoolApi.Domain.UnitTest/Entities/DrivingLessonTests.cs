@@ -1,4 +1,5 @@
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 
@@ -21,6 +22,7 @@ public class DrivingLessonTests
                 InstructorKey.Create(Guid.Empty),
                 StudentKey.Create(Guid.Empty),
                 Signature.Create([0]),
-                Signature.Create([0])));
+                Signature.Create([0]),
+                0));
     }
 }

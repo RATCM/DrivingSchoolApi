@@ -19,8 +19,8 @@ public record TimeSlot : ValueObject
         return new TimeSlot
         {
             Description = description,
-            StartDateTime = range.StartDateTime,
-            EndDateTime = range.EndDateTime
+            StartDateTime = range.StartDateTime.ToUniversalTime(),
+            EndDateTime = range.EndDateTime.ToUniversalTime()
         };
     }
 }

@@ -46,7 +46,8 @@ internal static class DrivingLessonExtensions
                 instructorId,
                 studentId,
                 instructorSig,
-                studentSig);
+                studentSig,
+                0);
         }
     }
 }
