@@ -1,9 +1,14 @@
-﻿using DrivingSchoolApi.Application.Auth;
+﻿using System.Net;
+using DrivingSchoolApi.Application.Auth;
+using DrivingSchoolApi.Application.Enums;
 using DrivingSchoolApi.Application.Services;
+using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.DTOs.Common;
 using DrivingSchoolApi.DTOs.Instructor;
+using DrivingSchoolApi.Filters.Attributes;
+using DrivingSchoolApi.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -82,5 +87,37 @@ public class AuthController : ControllerBase
                 RefreshToken = result.Value!.refreshToken
             })
             : this.Problem(result.Error!);
+    }
+
+    [HttpGet("self")]
+    [Authorize]
+    public async Task<IActionResult> GetSelf()
+    {
+        var id = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
+        var role = HttpContext.GetUserRoleClaim();
+        
+        // This was just the easiest implementation
+        // if it works, it works
+        switch (role)
+        {
+            case UserRole.Admin:
+                var adminResult = await _adminService.GetAdminById(AdminKey.Create(id));
+                return adminResult.IsSuccess
+                    ? Ok(adminResult.Value!.ToDto())
+                    : this.Problem(adminResult.Error!, _logger);
+            case UserRole.Student:
+                var studentResult = await _studentService.GetStudentById(StudentKey.Create(id));
+                return studentResult.IsSuccess
+                    ? Ok(studentResult.Value!.ToDto())
+                    : this.Problem(studentResult.Error!, _logger);
+            case UserRole.Instructor:
+                var instructorResult = await _studentService.GetStudentById(StudentKey.Create(id));
+                return instructorResult.IsSuccess
+                    ? Ok(instructorResult.Value!.ToDto())
+                    : this.Problem(instructorResult.Error!, _logger);
+            default:
+                return Problem("Failed to read user role", statusCode: 500);
+        }
+        
     }
 }
