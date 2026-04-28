@@ -19,7 +19,8 @@ internal class TestApplicationFactory : WebApplicationFactory<Program>
             var overrides = new Dictionary<string, string?>
             {
                 { "Authentication:Schemes:Access:SigningKeys:0:Value", "gS2VZzcj8yY7cT1qz0xPq1N2a9iXHt7xqE2ZqJ5q3n4=" },
-                { "Authentication:Schemes:Refresh:SigningKeys:0:Value", "gS2VZzcj8yY7cT1qz0xPq1N2a9iXHt7xqE2ZqJ5q3n4=" }
+                { "Authentication:Schemes:Refresh:SigningKeys:0:Value", "gS2VZzcj8yY7cT1qz0xPq1N2a9iXHt7xqE2ZqJ5q3n4=" },
+                {"WEB_URL_ENV","http://localhost:3000"}
             };
 
             configBuilder.AddInMemoryCollection(overrides);
