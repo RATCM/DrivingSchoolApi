@@ -206,7 +206,8 @@ public class DrivingSchoolController : ControllerBase
                 updateDto.StreetAddress.Region,
                 updateDto.StreetAddress.AddressLine),
             PhoneNumber.Create(updateDto.PhoneNumber),
-            WebAddress.Create(updateDto.WebAddress));
+            WebAddress.Create(updateDto.WebAddress),
+            updateDto.Packages.Select(x => x.ToDomain()).ToArray());
         
         return result.IsSuccess
             ? Ok(result.Value!.ToDto())

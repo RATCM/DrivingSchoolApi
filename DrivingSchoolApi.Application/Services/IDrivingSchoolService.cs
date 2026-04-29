@@ -18,5 +18,6 @@ public interface IDrivingSchoolService
         DrivingSchoolName name,
         StreetAddress streetAddress,
         PhoneNumber phoneNumber,
-        WebAddress webAddress);
+        WebAddress webAddress,
+        Package[] packages);
 }

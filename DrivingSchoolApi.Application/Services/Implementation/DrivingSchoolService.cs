@@ -81,7 +81,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
     }
 
     public async Task<Result<DrivingSchool>> UpdateDrivingSchool(DrivingSchoolKey id, DrivingSchoolName name,
-        StreetAddress streetAddress, PhoneNumber phoneNumber, WebAddress webAddress)
+        StreetAddress streetAddress, PhoneNumber phoneNumber, WebAddress webAddress, Package[] packages)
     {
         var result = await _drivingSchoolRepository.Get(id);
         if (result is null)
