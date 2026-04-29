@@ -11,11 +11,15 @@ internal class TokenGeneratorService : ITokenGeneratorService
 {
     private readonly IGuidGeneratorService _guidGenerator;
     private readonly IConfiguration _configuration;
+    private readonly IDateTimeProviderService _dateTimeProviderService;
 
-    public TokenGeneratorService(IGuidGeneratorService guidGenerator, IConfiguration configuration)
+    public TokenGeneratorService(IGuidGeneratorService guidGenerator, 
+        IConfiguration configuration,
+        IDateTimeProviderService dateTimeProviderService)
     {
         _guidGenerator = guidGenerator;
         _configuration = configuration;
+        _dateTimeProviderService = dateTimeProviderService;
     }
 
     public string GenerateJwtAccessToken(Guid userId, UserRole role)
@@ -36,7 +40,7 @@ internal class TokenGeneratorService : ITokenGeneratorService
             issuer: scheme["ValidIssuer"]!,
             audience: scheme["Audience"]!,
             claims: claims,
-            expires: DateTime.Now.Add(TimeSpan.Parse(scheme["TimeValid"]!)),
+            expires: _dateTimeProviderService.Now().Add(TimeSpan.Parse(scheme["TimeValid"]!)),
             signingCredentials: credentials);
         
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -60,7 +64,7 @@ internal class TokenGeneratorService : ITokenGeneratorService
             issuer: scheme["ValidIssuer"]!,
             audience: scheme["Audience"]!,
             claims: claims,
-            expires: DateTime.Now.Add(TimeSpan.Parse(scheme["TimeValid"]!)),
+            expires: _dateTimeProviderService.Now().Add(TimeSpan.Parse(scheme["TimeValid"]!)),
             signingCredentials: credentials);
         
         return new JwtSecurityTokenHandler().WriteToken(token);
