@@ -52,7 +52,7 @@ internal class InstructorRepository : Repository, IInstructorRepository
         foreach(var timeSlot in instructor.Calender.TimeSlots)
             temp.Calender.AddTimeSlot(timeSlot);
         
-        var entry = DbContext.Instructors.Update(instructor);
+        var entry = DbContext.Instructors.Update(temp);
         return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
 

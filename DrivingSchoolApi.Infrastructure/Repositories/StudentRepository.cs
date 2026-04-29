@@ -61,7 +61,7 @@ internal class StudentRepository : Repository, IStudentRepository
         foreach(var timeSlot in student.Calender.TimeSlots)
             temp.Calender.AddTimeSlot(timeSlot);
         
-        var entry = DbContext.Students.Update(student);
+        var entry = DbContext.Students.Update(temp);
         return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
 

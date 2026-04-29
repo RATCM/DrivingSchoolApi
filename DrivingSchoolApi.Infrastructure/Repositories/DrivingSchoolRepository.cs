@@ -44,7 +44,7 @@ internal class DrivingSchoolRepository : Repository, IDrivingSchoolRepository
         foreach (var package in drivingSchool.Packages)
             temp.AddPackage(package);
         
-        var entry = DbContext.DrivingSchools.Update(drivingSchool);
+        var entry = DbContext.DrivingSchools.Update(temp);
         return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
 
