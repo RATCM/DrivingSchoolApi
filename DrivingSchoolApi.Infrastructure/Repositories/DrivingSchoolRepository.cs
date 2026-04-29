@@ -29,8 +29,21 @@ internal class DrivingSchoolRepository : Repository, IDrivingSchoolRepository
 
     public async Task<bool> Update(DrivingSchool drivingSchool)
     {
-        var school = await DbContext.DrivingSchools.FindAsync(drivingSchool.Id);
-        if (school is null) return false;
+        var temp = await DbContext.DrivingSchools.FindAsync(drivingSchool.Id);
+        if (temp is null) return false;
+        
+        var packages = temp.Packages.ToList();
+        foreach (var package in packages)
+            temp.RemovePackage(package);
+        
+        temp.ChangeName(drivingSchool.DrivingSchoolName);
+        temp.ChangeAddress(drivingSchool.StreetAddress);
+        temp.ChangePhoneNumber(drivingSchool.PhoneNumber);
+        temp.ChangeWebAddress(drivingSchool.WebAddress);
+        
+        foreach (var package in drivingSchool.Packages)
+            temp.AddPackage(package);
+        
         var entry = DbContext.DrivingSchools.Update(drivingSchool);
         return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
