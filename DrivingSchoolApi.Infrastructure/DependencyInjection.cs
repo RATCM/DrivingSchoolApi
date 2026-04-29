@@ -43,7 +43,7 @@ public static class DependencyInjection
                 .AddPolicy(AuthPolicies.StudentOnly, policy => policy.RequireRole("Student"))
                 .AddPolicy(AuthPolicies.AdminOrInstructor, policy => policy.RequireRole("Admin", "Instructor"))
                 .AddPolicy(AuthPolicies.AdminOrStudent, policy => policy.RequireRole("Admin", "Student"));
-
+            services.AddCors();
             return services;
         }
     }
