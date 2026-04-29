@@ -66,6 +66,40 @@ public class InstructorDebugController : ControllerBase
         
         return Ok(instructors.Select(x => x.ToDto()));
     }
+    
+    [HttpPost("scramble")]
+    public async Task<IActionResult> ScrambleInstructors(int? seed = null)
+    {
+        // Random seed if none provided
+        seed ??= Guid.NewGuid().GetHashCode();
+        
+        var drivingSchools = await _drivingSchoolRepository.GetAll();
+        var drivingSchoolIds = drivingSchools.Select(x => x.Id).ToList();
+        if (drivingSchoolIds.Count == 0)
+            return BadRequest("Cannot scramble students if there are no driving schools");
+        
+        var faker = InstructorFaker.Create(seed.Value, drivingSchoolIds, _instructorPasswordHasher);
+        
+        var instructors = (await _instructorRepository.GetAll()).ToList();
+        var newInstructors = new List<Instructor>();
+        
+        foreach (var instructor in instructors)
+        {
+            var newInstructor = faker.UseId(instructor.Id).Generate();
+            if (newInstructor is null)
+                return Problem("Error generating instructors");
+            
+            var updated = await _instructorRepository.Update(newInstructor);
+            if (!updated)
+                return Problem("Error updating instructors");
+            
+            newInstructors.Add(newInstructor);
+        }
+        
+        await _instructorRepository.Save();
+        
+        return Ok(newInstructors.Select(x => x.ToDto()));
+    }
 
             
     [HttpDelete]
