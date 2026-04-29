@@ -9,6 +9,8 @@ namespace DrivingSchoolApi.Fakers;
 public sealed class InstructorFaker : Faker<Instructor>
 {
     private string? _password = null;
+    private InstructorKey? _id = null;
+
     private InstructorFaker(int seed, 
         IEnumerable<DrivingSchoolKey> drivingSchoolIds,
         IPasswordHasher<Instructor> instructorPasswordHasher)
@@ -19,7 +21,7 @@ public sealed class InstructorFaker : Faker<Instructor>
             .CustomInstantiator(f =>
                 {
                     var instructor = Instructor.Create(
-                        InstructorKey.Create(Guid.NewGuid()),
+                        _id ?? InstructorKey.Create(Guid.NewGuid()),
                         f.PickRandom(drivingSchoolIds),
                         Name.Create(f.Person.FirstName, f.Person.LastName),
                         Email.Create(f.Person.Email),
@@ -41,7 +43,13 @@ public sealed class InstructorFaker : Faker<Instructor>
         return this;
     }
     
+    public InstructorFaker UseId(InstructorKey? id)
+    {
+        _id = id;
 
+        return this;
+    }
+    
     public static InstructorFaker Create(int seed,
         IEnumerable<DrivingSchoolKey> drivingSchoolIds,
         IPasswordHasher<Instructor> instructorPasswordHasher)
