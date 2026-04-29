@@ -48,7 +48,20 @@ internal class StudentRepository : Repository, IStudentRepository
     {
         var temp = await DbContext.Students.FindAsync(student.Id);
         if (temp is null) return false;
-        var entry = DbContext.Students.Update(student);
+        var timeSlots = temp.Calender.TimeSlots.ToList();
+        foreach (var timeSlot in timeSlots)
+            temp.Calender.RemoveTimeSlot(timeSlot);
+        
+        temp.ChangeEmail(student.EmailAddress);
+        temp.ChangeName(student.StudentName);
+        temp.ChangeSchool(student.SchoolId);
+        temp.ChangePasswordHash(student.HashedPassword);
+        temp.ChangePhoneNumber(student.PhoneNumber);
+        
+        foreach(var timeSlot in student.Calender.TimeSlots)
+            temp.Calender.AddTimeSlot(timeSlot);
+        
+        var entry = DbContext.Students.Update(temp);
         return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
 
