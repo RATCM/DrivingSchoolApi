@@ -1,6 +1,7 @@
 using Bogus;
 using DrivingSchoolApi.Application.Exceptions;
 using DrivingSchoolApi.Domain.Entities;
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
@@ -53,7 +54,8 @@ public sealed class DrivingLessonFaker : Faker<DrivingLesson>
                     f.PickRandom(instructorIds.First(grouping => grouping.Key.Equals(schoolId)).ToList()),
                     f.PickRandom(studentIds.First(grouping => grouping.Key.Equals(schoolId)).ToList()),
                     signatureFaker.Generate(),
-                    signatureFaker.Generate()
+                    signatureFaker.Generate(),
+                    (DrivingLessonObjective)f.Random.Int(0, (int)DrivingLessonObjective.ParallelParking)
                 );
             });
 

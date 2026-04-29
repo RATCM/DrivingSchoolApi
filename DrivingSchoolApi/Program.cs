@@ -8,7 +8,18 @@ builder.Services.AddOpenApi();
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure();
+    .AddInfrastructure()
+    .AddCors(options =>
+    {
+        options.AddDefaultPolicy(
+            policy =>
+            {
+                policy.WithOrigins(builder.Configuration["WEB_URL_ENV"]!)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+    });
 
 var app = builder.Build();
 
@@ -21,6 +32,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthorization();
 

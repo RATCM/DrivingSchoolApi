@@ -1,3 +1,4 @@
+using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
@@ -13,7 +14,7 @@ public sealed class DrivingLesson : Entity<DrivingLessonKey>
     public required Money Price { get; init; }
     public required Signature InstructorSignature { get; init; }
     public required Signature StudentSignature { get; init; }
-    
+    public required DrivingLessonObjective CompletedObjective { get; init; }
 
     private DrivingLesson() {}  // EF
 
@@ -25,7 +26,8 @@ public sealed class DrivingLesson : Entity<DrivingLessonKey>
         InstructorKey instructorId,
         StudentKey studentId,
         Signature instructorSignature,
-        Signature studentSignature)
+        Signature studentSignature,
+        DrivingLessonObjective completedObjective)
     {
         return new DrivingLesson
         {
@@ -36,7 +38,8 @@ public sealed class DrivingLesson : Entity<DrivingLessonKey>
             InstructorId = instructorId,
             StudentId = studentId,
             InstructorSignature = instructorSignature,
-            StudentSignature = studentSignature
+            StudentSignature = studentSignature,
+            CompletedObjective = completedObjective
         };
     }
 }

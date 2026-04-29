@@ -6,19 +6,61 @@ using DrivingSchoolApi.Application.Services.Implementation;
 using DrivingSchoolApi.Application.UnitTest.Extensions;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace DrivingSchoolApi.Application.UnitTest.Services;
 
 public class TheoryLessonServiceTests
 {
+    private ServiceProvider _serviceProvider;
+
+    private ITheoryLessonService GetSut()
+    {
+        return _serviceProvider.GetRequiredService<ITheoryLessonService>();
+    }
+
+    private ITheoryLessonRepository GetRepository()
+    {
+        return _serviceProvider.GetRequiredService<ITheoryLessonRepository>();
+    }
+
+    private IGuidGeneratorService GetGuidGenerator()
+    {
+        return _serviceProvider.GetRequiredService<IGuidGeneratorService>();
+    }
+
+    private IInstructorService GetInstructorService()
+    {
+        return _serviceProvider.GetRequiredService<IInstructorService>();
+    }
+    
+    [SetUp]
+    public void Setup()
+    {
+        var collection = new ServiceCollection();
+        collection
+            .AddScoped<ITheoryLessonService, TheoryLessonService>()
+            .AddScoped<ITheoryLessonRepository>(_ => Substitute.For<ITheoryLessonRepository>())
+            .AddScoped<IGuidGeneratorService>(_ => Substitute.For<IGuidGeneratorService>())
+            .AddScoped<IInstructorService>(_ => Substitute.For<IInstructorService>());
+
+        _serviceProvider = collection.BuildServiceProvider();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _serviceProvider.Dispose();
+    }
+    
     [Test]
     public async Task CreateTheoryLesson_ReturnsTheoryLesson_AndSaves_OnSuccess()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
+        var instructorService = GetInstructorService();
+        var guidService = GetGuidGenerator();
         
         var lesson = TheoryLesson.CreateTestTheoryLesson();
         var instructor = Instructor.CreateTestInstructor(schoolGuid: lesson.SchoolId.Value);
@@ -27,7 +69,7 @@ public class TheoryLessonServiceTests
         instructorService.GetInstructorById(lesson.InstructorId!).Returns(instructor);
         lessonRepo.Create(lesson).Returns(true);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.CreateTheoryLesson(
@@ -57,15 +99,14 @@ public class TheoryLessonServiceTests
     public async Task CreateTheoryLesson_ReturnsNotFound_WhenInstructorDoesNotExist()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
+        var instructorService = GetInstructorService();
         
         var lesson = TheoryLesson.CreateTestTheoryLesson();
         
         instructorService.GetInstructorById(lesson.InstructorId!).Returns(new InstructorNotFoundException(""));
-        
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+
+        var sut = GetSut();
         
         // Act
         var result = await sut.CreateTheoryLesson(
@@ -90,9 +131,9 @@ public class TheoryLessonServiceTests
     public async Task CreateTheoryLesson_ReturnsFailure_AndDoesNotSave_OnRepositoryFailure()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
+        var instructorService = GetInstructorService();
+        var guidService = GetGuidGenerator();
         
         var lesson = TheoryLesson.CreateTestTheoryLesson();
         var instructor = Instructor.CreateTestInstructor(schoolGuid: lesson.SchoolId.Value);
@@ -101,7 +142,7 @@ public class TheoryLessonServiceTests
         instructorService.GetInstructorById(lesson.InstructorId!).Returns(instructor);
         lessonRepo.Create(Arg.Any<TheoryLesson>()).Returns(false);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.CreateTheoryLesson(
@@ -126,14 +167,12 @@ public class TheoryLessonServiceTests
     public async Task GetTheoryLessonById_ReturnsTheoryLesson_WhenFound()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
 
         var lesson = TheoryLesson.CreateTestTheoryLesson();
         lessonRepo.Get(lesson.Id).Returns(lesson);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetTheoryLessonById(lesson.Id);
@@ -149,14 +188,12 @@ public class TheoryLessonServiceTests
     public async Task GetTheoryLessonById_ReturnsNotFound_WhenMissing()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
 
         var lesson = TheoryLesson.CreateTestTheoryLesson(DateTime.UtcNow);
         lessonRepo.Get(lesson.Id).Returns((TheoryLesson?)null);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetTheoryLessonById(lesson.Id);
@@ -173,9 +210,7 @@ public class TheoryLessonServiceTests
     public async Task GetAllTheoryLessonsFromSchool_ReturnsTheoryLessons_WhenRepoHasData()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
         
         var lesson1 = TheoryLesson.CreateTestTheoryLesson();
         var lesson2 = TheoryLesson.CreateTestTheoryLesson(schoolId: lesson1.SchoolId.Value);
@@ -183,7 +218,7 @@ public class TheoryLessonServiceTests
 
         lessonRepo.GetAll().Returns([lesson1, lesson2, lesson3]);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllTheoryLessonsFromSchool(lesson1.SchoolId);
@@ -203,9 +238,7 @@ public class TheoryLessonServiceTests
     public async Task GetAllTheoryLessonsFromSchool_ReturnsEmpty_WhenNoMatchingLessons()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
         
         var lesson1 = TheoryLesson.CreateTestTheoryLesson();
         var lesson2 = TheoryLesson.CreateTestTheoryLesson();
@@ -213,7 +246,7 @@ public class TheoryLessonServiceTests
 
         lessonRepo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllTheoryLessonsFromSchool(otherSchoolId);
@@ -230,9 +263,7 @@ public class TheoryLessonServiceTests
     public async Task GetAllTheoryLessonsFromStudent_ReturnsTheoryLessons_WhenRepoHasData()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
         
         var lesson1 = TheoryLesson.CreateTestTheoryLesson();
         var lesson2 = TheoryLesson.CreateTestTheoryLesson(studentId: lesson1.StudentId!.Value);
@@ -240,7 +271,7 @@ public class TheoryLessonServiceTests
 
         lessonRepo.GetAll().Returns([lesson1, lesson2, lesson3]);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllTheoryLessonsFromStudent(lesson1.StudentId!);
@@ -260,9 +291,7 @@ public class TheoryLessonServiceTests
     public async Task GetAllTheoryLessonsFromStudent_ReturnsEmpty_WhenNoMatchingLessons()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
         
         var lesson1 = TheoryLesson.CreateTestTheoryLesson();
         var lesson2 = TheoryLesson.CreateTestTheoryLesson();
@@ -270,7 +299,7 @@ public class TheoryLessonServiceTests
 
         lessonRepo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllTheoryLessonsFromStudent(otherStudentId);
@@ -287,9 +316,7 @@ public class TheoryLessonServiceTests
     public async Task GetAllTheoryLessonsFromInstructor_ReturnsTheoryLessons_WhenRepoHasData()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
         
         var lesson1 = TheoryLesson.CreateTestTheoryLesson();
         var lesson2 = TheoryLesson.CreateTestTheoryLesson(instructorId: lesson1.InstructorId!.Value);
@@ -297,7 +324,7 @@ public class TheoryLessonServiceTests
 
         lessonRepo.GetAll().Returns([lesson1, lesson2, lesson3]);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllTheoryLessonsFromInstructor(lesson1.InstructorId!);
@@ -317,9 +344,7 @@ public class TheoryLessonServiceTests
     public async Task GetAllTheoryLessonsFromInstructor_ReturnsEmpty_WhenNoMatchingLessons()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
 
         var lesson1 = TheoryLesson.CreateTestTheoryLesson();
         var lesson2 = TheoryLesson.CreateTestTheoryLesson();
@@ -327,7 +352,7 @@ public class TheoryLessonServiceTests
 
         lessonRepo.GetAll().Returns([lesson1, lesson2]);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.GetAllTheoryLessonsFromInstructor(otherInstructorId);
@@ -344,14 +369,12 @@ public class TheoryLessonServiceTests
     public async Task DeleteTheoryLesson_ReturnsSuccess_AndSaves_OnSuccess()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
 
         var lesson = TheoryLesson.CreateTestTheoryLesson();
         lessonRepo.Delete(lesson.Id).Returns(true);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.DeleteTheoryLesson(lesson.Id);
@@ -368,14 +391,12 @@ public class TheoryLessonServiceTests
     public async Task DeleteTheoryLesson_ReturnsNotFound_AndDoesNotSave_WhenNotFound()
     {
         // Arrange
-        var lessonRepo = Substitute.For<ITheoryLessonRepository>();
-        var instructorService = Substitute.For<IInstructorService>();
-        var guidService = Substitute.For<IGuidGeneratorService>();
+        var lessonRepo = GetRepository();
 
         var lesson = TheoryLesson.CreateTestTheoryLesson();
         lessonRepo.Delete(lesson.Id).Returns(false);
 
-        var sut = new TheoryLessonService(guidService, lessonRepo, instructorService);
+        var sut = GetSut();
 
         // Act
         var result = await sut.DeleteTheoryLesson(lesson.Id);

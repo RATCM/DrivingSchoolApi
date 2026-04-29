@@ -8,5 +8,6 @@ public record DrivingLessonRegistryDto(
     Guid SchoolId,
     Guid StudentId,
     DrivingRouteDto Route,
-    MoneyDto Price
+    MoneyDto Price,
+    DrivingLessonObjectiveDto CompletedObjectives
     );
