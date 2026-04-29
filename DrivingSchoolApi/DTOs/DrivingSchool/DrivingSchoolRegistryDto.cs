@@ -1,7 +1,11 @@
-﻿namespace DrivingSchoolApi.DTOs.DrivingSchool;
+﻿using DrivingSchoolApi.Domain.ValueObjects;
+using DrivingSchoolApi.DTOs.ValueObject;
+
+namespace DrivingSchoolApi.DTOs.DrivingSchool;
 
 public sealed record DrivingSchoolRegistryDto(
     string Name,
-    string Address,
+    StreetAddressDto StreetAddress,
     string PhoneNumber,
-    string WebAddress);
+    string WebAddress,
+    PackageDto[] Packages);

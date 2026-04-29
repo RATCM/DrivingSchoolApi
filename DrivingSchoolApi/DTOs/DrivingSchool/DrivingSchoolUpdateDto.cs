@@ -6,4 +6,5 @@ public record DrivingSchoolUpdateDto(
     string Name,
     StreetAddressDto StreetAddress,
     string PhoneNumber,
-    string WebAddress);
+    string WebAddress,
+    PackageDto[] Packages);

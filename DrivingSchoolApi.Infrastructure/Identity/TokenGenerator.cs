@@ -36,7 +36,7 @@ internal class TokenGeneratorService : ITokenGeneratorService
             issuer: scheme["ValidIssuer"]!,
             audience: scheme["Audience"]!,
             claims: claims,
-            expires: DateTime.Now.Add(TimeSpan.Parse(scheme["TimeValid"]!)),
+            expires: DateTime.Now.ToUniversalTime().Add(TimeSpan.Parse(scheme["TimeValid"]!)),
             signingCredentials: credentials);
         
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -60,7 +60,7 @@ internal class TokenGeneratorService : ITokenGeneratorService
             issuer: scheme["ValidIssuer"]!,
             audience: scheme["Audience"]!,
             claims: claims,
-            expires: DateTime.Now.Add(TimeSpan.Parse(scheme["TimeValid"]!)),
+            expires: DateTime.Now.ToUniversalTime().Add(TimeSpan.Parse(scheme["TimeValid"]!)),
             signingCredentials: credentials);
         
         return new JwtSecurityTokenHandler().WriteToken(token);

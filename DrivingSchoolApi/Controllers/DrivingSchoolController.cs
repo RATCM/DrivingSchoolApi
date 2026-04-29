@@ -9,6 +9,7 @@ using DrivingSchoolApi.DTOs.ValueObject;
 using DrivingSchoolApi.Filters.Attributes;
 using DrivingSchoolApi.Filters.Services;
 using DrivingSchoolApi.Mappers;
+using DrivingSchoolApi.Mappers.ValueObjectMappers;
 using DrivingSchoolApi.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -86,10 +87,11 @@ public class DrivingSchoolController : ControllerBase
     {
         var result = await _drivingSchoolService.CreateDrivingSchool(
             DrivingSchoolName.Create(drivingSchool.Name),
-            StreetAddress.Create("N/A", "N/A", "N/A", drivingSchool.Address),
+            StreetAddress.Create(drivingSchool.StreetAddress.PostalCode, drivingSchool.StreetAddress.City, drivingSchool.StreetAddress.Region, drivingSchool.StreetAddress.AddressLine),
             PhoneNumber.Create(drivingSchool.PhoneNumber),
-            WebAddress.Create(drivingSchool.WebAddress),
-            []);
+            WebAddress.Create(drivingSchool.WebAddress), 
+            drivingSchool.Packages.Select(x => x.ToDomain()).ToArray()
+            );
         
         return result.IsSuccess
             ? Created($"drivingSchool/{result.Value!.Id}", result.Value.ToDto())
