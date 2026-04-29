@@ -98,9 +98,7 @@ public class StudentDebugController : ControllerBase
             var newStudent = faker.UseId(student.Id).Generate();
             if (newStudent is null)
                 return Problem("Error generating students");
-
-            Console.WriteLine(newStudent.Id.Value);
-
+            
             var updated = await _studentRepository.Update(newStudent);
             if (!updated)
                 return Problem("Error updating students");
