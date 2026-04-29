@@ -32,13 +32,26 @@ internal class InstructorRepository : Repository, IInstructorRepository
     
     public async Task<IEnumerable<Instructor>> GetAll()
     {
-        return DbContext.Instructors;
+        return await DbContext.Instructors.AsNoTracking().ToListAsync();
     }
 
     public async Task<bool> Update(Instructor instructor)
     {
         var temp = await DbContext.Instructors.FindAsync(instructor.Id);
         if (temp is null) return false;
+
+        var timeSlots = temp.Calender.TimeSlots.ToList();
+        foreach (var timeSlot in timeSlots)
+            temp.Calender.RemoveTimeSlot(timeSlot);
+        
+        temp.ChangeEmail(instructor.EmailAddress);
+        temp.ChangeName(instructor.InstructorName);
+        temp.ChangeSchool(instructor.SchoolId);
+        temp.ChangePasswordHash(instructor.HashedPassword);
+        temp.ChangePhoneNumber(instructor.PhoneNumber);
+        foreach(var timeSlot in instructor.Calender.TimeSlots)
+            temp.Calender.AddTimeSlot(timeSlot);
+        
         var entry = DbContext.Instructors.Update(instructor);
         return entry.State is EntityState.Modified or EntityState.Unchanged;
     }
