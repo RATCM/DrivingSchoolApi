@@ -111,7 +111,7 @@ public class AuthController : ControllerBase
                     ? Ok(studentResult.Value!.ToDto())
                     : this.Problem(studentResult.Error!, _logger);
             case UserRole.Instructor:
-                var instructorResult = await _studentService.GetStudentById(StudentKey.Create(id));
+                var instructorResult = await _instructorService.GetInstructorById(InstructorKey.Create(id));
                 return instructorResult.IsSuccess
                     ? Ok(instructorResult.Value!.ToDto())
                     : this.Problem(instructorResult.Error!, _logger);
