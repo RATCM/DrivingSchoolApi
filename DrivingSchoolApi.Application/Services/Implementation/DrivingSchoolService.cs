@@ -68,6 +68,14 @@ internal class DrivingSchoolService : IDrivingSchoolService
         
         drivingSchool.AddStudentInvite(invite);
 
+        var updated = await _drivingSchoolRepository.Update(drivingSchool);
+        if (!updated)
+            return new Exception("Internal error: Unable to update driving school.");
+
+        var saved = await _drivingSchoolRepository.Save();
+        if (!saved.IsSuccess)
+            return saved.Error!;
+        
         return invite;
     }
 
@@ -76,8 +84,7 @@ internal class DrivingSchoolService : IDrivingSchoolService
         var deleted = await _drivingSchoolRepository.Delete(id);
         if (!deleted)
             return new DrivingSchoolNotFoundException("Driving school not found.");
-        await _drivingSchoolRepository.Save();
-        return Result.Success();
+        return await _drivingSchoolRepository.Save();
     }
 
     public async Task<Result<DrivingSchool>> UpdateDrivingSchool(DrivingSchoolKey id, DrivingSchoolName name,
@@ -96,6 +103,9 @@ internal class DrivingSchoolService : IDrivingSchoolService
             phoneNumber,
             webAddress,
             result.Packages.ToArray());
+        
+        foreach(var invite in result.StudentInvites)
+            updatedDrivingSchool.AddStudentInvite(invite);
 
         bool success = await _drivingSchoolRepository.Update(updatedDrivingSchool);
 

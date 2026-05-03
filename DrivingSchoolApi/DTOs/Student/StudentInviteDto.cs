@@ -1,3 +1,3 @@
 namespace DrivingSchoolApi.DTOs.Student;
 
-public sealed class StudentInviteDto(Guid inviteId);
+public sealed record StudentInviteDto(Guid InviteId);

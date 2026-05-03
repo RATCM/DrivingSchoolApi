@@ -92,7 +92,7 @@ public class StudentController : ControllerBase
             StudentInviteKey.Create(student.InviteId));
 
         if (!studentInviteResult.IsSuccess)
-            return this.Problem(studentInviteResult.Error!);
+            return this.Problem(studentInviteResult.Error!, _logger);
         
         var result = await _studentService.CreateStudent(
             Name.Create(student.StudentName.FirstName, student.StudentName.LastName),

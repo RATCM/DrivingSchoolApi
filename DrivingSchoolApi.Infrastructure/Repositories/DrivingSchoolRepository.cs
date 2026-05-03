@@ -19,7 +19,8 @@ internal class DrivingSchoolRepository : Repository, IDrivingSchoolRepository
 
     public async Task<DrivingSchool?> Get(DrivingSchoolKey id)
     {
-        return await DbContext.DrivingSchools.FindAsync(id);
+        return await DbContext.DrivingSchools.AsNoTracking()
+            .FirstAsync(x => x.Id == id);
     }
     
     public async Task<IEnumerable<DrivingSchool>> GetAll()
@@ -35,14 +36,21 @@ internal class DrivingSchoolRepository : Repository, IDrivingSchoolRepository
         var packages = temp.Packages.ToList();
         foreach (var package in packages)
             temp.RemovePackage(package);
+
+        var invites = temp.StudentInvites.ToList();
+        foreach(var invite in invites)
+            temp.RemoveStudentInvite(invite);
         
-        temp.ChangeName(drivingSchool.DrivingSchoolName);
-        temp.ChangeAddress(drivingSchool.StreetAddress);
-        temp.ChangePhoneNumber(drivingSchool.PhoneNumber);
-        temp.ChangeWebAddress(drivingSchool.WebAddress);
+        if(temp.DrivingSchoolName != drivingSchool.DrivingSchoolName) temp.ChangeName(drivingSchool.DrivingSchoolName);
+        if(temp.StreetAddress != drivingSchool.StreetAddress) temp.ChangeAddress(drivingSchool.StreetAddress);
+        if(temp.PhoneNumber != drivingSchool.PhoneNumber) temp.ChangePhoneNumber(drivingSchool.PhoneNumber);
+        if(temp.WebAddress != drivingSchool.WebAddress) temp.ChangeWebAddress(drivingSchool.WebAddress);
         
         foreach (var package in drivingSchool.Packages)
             temp.AddPackage(package);
+        
+        foreach(var invite in drivingSchool.StudentInvites)
+            temp.AddStudentInvite(invite);
         
         var entry = DbContext.DrivingSchools.Update(temp);
         return entry.State is EntityState.Modified or EntityState.Unchanged;

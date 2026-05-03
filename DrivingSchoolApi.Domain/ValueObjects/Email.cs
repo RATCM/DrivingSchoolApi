@@ -18,7 +18,7 @@ public record Email : ValueObject
 
         return new Email
         {
-            Address = address
+            Address = address.ToLower()
         };
     }
 }

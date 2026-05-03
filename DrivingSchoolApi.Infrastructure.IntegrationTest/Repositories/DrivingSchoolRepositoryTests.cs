@@ -7,26 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DrivingSchoolApi.Infrastructure.IntegrationTest.Repositories;
 
-public class DrivingSchoolRepositoryTests
+public class DrivingSchoolRepositoryTests : TestClass
 {
-     private DrivingSchoolDbContext _dbContext;
-    
-    [SetUp]
-    public void Setup()
-    {
-        var dbContextOptions = new DbContextOptionsBuilder<DrivingSchoolDbContext>()
-            .UseInMemoryDatabase(databaseName: "DrivingSchoolDb_Test")
-            .Options;
-        
-        _dbContext = new DrivingSchoolDbContext(dbContextOptions);
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        _dbContext.Dispose();
-    }
-    
     [Test]
     public async Task Update_ReturnsTrue_WhenDrivingSchoolExists()
     {
@@ -52,8 +34,8 @@ public class DrivingSchoolRepositoryTests
                 Package.Create("Package 1 title", "new Package 1 description", Money.Create(10000, "USD")), 
                 Package.Create("Package 3 title", "Package 3 description", Money.Create(30000, "DKK"))
             ]);
-        
-        var schoolRepository = new DrivingSchoolRepository(_dbContext);
+
+        var schoolRepository = GetDrivingSchoolRepository();
 
         await schoolRepository.Create(existingSchool);
         await schoolRepository.Save();
@@ -94,8 +76,8 @@ public class DrivingSchoolRepositoryTests
                 Package.Create("Package 1 title", "Package 1 description", Money.Create(20000, "DKK")), 
                 Package.Create("Package 2 title", "Package 2 description", Money.Create(10000, "DKK"))
             ]);
-        
-        var schoolRepository = new DrivingSchoolRepository(_dbContext);
+
+        var schoolRepository = GetDrivingSchoolRepository();
         
         // Act
         var recv = await schoolRepository.Update(newSchool);
