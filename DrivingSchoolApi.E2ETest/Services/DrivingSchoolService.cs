@@ -17,6 +17,12 @@ public class DrivingSchoolService
         _authService = authService;
     }
 
+    public async Task<HttpResponseMessage> GetDrivingSchool(Guid schoolId)
+    {
+        using var getSchoolRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}");
+        return await _client.SendAsync(getSchoolRequest);
+    }
+
     public async Task<HttpResponseMessage> GetAllDrivingSchools()
     {
         throw new NotImplementedException("Not implemented");
