@@ -4,6 +4,7 @@ using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.Instructor;
 using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.DTOs.ValueObject;
 using DrivingSchoolApi.Filters.Attributes;
@@ -110,11 +111,24 @@ public class DrivingSchoolController : ControllerBase
     
     //TODO Add paging
     [HttpGet("{schoolId:guid}/student")]
-    [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School)]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var result = await _studentService.GetAllStudentsFromSchool(DrivingSchoolKey.Create(schoolId));
+        
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(s => s.ToDto()))
+            : this.Problem(result.Error!, _logger);
+    }
+    
+    //TODO Add paging
+    [HttpGet("{schoolId:guid}/instructor")]
+    [Authorize]
+    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
+    public async Task<ActionResult<IEnumerable<InstructorDto>>> GetAllInstructorsFromSchool(Guid schoolId)
+    {
+        var result = await _instructorService.GetAllInstructorsFromSchool(DrivingSchoolKey.Create(schoolId));
         
         return result.IsSuccess
             ? Ok(result.Value!.Select(s => s.ToDto()))
