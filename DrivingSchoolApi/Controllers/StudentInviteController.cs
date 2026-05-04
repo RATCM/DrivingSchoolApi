@@ -74,6 +74,5 @@ public class StudentInviteController : ControllerBase
         return deleted.IsSuccess
             ? NoContent()
             : this.Problem(deleted.Error!);
-
     }
 }

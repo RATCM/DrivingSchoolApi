@@ -123,7 +123,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO Add paging
-    [HttpGet("{schoolId:guid}/instructors")]
+    [HttpGet("{schoolId:guid}/instructor")]
     [Authorize]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<ActionResult<IEnumerable<InstructorDto>>> GetAllInstructorsFromSchool(Guid schoolId)
