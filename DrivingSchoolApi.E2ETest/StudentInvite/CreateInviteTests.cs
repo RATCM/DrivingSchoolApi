@@ -20,7 +20,7 @@ public class CreateInviteTests : TestClass
                 .CreateDrivingSchool(
                     new DrivingSchoolRegistryDto(
                         "Test name",
-                        "Test address",
+                        new StreetAddressDto("2800","Lyngby","Hovedstaden","Nybrovej"),
                         "12345678",
                         "Test.com"));
         var createdSchool = (await createSchoolResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>())!;
