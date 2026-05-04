@@ -70,9 +70,14 @@ public class DrivingSchoolController : ControllerBase
         var numFail = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Failed);
         var numQuit = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Quit);
 
-        // .Average() throws an exception if the collection is empty
-        var avgPrice = courses.Value.Count != 0 ? courses.Value!.Select(x => x.Cost.Amount).Average() : 0;
-
+        
+        var avgPrice = courses.Value!
+            .Where(x => x.Reason == CourseCompletionReason.Finished)
+            .Select(x => x.Cost.Amount)
+            // .Average() throws an exception if the collection is empty
+            .DefaultIfEmpty(0)
+            .Average();
+        
         return Ok(new DrivingSchoolRatingDto(
             (float)numPasses/numTotal,
             (float)numFail/numTotal,
