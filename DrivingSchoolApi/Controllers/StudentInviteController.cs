@@ -1,6 +1,5 @@
 ﻿using DrivingSchoolApi.Application.Auth;
 using DrivingSchoolApi.Application.Services;
-using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.Filters.Attributes;
@@ -78,6 +77,5 @@ public class StudentInviteController : ControllerBase
         return deleted.IsSuccess
             ? NoContent()
             : this.Problem(deleted.Error!, _logger);
-
     }
 }
