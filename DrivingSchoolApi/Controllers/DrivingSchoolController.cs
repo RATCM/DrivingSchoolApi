@@ -146,7 +146,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/theoryLessons")]
+    [HttpGet("{schoolId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolTheoryLessons(Guid schoolId)
@@ -159,7 +159,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/drivingLessons")]
+    [HttpGet("{schoolId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolDrivingLessons(Guid schoolId)
@@ -172,7 +172,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/schoolInstructors")]
+    [HttpGet("{schoolId:guid}/instructor")]
     [Authorize]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolInstructors(Guid schoolId)

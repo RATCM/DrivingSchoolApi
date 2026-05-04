@@ -13,6 +13,9 @@ internal class StudentRepository : Repository, IStudentRepository
 
     public async Task<bool> Create(Student student)
     {
+        var schoolExists = await DbContext.DrivingSchools.FindAsync(student.SchoolId) is not null;
+        if (!schoolExists) return false;
+        
         var entry = await DbContext.Students.AddAsync(student);
 
         return entry.State == EntityState.Added;
@@ -40,7 +43,7 @@ internal class StudentRepository : Repository, IStudentRepository
     {
         return await DbContext.Students
             .AsNoTracking()
-            .Where(s => s.SchoolId.Value == id.Value)
+            .Where(s => s.SchoolId == id)
             .ToListAsync();
     }
 
@@ -52,11 +55,11 @@ internal class StudentRepository : Repository, IStudentRepository
         foreach (var timeSlot in timeSlots)
             temp.Calender.RemoveTimeSlot(timeSlot);
         
-        temp.ChangeEmail(student.EmailAddress);
-        temp.ChangeName(student.StudentName);
-        temp.ChangeSchool(student.SchoolId);
-        temp.ChangePasswordHash(student.HashedPassword);
-        temp.ChangePhoneNumber(student.PhoneNumber);
+        if(temp.EmailAddress != student.EmailAddress) temp.ChangeEmail(student.EmailAddress);
+        if(temp.StudentName != student.StudentName) temp.ChangeName(student.StudentName);
+        if(!temp.SchoolId.Equals(student.SchoolId)) temp.ChangeSchool(student.SchoolId);
+        if(temp.HashedPassword != student.HashedPassword) temp.ChangePasswordHash(student.HashedPassword);
+        if(temp.PhoneNumber != student.PhoneNumber) temp.ChangePhoneNumber(student.PhoneNumber);
         
         foreach(var timeSlot in student.Calender.TimeSlots)
             temp.Calender.AddTimeSlot(timeSlot);

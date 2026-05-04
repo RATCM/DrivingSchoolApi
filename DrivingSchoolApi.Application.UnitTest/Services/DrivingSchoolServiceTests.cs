@@ -3,6 +3,7 @@ using DrivingSchoolApi.Application.Services;
 using DrivingSchoolApi.Application.Services.Implementation;
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -244,9 +245,11 @@ public class DrivingSchoolServiceTests
 
         var now = new DateTime(2000, 1, 1).ToUniversalTime();
         repo.Get(drivingSchoolId).Returns(school);
+        repo.Save().Returns(Result.Success());
+        repo.Update(Arg.Any<DrivingSchool>()).Returns(true);
         guidService.NewGuid().Returns(inviteId);
         dateTimeProvider.Now().Returns(now);
-
+        
         var sut = GetSut();
 
         var before = now;
@@ -298,7 +301,8 @@ public class DrivingSchoolServiceTests
         // Arrange
         var repo = GetRepository();
         repo.Delete(Arg.Any<DrivingSchoolKey>()).Returns(true);
-
+        repo.Save().Returns(Result.Success());
+        
         var sut = GetSut();
 
         var drivingSchoolId = DrivingSchoolKey.Create(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"));
