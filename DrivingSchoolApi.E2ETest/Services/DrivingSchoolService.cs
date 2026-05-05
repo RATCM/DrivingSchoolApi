@@ -25,7 +25,9 @@ public class DrivingSchoolService
 
     public async Task<HttpResponseMessage> GetAllDrivingSchools()
     {
-        throw new NotImplementedException("Not implemented");
+        using var getAllSchoolRequests = new HttpRequestMessage(HttpMethod.Get, "drivingSchool");
+
+        return await _client.SendAsync(getAllSchoolRequests);
     }
     
 
