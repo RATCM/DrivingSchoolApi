@@ -20,7 +20,7 @@ internal class DrivingSchoolRepository : Repository, IDrivingSchoolRepository
     public async Task<DrivingSchool?> Get(DrivingSchoolKey id)
     {
         return await DbContext.DrivingSchools.AsNoTracking()
-            .FirstAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
     
     public async Task<IEnumerable<DrivingSchool>> GetAll()
