@@ -1,8 +1,10 @@
+using DrivingSchoolApi.Application.Repositories;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Infrastructure.Database;
 
 namespace DrivingSchoolApi.Infrastructure.Repositories;
 
-internal abstract class Repository
+internal abstract class Repository : IRepository
 {
     protected readonly IDrivingSchoolDbContext DbContext;
 
@@ -11,8 +13,16 @@ internal abstract class Repository
         DbContext = dbContext;
     }
     
-    public async Task Save()
+    public async Task<Result> Save()
     {
-        await DbContext.SaveChangesAsync();
+        try
+        {
+            await DbContext.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
     }
 }

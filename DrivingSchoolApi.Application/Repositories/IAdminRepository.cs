@@ -4,7 +4,7 @@ using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Repositories;
 
-public interface IAdminRepository
+public interface IAdminRepository : IRepository
 {
     Task<bool> Create(Admin admin);
     Task<Admin?> Get(AdminKey id);
@@ -12,5 +12,4 @@ public interface IAdminRepository
     Task<IEnumerable<Admin>> GetAll();
     Task<bool> Update(Admin admin);
     Task<bool> Delete(AdminKey id);
-    Task Save();
 }

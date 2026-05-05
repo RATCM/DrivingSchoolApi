@@ -3,10 +3,9 @@ using DrivingSchoolApi.Domain.Keys;
 
 namespace DrivingSchoolApi.Application.Repositories;
 
-public interface IStudentInviteRepository
+public interface IStudentInviteRepository : IRepository
 {
     Task<StudentInvite?> Get(StudentInviteKey id);
     Task<IEnumerable<StudentInvite>> GetAll();
     Task<bool> Delete(StudentInviteKey id);
-    Task Save();
 }

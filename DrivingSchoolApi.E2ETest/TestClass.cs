@@ -13,10 +13,12 @@ public abstract class TestClass
 {
     private HttpClient _client;
     private TestApplicationFactory _factory;
-    protected Admin AdminUser { get; private set; }
-    protected AuthService AuthService;
-    protected DrivingSchoolService DrivingSchoolService;
-
+    protected Domain.Entities.Admin AdminUser { get; private set; }
+    protected AuthService AuthService { get; private set; }
+    protected DrivingSchoolService DrivingSchoolService { get; private set; }
+    protected InstructorService InstructorService { get; private set; }
+    protected StudentService StudentService { get; private set; }
+    
     [SetUp]
     public async Task SetUp()
     {
@@ -39,6 +41,8 @@ public abstract class TestClass
         
         AuthService = new AuthService(_client);
         DrivingSchoolService = new DrivingSchoolService(_client, AuthService);
+        InstructorService = new InstructorService(_client, AuthService);
+        StudentService = new StudentService(_client, AuthService);
     }
     
     [TearDown]
