@@ -82,6 +82,6 @@ public class GetDrivingSchoolTests : TestClass
     [Test]
     public async Task Get_All_DrivingSchools()
     {
-        
+        throw new NotImplementedException();
     }
 }
