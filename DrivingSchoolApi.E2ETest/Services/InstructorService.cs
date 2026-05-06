@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -5,6 +6,7 @@ using DrivingSchoolApi.DTOs.Common;
 using DrivingSchoolApi.DTOs.DrivingLesson;
 using DrivingSchoolApi.DTOs.Instructor;
 using DrivingSchoolApi.DTOs.TheoryLesson;
+using Microsoft.AspNetCore.Http;
 
 namespace DrivingSchoolApi.E2ETest.Services;
 
@@ -82,7 +84,19 @@ public class InstructorService
         using var createTheoryLessonRequest =
             new HttpRequestMessage(HttpMethod.Post, $"instructor/{id}/theoryLesson");
         createTheoryLessonRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
-        createTheoryLessonRequest.Content = JsonContent.Create(registry);
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(registry.StudentId.ToString()), "StudentId");
+        form.Add(new StringContent(registry.Price.Currency), "Price.Currency");
+        form.Add(new StringContent(registry.Price.Amount.ToString(CultureInfo.InvariantCulture)), "Price.Amount");
+        form.Add(new StringContent(registry.LessonDateTime.ToString(CultureInfo.InvariantCulture)), "LessonDateTime");
+
+        using var studentSignatureMs = new MemoryStream();
+        using var instructorSignatureMs = new MemoryStream();
+        await registry.StudentSignature.CopyToAsync(studentSignatureMs);
+        await registry.InstructorSignature.CopyToAsync(instructorSignatureMs);
+        form.Add(new ByteArrayContent(studentSignatureMs.ToArray()), "StudentSignature", "StudentSignature");
+        form.Add(new ByteArrayContent(instructorSignatureMs.ToArray()), "InstructorSignature", "InstructorSignature");
+        createTheoryLessonRequest.Content = form;
 
         return await _client.SendAsync(createTheoryLessonRequest);
     }
