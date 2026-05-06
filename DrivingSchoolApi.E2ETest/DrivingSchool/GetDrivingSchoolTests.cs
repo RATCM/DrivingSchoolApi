@@ -82,6 +82,34 @@ public class GetDrivingSchoolTests : TestClass
     [Test]
     public async Task Get_All_DrivingSchools()
     {
-        throw new NotImplementedException();
+        // Arrange
+        await AuthService.LoginAsDefaultAdmin();
+
+        var school1 = await DrivingSchoolService.CreateDrivingSchool(
+            new DrivingSchoolRegistryDto(
+                "Test name 1",
+                "Test address 1",
+                "12345678",
+                "Test1.com"));
+        
+        var school2 = await DrivingSchoolService.CreateDrivingSchool(
+            new DrivingSchoolRegistryDto(
+                "Test name 2",
+                "Test address 2",
+                "12345678",
+                "Test1.com"));
+        
+        var school3 = await DrivingSchoolService.CreateDrivingSchool(
+            new DrivingSchoolRegistryDto(
+                "Test name 3",
+                "Test address 3",
+                "12345678",
+                "Test1.com"));
+
+        // Act
+        var response = await DrivingSchoolService.GetAllDrivingSchools();
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 }
