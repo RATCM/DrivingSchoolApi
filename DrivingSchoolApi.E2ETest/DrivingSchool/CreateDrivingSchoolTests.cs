@@ -1,6 +1,8 @@
 using System.Net;
+using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs;
 using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.ValueObject;
 
 namespace DrivingSchoolApi.E2ETest.DrivingSchool;
 
@@ -15,7 +17,7 @@ public class CreateDrivingSchoolTests : TestClass
             .CreateDrivingSchool(
                 new DrivingSchoolRegistryDto(
                 "Test name",
-                "Test address",
+                new StreetAddressDto("2800","Lyngby","Hovedstaden","Nybrovej"),
                 "12345678",
                 "Test.com"));
         
@@ -35,7 +37,7 @@ public class CreateDrivingSchoolTests : TestClass
                 .CreateDrivingSchool(
                     new DrivingSchoolRegistryDto(
                         "Test name",
-                        "Test address",
+                        new StreetAddressDto("2800","Lyngby","Hovedstaden","Nybrovej"),
                         "12345678",
                         "Test.com"));
 
