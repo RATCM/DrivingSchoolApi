@@ -11,8 +11,8 @@ public static class PackageMappers
         public PackageDto ToDto()
         {
             return new PackageDto(
-                entity.Description,
                 entity.Title,
+                entity.Description,
                 entity.Price.ToDto()
             );
         }
