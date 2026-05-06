@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.ValueObject;
 using Newtonsoft.Json;
 
 namespace DrivingSchoolApi.E2ETest.DrivingSchool;
@@ -16,7 +17,7 @@ public class GetDrivingSchoolTests : TestClass
         var createResponse = await DrivingSchoolService.CreateDrivingSchool(
             new DrivingSchoolRegistryDto(
                 "Test name",
-                "Test address",
+                new StreetAddressDto("4040","Jyllinge","Hovedstaden","Test address 1"),
                 "12345678",
                 "Test.com"));
 
@@ -39,7 +40,7 @@ public class GetDrivingSchoolTests : TestClass
         var createResponse = await DrivingSchoolService.CreateDrivingSchool(
             new DrivingSchoolRegistryDto(
                 "Test name",
-                "Test address",
+                new StreetAddressDto("4040","Jyllinge","Hovedstaden","Test address 1"),
                 "12345678",
                 "Test.com"));
 
@@ -88,21 +89,21 @@ public class GetDrivingSchoolTests : TestClass
         var school1 = await DrivingSchoolService.CreateDrivingSchool(
             new DrivingSchoolRegistryDto(
                 "Test name 1",
-                "Test address 1",
+                new StreetAddressDto("4040","Jyllinge","Hovedstaden","Test address 1"),
                 "12345678",
                 "Test1.com"));
         
         var school2 = await DrivingSchoolService.CreateDrivingSchool(
             new DrivingSchoolRegistryDto(
                 "Test name 2",
-                "Test address 2",
+                new StreetAddressDto("4040","Jyllinge","Hovedstaden","Test address 2"),
                 "12345678",
                 "Test1.com"));
         
         var school3 = await DrivingSchoolService.CreateDrivingSchool(
             new DrivingSchoolRegistryDto(
                 "Test name 3",
-                "Test address 3",
+                new StreetAddressDto("4040","Jyllinge","Hovedstaden","Test address 3"),
                 "12345678",
                 "Test1.com"));
 
