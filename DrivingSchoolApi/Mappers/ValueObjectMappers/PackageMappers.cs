@@ -10,12 +10,11 @@ public static class PackageMappers
     {
         public PackageDto ToDto()
         {
-            return new PackageDto
-            {
-                Description = entity.Description,
-                Title = entity.Title,
-                Price = entity.Price.ToDto()
-            };
+            return new PackageDto(
+                entity.Description,
+                entity.Title,
+                entity.Price.ToDto()
+            );
         }
     }
 

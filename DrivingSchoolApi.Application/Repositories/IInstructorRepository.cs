@@ -1,10 +1,11 @@
 using DrivingSchoolApi.Domain.Entities;
 using DrivingSchoolApi.Domain.Keys;
+using DrivingSchoolApi.Domain.Primitives;
 using DrivingSchoolApi.Domain.ValueObjects;
 
 namespace DrivingSchoolApi.Application.Repositories;
 
-public interface IInstructorRepository
+public interface IInstructorRepository : IRepository
 {
     Task<bool> Create(Instructor instructor);
     Task<Instructor?> Get(InstructorKey id);
@@ -12,5 +13,4 @@ public interface IInstructorRepository
     Task<IEnumerable<Instructor>> GetAll();
     Task<bool> Update(Instructor instructor);
     Task<bool> Delete(InstructorKey id);
-    Task Save();
 }

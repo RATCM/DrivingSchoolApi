@@ -12,19 +12,29 @@ internal class StudentInviteRepository : Repository, IStudentInviteRepository
     
     public async Task<StudentInvite?> Get(StudentInviteKey id)
     {
-        return await DbContext.StudentInvites.FindAsync(id);
+        return await DbContext.DrivingSchools.AsNoTracking()
+            .SelectMany(x => x.StudentInvites)
+            .FirstOrDefaultAsync(x => x.Id.Equals(id));
     }
 
     public async Task<IEnumerable<StudentInvite>> GetAll()
     {
-        return await DbContext.StudentInvites.AsNoTracking().ToListAsync();
+        return await DbContext.DrivingSchools.AsNoTracking()
+            .SelectMany(x => x.StudentInvites)
+            .ToListAsync();
     }
     
     public async Task<bool> Delete(StudentInviteKey id)
     {
-        var temp = await DbContext.StudentInvites.FindAsync(id);
+        var temp = await DbContext.DrivingSchools.AsNoTracking()
+            .SelectMany(x => x.StudentInvites)
+            .FirstOrDefaultAsync(x => x.Id.Equals(id));
         if (temp is null) return false;
-        var entry = DbContext.StudentInvites.Remove(temp);
-        return entry.State == EntityState.Deleted;
+        var school = await DbContext.DrivingSchools.FindAsync(temp.DrivingSchoolId);
+        if (school is null) return false;
+        school.RemoveStudentInvite(temp);
+
+        var entry = DbContext.DrivingSchools.Update(school);
+        return entry.State == EntityState.Modified;
     }
 }

@@ -4,6 +4,7 @@ using DrivingSchoolApi.Domain.Enums;
 using DrivingSchoolApi.Domain.Keys;
 using DrivingSchoolApi.Domain.ValueObjects;
 using DrivingSchoolApi.DTOs.DrivingSchool;
+using DrivingSchoolApi.DTOs.Instructor;
 using DrivingSchoolApi.DTOs.Student;
 using DrivingSchoolApi.DTOs.ValueObject;
 using DrivingSchoolApi.Filters.Attributes;
@@ -69,9 +70,14 @@ public class DrivingSchoolController : ControllerBase
         var numFail = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Failed);
         var numQuit = courses.Value!.Count(x => x.Reason == CourseCompletionReason.Quit);
 
-        // .Average() throws an exception if the collection is empty
-        var avgPrice = courses.Value.Count != 0 ? courses.Value!.Select(x => x.Cost.Amount).Average() : 0;
-
+        
+        var avgPrice = courses.Value!
+            .Where(x => x.Reason == CourseCompletionReason.Finished)
+            .Select(x => x.Cost.Amount)
+            // .Average() throws an exception if the collection is empty
+            .DefaultIfEmpty(0)
+            .Average();
+        
         return Ok(new DrivingSchoolRatingDto(
             (float)numPasses/numTotal,
             (float)numFail/numTotal,
@@ -110,8 +116,8 @@ public class DrivingSchoolController : ControllerBase
     
     //TODO Add paging
     [HttpGet("{schoolId:guid}/student")]
-    [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School)]
+    [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
+    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentFromSchool(Guid schoolId)
     {
         var result = await _studentService.GetAllStudentsFromSchool(DrivingSchoolKey.Create(schoolId));
@@ -121,24 +127,17 @@ public class DrivingSchoolController : ControllerBase
             : this.Problem(result.Error!, _logger);
     }
     
-    [HttpPost("{schoolId:guid}/student/invite")]
-    [Authorize(Policy = AuthPolicies.InstructorOnly)]
-    public async Task<ActionResult<StudentInviteDto>> CreateInvite(Guid schoolId)
+    //TODO Add paging
+    [HttpGet("{schoolId:guid}/instructor")]
+    [Authorize]
+    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
+    public async Task<ActionResult<IEnumerable<InstructorDto>>> GetAllInstructorsFromSchool(Guid schoolId)
     {
-        var idClaim = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
-
-        var instructor = await _instructorService.GetInstructorById(InstructorKey.Create(idClaim));
-
-        if (instructor.IsSuccess)
-            return this.Problem(instructor.Error!, _logger);
+        var result = await _instructorService.GetAllInstructorsFromSchool(DrivingSchoolKey.Create(schoolId));
         
-        var invite = await _drivingSchoolService.CreateStudentInvite(
-            DrivingSchoolKey.Create(schoolId), 
-            TimeSpan.FromDays(30)); // We just have the invite be available for 30 days for now
-
-        return invite.IsSuccess
-            ? Ok(invite.Value!)
-            : this.Problem(invite.Error!, _logger);
+        return result.IsSuccess
+            ? Ok(result.Value!.Select(s => s.ToDto()))
+            : this.Problem(result.Error!, _logger);
     }
     
     [HttpDelete("{schoolId:guid}")]
@@ -152,7 +151,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/theoryLessons")]
+    [HttpGet("{schoolId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolTheoryLessons(Guid schoolId)
@@ -165,7 +164,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/drivingLessons")]
+    [HttpGet("{schoolId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolDrivingLessons(Guid schoolId)
@@ -178,7 +177,7 @@ public class DrivingSchoolController : ControllerBase
     }
     
     //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/schoolInstructors")]
+    [HttpGet("{schoolId:guid}/instructor")]
     [Authorize]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolInstructors(Guid schoolId)
