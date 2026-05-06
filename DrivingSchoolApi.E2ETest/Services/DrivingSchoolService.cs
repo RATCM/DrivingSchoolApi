@@ -53,4 +53,10 @@ public class DrivingSchoolService
 
         return await _client.SendAsync(createInviteRequest);
     }
+
+    public async Task<HttpResponseMessage> GetDrivingSchoolRating(Guid schoolId)
+    {
+        using var getRatingRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/rating");
+        return await _client.SendAsync(getRatingRequest);
+    }
 }
