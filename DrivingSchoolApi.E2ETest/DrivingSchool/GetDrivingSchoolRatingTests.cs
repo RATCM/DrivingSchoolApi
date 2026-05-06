@@ -69,7 +69,7 @@ public class GetDrivingSchoolRatingTests : TestClass
     }
 
     [Test]
-    public async Task GetDrivingSchoolRating_CalculatesCorrectRates_WithMultipleCompletedCourses()
+    public async Task GetDrivingSchoolRating_AllStudentsFinished()
     {
         // Arrange
         await AuthService.LoginAsDefaultAdmin();
@@ -117,8 +117,7 @@ public class GetDrivingSchoolRatingTests : TestClass
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var content = await response.Content.ReadAsStringAsync();
-        var rating = JsonConvert.DeserializeObject<DrivingSchoolRatingDto>(content);
+        var rating = await response.Content.ReadFromJsonAsync<DrivingSchoolRatingDto>();
 
         Assert.That(rating, Is.Not.Null);
         Assert.That(rating!.PassRate, Is.EqualTo(1).Within(0.01));
@@ -127,113 +126,176 @@ public class GetDrivingSchoolRatingTests : TestClass
         Assert.That(rating.AveragePrice.Amount, Is.EqualTo(500).Within(0.01));
     }
 
-    /*[Test]
+    [Test]
     public async Task GetDrivingSchoolRating_CalculatesCorrectAveragePrice_OnlyForFinishedCourses()
     {
         // Arrange
         await AuthService.LoginAsDefaultAdmin();
         var createResponse = await DrivingSchoolService.CreateDrivingSchool(
-            new DrivingSchoolRegistryDto(
-                "Test School",
-                new StreetAddressDto(
-                    "4040",
-                    "Jyllinge",
-                    "Hovedstaden",
-                    "Test address 1"),
-                "12345678",
-                "Test.com"));
+            DrivingSchoolRegistryDto.CreateTestSchool());
+        var createdSchool = await createResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>();
+        var schoolId = createdSchool!.Id;
 
-        var createdSchool = JsonConvert.DeserializeObject<DrivingSchoolDto>(
-            await createResponse.Content.ReadAsStringAsync());
+        var instructor = await InstructorService.CreateInstructor(
+            new InstructorRegistryDto(
+                schoolId, 
+                new NameDto("lars", "larsen"), 
+                "test1@email.com", 
+                "11223344", 
+                "1234"));
+        var instructorBody = await instructor.Content.ReadFromJsonAsync<InstructorDto>();
 
-        var schoolId = DrivingSchoolKey.Create(createdSchool!.Id);
+        await AuthService.LoginInstructor(new LoginDto("test1@email.com", "1234"));
+        
 
-        // Add 1 finished (cost 1000), 1 failed (cost 5000), 1 quit (cost 10000)
+        // Create 3 students: 1 finished, 1 failed, 1 quit
+        var students = new List<StudentDto>();
+        for (int i = 0; i < 3; i++)
+        {
+            var studentInviteResponse = await DrivingSchoolService.CreateInvite(schoolId);
+            var studentInviteBody = await studentInviteResponse.Content.ReadFromJsonAsync<StudentInviteDto>();
+            var studentInviteId = studentInviteBody!.InviteId;
+
+            var createStudent = await StudentService.CreateStudent(
+                new StudentRegistryDto(
+                    new NameDto("student", $"larsen{i}"), 
+                    $"student{i}@email.com", 
+                    "11223344", 
+                    "1234", 
+                    studentInviteId));
+            var studentBody = await createStudent.Content.ReadFromJsonAsync<StudentDto>();
+            students.Add(studentBody!);
+        }
+
+        await InstructorService.CreateTheoryLesson(
+            instructorBody!.Id,
+            TheoryLessonRegistryDto.CreateTestTheoryLesson(students[0].Id));
+
+        // 1 finished (cost 1000), 1 failed (cost 5000), 1 quit (cost 10000)
         // Average should only be 1000 (only finished courses)
-        await _dbContext.CompletedCourses.AddAsync(CompletedCourse.Create(
-            CompletedCourseKey.Create(Guid.NewGuid()),
-            schoolId,
-            StudentKey.Create(Guid.NewGuid()),
-            Money.Create(1000, "DKK"),
-            DateTime.Now,
-            CourseCompletionReason.Finished));
+        await StudentService.CompleteCourse(
+            students[0].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 12),
+                "Finished"));
 
-        await _dbContext.CompletedCourses.AddAsync(CompletedCourse.Create(
-            CompletedCourseKey.Create(Guid.NewGuid()),
-            schoolId,
-            StudentKey.Create(Guid.NewGuid()),
-            Money.Create(5000, "DKK"),
-            DateTime.Now,
-            CourseCompletionReason.Failed));
+        await StudentService.CompleteCourse(
+            students[1].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 12),
+                "Failed"));
 
-        await _dbContext.CompletedCourses.AddAsync(CompletedCourse.Create(
-            CompletedCourseKey.Create(Guid.NewGuid()),
-            schoolId,
-            StudentKey.Create(Guid.NewGuid()),
-            Money.Create(10000, "DKK"),
-            DateTime.Now,
-            CourseCompletionReason.Quit));
-
-        await _dbContext.SaveChangesAsync();
-
+        await StudentService.CompleteCourse(
+            students[2].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 12),
+                "Quit"));
+        
         // Act
-        var response = await DrivingSchoolService.GetDrivingSchoolRating(createdSchool.Id);
+        var response = await DrivingSchoolService.GetDrivingSchoolRating(schoolId);
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var content = await response.Content.ReadAsStringAsync();
-        var rating = JsonConvert.DeserializeObject<DrivingSchoolRatingDto>(content);
+        var rating = await response.Content.ReadFromJsonAsync<DrivingSchoolRatingDto>();
 
         Assert.That(rating, Is.Not.Null);
-        Assert.That(rating!.AveragePrice.Amount, Is.EqualTo(1000).Within(0.01));
+        Assert.That(rating!.AveragePrice.Amount, Is.EqualTo(500).Within(0.01));
+        Assert.That(rating.PassRate, Is.EqualTo(0.333).Within(0.01)); // 1/3
+        Assert.That(rating.FailRate, Is.EqualTo(0.333).Within(0.01)); // 1/3
+        Assert.That(rating.QuitRate, Is.EqualTo(0.333).Within(0.01)); // 1/3
+    
     }
 
     [Test]
-    public async Task GetDrivingSchoolRating_AllStudentsFinished()
+    public async Task GetDrivingSchoolRating_CalculatesCorrectRates_WithMultipleCompletedCourses()
     {
         // Arrange
         await AuthService.LoginAsDefaultAdmin();
         var createResponse = await DrivingSchoolService.CreateDrivingSchool(
-            new DrivingSchoolRegistryDto(
-                "Test School",
-                "Test Address",
-                "12345678",
-                "Test.com"));
+            DrivingSchoolRegistryDto.CreateTestSchool());
+        var createdSchool = await createResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>();
+        var schoolId = createdSchool!.Id;
 
-        var createdSchool = JsonConvert.DeserializeObject<DrivingSchoolDto>(
-            await createResponse.Content.ReadAsStringAsync());
+        var instructor = await InstructorService.CreateInstructor(
+            new InstructorRegistryDto(
+                schoolId, 
+                new NameDto("lars", "larsen"), 
+                "test1@email.com", 
+                "11223344", 
+                "1234"));
+        var instructorBody = await instructor.Content.ReadFromJsonAsync<InstructorDto>();
 
-        var schoolId = DrivingSchoolKey.Create(createdSchool!.Id);
+        await AuthService.LoginInstructor(new LoginDto("test1@email.com", "1234"));
+        
 
-        // Add 3 finished courses
-        for (int i = 0; i < 3; i++)
+
+        // Create 4 students: 2 finished, 1 failed, 1 quit
+        var students = new List<StudentDto>();
+        for (int i = 0; i < 4; i++)
         {
-            await _dbContext.CompletedCourses.AddAsync(CompletedCourse.Create(
-                CompletedCourseKey.Create(Guid.NewGuid()),
-                schoolId,
-                StudentKey.Create(Guid.NewGuid()),
-                Money.Create(1000, "DKK"),
-                DateTime.Now,
-                CourseCompletionReason.Finished));
+            var studentInviteResponse = await DrivingSchoolService.CreateInvite(schoolId);
+            var studentInviteBody = await studentInviteResponse.Content.ReadFromJsonAsync<StudentInviteDto>();
+            var studentInviteId = studentInviteBody!.InviteId;
+            
+            var createStudent = await StudentService.CreateStudent(
+                new StudentRegistryDto(
+                    new NameDto("student", $"larsen{i}"), 
+                    $"student{i}@email.com", 
+                    "11223344", 
+                    "1234", 
+                    studentInviteId));
+            var studentBody = await createStudent.Content.ReadFromJsonAsync<StudentDto>();
+            students.Add(studentBody!);
         }
 
-        await _dbContext.SaveChangesAsync();
+        // Create theory lessons for all students
+        foreach (var student in students)
+        {
+            await InstructorService.CreateTheoryLesson(
+                instructorBody!.Id,
+                TheoryLessonRegistryDto.CreateTestTheoryLesson(student.Id));
+        }
 
+        // 2 finished
+        await StudentService.CompleteCourse(
+            students[0].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 31),
+                "Finished"));
+
+        await StudentService.CompleteCourse(
+            students[1].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 31),
+                "Finished"));
+
+        // 1 failed
+        await StudentService.CompleteCourse(
+            students[2].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 31),
+                "Failed"));
+
+        // 1 quit
+        await StudentService.CompleteCourse(
+            students[3].Id, 
+            new CompletedCourseRegistryDto(
+                new DateTime(1999, 12, 31),
+                "Quit"));
+        
         // Act
-        var response = await DrivingSchoolService.GetDrivingSchoolRating(createdSchool.Id);
+        var response = await DrivingSchoolService.GetDrivingSchoolRating(schoolId);
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var content = await response.Content.ReadAsStringAsync();
-        var rating = JsonConvert.DeserializeObject<DrivingSchoolRatingDto>(content);
+        var rating = await response.Content.ReadFromJsonAsync<DrivingSchoolRatingDto>();
 
         Assert.That(rating, Is.Not.Null);
-        Assert.That(rating!.PassRate, Is.EqualTo(1)); // 3/3 = 1
-        Assert.That(rating.FailRate, Is.EqualTo(0));
-        Assert.That(rating.QuitRate, Is.EqualTo(0));
-        Assert.That(rating.AveragePrice.Amount, Is.EqualTo(1000));
+        Assert.That(rating.PassRate, Is.EqualTo(0.5).Within(0.01)); // 2/4
+        Assert.That(rating.FailRate, Is.EqualTo(0.25).Within(0.01)); // 1/4
+        Assert.That(rating.QuitRate, Is.EqualTo(0.25).Within(0.01)); // 1/4
+        Assert.That(rating.AveragePrice.Amount, Is.EqualTo(500).Within(0.01)); // Average of 2 finished courses
     }
-    */
 }
