@@ -20,12 +20,10 @@ public class GetDrivingSchoolTests : TestClass
                 new StreetAddressDto("4040","Jyllinge","Hovedstaden","Test address 1"),
                 "12345678",
                 "Test.com"));
-
-        var createdSchool = JsonConvert.DeserializeObject<DrivingSchoolDto>(
-            await createResponse.Content.ReadAsStringAsync());
+        var createdSchool = await createResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>();
 
         // Act
-        var response = await DrivingSchoolService.GetDrivingSchool(createdSchool.Id);
+        var response = await DrivingSchoolService.GetDrivingSchool(createdSchool!.Id);
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -44,16 +42,13 @@ public class GetDrivingSchoolTests : TestClass
                 "12345678",
                 "Test.com"));
 
-        var createdSchool = JsonConvert.DeserializeObject<DrivingSchoolDto>(
-            await createResponse.Content.ReadAsStringAsync());
+        var createdSchool = await createResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>();
 
         // Act
-        var response = await DrivingSchoolService.GetDrivingSchool(createdSchool.Id);
-
+        var response = await DrivingSchoolService.GetDrivingSchool(createdSchool!.Id);
+        var school = await response.Content.ReadFromJsonAsync<DrivingSchoolDto>();
+        
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
-        var school = JsonConvert.DeserializeObject<DrivingSchoolDto>(content);
-
         Assert.That(school, Is.Not.Null);
         Assert.That(school!.Id, Is.EqualTo(createdSchool.Id));
         Assert.That(school.Name, Is.EqualTo("Test name"));
