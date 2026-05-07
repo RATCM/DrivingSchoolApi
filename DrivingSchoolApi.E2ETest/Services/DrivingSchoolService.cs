@@ -42,7 +42,7 @@ public class DrivingSchoolService
     
     public async Task<HttpResponseMessage> GetAllStudentsFromSchool(Guid schoolId)
     {
-        using var getStudentsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/students");
+        using var getStudentsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/student");
         getStudentsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
         return await _client.SendAsync(getStudentsRequest);
     }
@@ -64,7 +64,7 @@ public class DrivingSchoolService
 
     public async Task<HttpResponseMessage> GetAllInstructorsFromSchool(Guid schoolId)
     {
-        using var getInstructorsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/schoolInstructors");
+        using var getInstructorsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/Instructor");
         getInstructorsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
         return await _client.SendAsync(getInstructorsRequest);
     }
