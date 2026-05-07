@@ -49,8 +49,7 @@ public class GetDrivingSchoolRatingTests : TestClass
                 "12345678",
                 "Test.com"));
 
-        var createdSchool = JsonConvert.DeserializeObject<DrivingSchoolDto>(
-            await createResponse.Content.ReadAsStringAsync());
+        var createdSchool = await createResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>(); 
 
         // Act
         var response = await DrivingSchoolService.GetDrivingSchoolRating(createdSchool!.Id);
@@ -58,8 +57,7 @@ public class GetDrivingSchoolRatingTests : TestClass
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         
-        var content = await response.Content.ReadAsStringAsync();
-        var rating = JsonConvert.DeserializeObject<DrivingSchoolRatingDto>(content);
+        var rating = await response.Content.ReadFromJsonAsync<DrivingSchoolRatingDto>();
 
         Assert.That(rating, Is.Not.Null);
         Assert.That(rating!.PassRate, Is.EqualTo(0));
