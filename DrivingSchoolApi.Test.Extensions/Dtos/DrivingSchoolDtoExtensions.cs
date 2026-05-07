@@ -10,8 +10,8 @@ public static class DrivingSchoolDtoExtensions
         public static DrivingSchoolRegistryDto CreateTestSchool()
         {
             var name = "Test School";
-            var address = new StreetAddressDto("4000","Roskilde","Hovedstaden","Main St 1");
-            var phone = "1234";
+            var address = new StreetAddressDto("4000","Test City","Test Region","Test Street");
+            var phone = "12345678";
             var web = "test.com";
             
             return new DrivingSchoolRegistryDto(
