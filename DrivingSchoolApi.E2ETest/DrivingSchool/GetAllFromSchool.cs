@@ -74,7 +74,7 @@ public class GetAllFromSchool : TestClass
                     "password123"
                 ));
 
-        //await AuthService.LoginInstructor(new LoginDto("instructor@test.com", "password123"));
+        await AuthService.LoginInstructor(new LoginDto("instructor@test.com", "password123"));
 
         // Act
         var getInstructorsResponse = await DrivingSchoolService.GetAllInstructorsFromSchool(schoolId);
