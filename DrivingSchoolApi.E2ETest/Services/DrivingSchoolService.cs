@@ -40,9 +40,11 @@ public class DrivingSchoolService
         return await _client.SendAsync(createSchoolRequest);
     }
     
-    public async Task<HttpResponseMessage> GetAllStudentsFromSchool()
+    public async Task<HttpResponseMessage> GetAllStudentsFromSchool(Guid schoolId)
     {
-        throw new NotImplementedException("Not implemented");
+        using var getStudentsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/students");
+        getStudentsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getStudentsRequest);
     }
     
     public async Task<HttpResponseMessage> CreateInvite(Guid schoolId)
@@ -58,5 +60,12 @@ public class DrivingSchoolService
     {
         using var getRatingRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/rating");
         return await _client.SendAsync(getRatingRequest);
+    }
+
+    public async Task<HttpResponseMessage> GetAllInstructorsFromSchool(Guid schoolId)
+    {
+        using var getInstructorsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/schoolInstructors");
+        getInstructorsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getInstructorsRequest);
     }
 }
