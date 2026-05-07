@@ -39,15 +39,7 @@ public class GetDrivingSchoolRatingTests : TestClass
         // Arrange
         await AuthService.LoginAsDefaultAdmin();
         var createResponse = await DrivingSchoolService.CreateDrivingSchool(
-            new DrivingSchoolRegistryDto(
-                "Test School",
-                new StreetAddressDto(
-                    "4040",
-                    "Jyllinge",
-                    "Hovedstaden",
-                    "Test address 1"),
-                "12345678",
-                "Test.com"));
+            DrivingSchoolRegistryDto.CreateTestSchool());
 
         var createdSchool = await createResponse.Content.ReadFromJsonAsync<DrivingSchoolDto>(); 
 
