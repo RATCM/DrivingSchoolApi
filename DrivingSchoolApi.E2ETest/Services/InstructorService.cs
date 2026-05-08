@@ -109,23 +109,63 @@ public class InstructorService
         
         return await _client.SendAsync(getTheoryLessonRequest);
     }
-    
+
     public async Task<HttpResponseMessage> CreateDrivingLesson(Guid id, DrivingLessonRegistryDto registry)
     {
         using var createDrivingLessonRequest =
             new HttpRequestMessage(HttpMethod.Post, $"instructor/{id}/drivingLesson");
         createDrivingLessonRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
-        createDrivingLessonRequest.Content = JsonContent.Create(registry);
 
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(registry.SchoolId.ToString()), "SchoolId");
+        form.Add(new StringContent(registry.StudentId.ToString()), "StudentId");
+        form.Add(new StringContent(registry.Price.Currency), "Price.Currency");
+        form.Add(new StringContent(registry.Price.Amount.ToString(CultureInfo.InvariantCulture)), "Price.Amount");
+        form.Add(new StringContent(registry.Route.DateTimeRange.StartDateTime.ToString(CultureInfo.InvariantCulture)),
+            "Route.DateTimeRange.StartDateTime");
+        form.Add(new StringContent(registry.Route.DateTimeRange.EndDateTime.ToString(CultureInfo.InvariantCulture)),
+            "Route.DateTimeRange.EndDateTime");
+
+        for (int i = 0; i < registry.Route.RouteCoordinates.Length; i++)
+        {
+            var coord = registry.Route.RouteCoordinates[i];
+            form.Add(new StringContent(coord.Order.ToString()), $"Route.RouteCoordinates[{i}].Order");
+            form.Add(new StringContent(coord.Latitude.ToString(CultureInfo.CurrentCulture)),
+                $"Route.RouteCoordinates[{i}].Latitude");
+            form.Add(new StringContent(coord.Longitude.ToString(CultureInfo.CurrentCulture)),
+                $"Route.RouteCoordinates[{i}].Longitude");
+        }
+
+        form.Add(new StringContent(registry.CompletedObjectives.RightOfWay.ToString().ToLower()),
+            "CompletedObjectives.RightOfWay");
+        form.Add(new StringContent(registry.CompletedObjectives.Highway.ToString().ToLower()),
+            "CompletedObjectives.Highway");
+        form.Add(new StringContent(registry.CompletedObjectives.Night.ToString().ToLower()),
+            "CompletedObjectives.Night");
+        form.Add(new StringContent(registry.CompletedObjectives.ThreePointTurn.ToString().ToLower()),
+            "CompletedObjectives.ThreePointTurn");
+        form.Add(new StringContent(registry.CompletedObjectives.ReverseAroundCorner.ToString().ToLower()),
+            "CompletedObjectives.ReverseAroundCorner");
+        form.Add(new StringContent(registry.CompletedObjectives.ParallelParking.ToString().ToLower()),
+            "CompletedObjectives.ParallelParking");
+
+        using var studentSignatureMs = new MemoryStream();
+        using var instructorSignatureMs = new MemoryStream();
+        await registry.StudentSignature.CopyToAsync(studentSignatureMs);
+        await registry.InstructorSignature.CopyToAsync(instructorSignatureMs);
+        form.Add(new ByteArrayContent(studentSignatureMs.ToArray()), "StudentSignature", "StudentSignature");
+        form.Add(new ByteArrayContent(instructorSignatureMs.ToArray()), "InstructorSignature", "InstructorSignature");
+
+        createDrivingLessonRequest.Content = form;
         return await _client.SendAsync(createDrivingLessonRequest);
     }
-    
+
     public async Task<HttpResponseMessage> GetDrivingLessons(Guid id)
     {
         using var getDrivingLessonRequest =
             new HttpRequestMessage(HttpMethod.Get, $"instructor/{id}/drivingLesson");
         getDrivingLessonRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
-        
+
         return await _client.SendAsync(getDrivingLessonRequest);
     }
 }
