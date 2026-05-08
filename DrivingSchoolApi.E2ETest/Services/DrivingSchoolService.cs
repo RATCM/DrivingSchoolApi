@@ -68,4 +68,18 @@ public class DrivingSchoolService
         getInstructorsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
         return await _client.SendAsync(getInstructorsRequest);
     }
+    
+    public async Task<HttpResponseMessage> GetDrivingSchoolTheoryLessons(Guid schoolId)
+    {
+        using var getTheoryLessonsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/theoryLesson");
+        getTheoryLessonsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getTheoryLessonsRequest);
+    }
+    
+    public async Task<HttpResponseMessage> GetDrivingSchoolDrivingLessons(Guid schoolId)
+    {
+        using var getDrivingLessonsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/drivingLesson");
+        getDrivingLessonsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getDrivingLessonsRequest);
+    }
 }
