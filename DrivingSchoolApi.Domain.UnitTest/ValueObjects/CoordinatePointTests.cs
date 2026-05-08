@@ -22,8 +22,8 @@ public class CoordinatePointTests
         var exception2 = Assert.Throws<InvalidInputException>(
             () => CoordinatePoint.Create(1, 200, 2));
         
-        Assert.That(exception1.Message, Is.EqualTo("Latitude must be in the range [-180;180]"));
-        Assert.That(exception2.Message, Is.EqualTo("Latitude must be in the range [-180;180]"));
+        Assert.That(exception1.Message, Is.EqualTo("Latitude must be in the range [-90;90]"));
+        Assert.That(exception2.Message, Is.EqualTo("Latitude must be in the range [-90;90]"));
     }
 
     [Test]
