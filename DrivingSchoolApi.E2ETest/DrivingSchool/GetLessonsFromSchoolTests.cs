@@ -10,7 +10,7 @@ using DrivingSchoolApi.Test.Extensions.Dtos;
 
 namespace DrivingSchoolApi.E2ETest.DrivingSchool;
 
-public class GetLessonsFromSchool : TestClass
+public class GetLessonsFromSchoolTests : TestClass
 {
        
     [Test]
