@@ -82,4 +82,12 @@ public class DrivingSchoolService
         getDrivingLessonsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
         return await _client.SendAsync(getDrivingLessonsRequest);
     }
+    
+    public async Task<HttpResponseMessage> UpdateDrivingSchool(Guid schoolId, DrivingSchoolUpdateDto updateDto)
+    {
+        using var updateSchoolRequest = new HttpRequestMessage(HttpMethod.Put, $"/drivingSchool/{schoolId}");
+        updateSchoolRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        updateSchoolRequest.Content = JsonContent.Create(updateDto);
+        return await _client.SendAsync(updateSchoolRequest);
+    }
 }
