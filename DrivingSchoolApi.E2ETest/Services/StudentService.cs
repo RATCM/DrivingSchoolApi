@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using DrivingSchoolApi.DTOs.Common;
+using DrivingSchoolApi.DTOs.CompletedCourse;
 using DrivingSchoolApi.DTOs.Student;
 
 namespace DrivingSchoolApi.E2ETest.Services;
@@ -43,6 +44,16 @@ public class StudentService
         getStudentRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
 
         return await _client.SendAsync(getStudentRequest);
+    }
+
+    public async Task<HttpResponseMessage> CompleteCourse(Guid studentId, CompletedCourseRegistryDto registry)
+    {
+        using var completeCourseRequest =
+            new HttpRequestMessage(HttpMethod.Post, $"student/{studentId}/course");
+        completeCourseRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        completeCourseRequest.Content = JsonContent.Create(registry);
+        
+        return await _client.SendAsync(completeCourseRequest);
     }
     
 }

@@ -17,9 +17,17 @@ public class DrivingSchoolService
         _authService = authService;
     }
 
+    public async Task<HttpResponseMessage> GetDrivingSchool(Guid schoolId)
+    {
+        using var getSchoolRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}");
+        return await _client.SendAsync(getSchoolRequest);
+    }
+
     public async Task<HttpResponseMessage> GetAllDrivingSchools()
     {
-        throw new NotImplementedException("Not implemented");
+        using var getAllSchoolRequests = new HttpRequestMessage(HttpMethod.Get, "drivingSchool");
+
+        return await _client.SendAsync(getAllSchoolRequests);
     }
     
 
@@ -32,9 +40,11 @@ public class DrivingSchoolService
         return await _client.SendAsync(createSchoolRequest);
     }
     
-    public async Task<HttpResponseMessage> GetAllStudentsFromSchool()
+    public async Task<HttpResponseMessage> GetAllStudentsFromSchool(Guid schoolId)
     {
-        throw new NotImplementedException("Not implemented");
+        using var getStudentsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/student");
+        getStudentsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getStudentsRequest);
     }
     
     public async Task<HttpResponseMessage> CreateInvite(Guid schoolId)
@@ -44,5 +54,40 @@ public class DrivingSchoolService
         createInviteRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
 
         return await _client.SendAsync(createInviteRequest);
+    }
+
+    public async Task<HttpResponseMessage> GetDrivingSchoolRating(Guid schoolId)
+    {
+        using var getRatingRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/rating");
+        return await _client.SendAsync(getRatingRequest);
+    }
+
+    public async Task<HttpResponseMessage> GetAllInstructorsFromSchool(Guid schoolId)
+    {
+        using var getInstructorsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/Instructor");
+        getInstructorsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getInstructorsRequest);
+    }
+    
+    public async Task<HttpResponseMessage> GetDrivingSchoolTheoryLessons(Guid schoolId)
+    {
+        using var getTheoryLessonsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/theoryLesson");
+        getTheoryLessonsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getTheoryLessonsRequest);
+    }
+    
+    public async Task<HttpResponseMessage> GetDrivingSchoolDrivingLessons(Guid schoolId)
+    {
+        using var getDrivingLessonsRequest = new HttpRequestMessage(HttpMethod.Get, $"/drivingSchool/{schoolId}/drivingLesson");
+        getDrivingLessonsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        return await _client.SendAsync(getDrivingLessonsRequest);
+    }
+    
+    public async Task<HttpResponseMessage> UpdateDrivingSchool(Guid schoolId, DrivingSchoolUpdateDto updateDto)
+    {
+        using var updateSchoolRequest = new HttpRequestMessage(HttpMethod.Put, $"/drivingSchool/{schoolId}");
+        updateSchoolRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Bearer?.AccessToken);
+        updateSchoolRequest.Content = JsonContent.Create(updateDto);
+        return await _client.SendAsync(updateSchoolRequest);
     }
 }

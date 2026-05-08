@@ -25,6 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\DrivingSchoolApi.Test.Extensions\DrivingSchoolApi.Test.Extensions.csproj" />
       <ProjectReference Include="..\DrivingSchoolApi\DrivingSchoolApi.csproj" />
     </ItemGroup>
 

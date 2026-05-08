@@ -151,7 +151,6 @@ public class DrivingSchoolController : ControllerBase
             : this.Problem(deleted.Error!);
     }
     
-    //TODO add paging and filters
     [HttpGet("{schoolId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
@@ -164,26 +163,12 @@ public class DrivingSchoolController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    //TODO add paging and filters
     [HttpGet("{schoolId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
     public async Task<IActionResult> GetDrivingSchoolDrivingLessons(Guid schoolId)
     {
         var result = await _drivingLessonService.GetAllDrivingLessonsFromSchool(DrivingSchoolKey.Create(schoolId));
-        
-        return result.IsSuccess ?
-            Ok(result.Value!.Select(x => x.ToDto())) : 
-            this.Problem(result.Error!);
-    }
-    
-    //TODO add paging and filters
-    [HttpGet("{schoolId:guid}/instructor")]
-    [Authorize]
-    [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
-    public async Task<IActionResult> GetDrivingSchoolInstructors(Guid schoolId)
-    {
-        var result = await _instructorService.GetAllInstructorsFromSchool(DrivingSchoolKey.Create(schoolId));
         
         return result.IsSuccess ?
             Ok(result.Value!.Select(x => x.ToDto())) : 
