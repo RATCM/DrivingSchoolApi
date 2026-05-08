@@ -151,7 +151,6 @@ public class DrivingSchoolController : ControllerBase
             : this.Problem(deleted.Error!);
     }
     
-    //TODO add paging
     [HttpGet("{schoolId:guid}/theoryLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
@@ -164,7 +163,6 @@ public class DrivingSchoolController : ControllerBase
             this.Problem(result.Error!);
     }
     
-    //TODO add paging
     [HttpGet("{schoolId:guid}/drivingLesson")]
     [Authorize(Policy = AuthPolicies.AdminOrInstructor)]
     [SameDrivingSchoolFilter("{schoolId:guid}", TargetEntity.School, letAdminsBypass: true)]
