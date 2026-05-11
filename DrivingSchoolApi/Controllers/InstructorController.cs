@@ -156,6 +156,7 @@ public class InstructorController : ControllerBase
     }
     
     [HttpPost("{instructorId:guid}/drivingLesson")]
+    [RequestFormLimits(ValueCountLimit = 15000)]
     [Authorize(Policy = AuthPolicies.InstructorOnly)]
     [UserFilter("{instructorId:guid}")]
     public async Task<IActionResult> CreateDrivingLesson(Guid instructorId, [FromForm] DrivingLessonRegistryDto registryDto)
