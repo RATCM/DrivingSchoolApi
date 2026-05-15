@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
     }
     
     [HttpPost("refresh")]
-    [Authorize(AuthSchemes.Refresh)]
+    [Authorize(AuthenticationSchemes = AuthSchemes.Refresh)]
     public async Task<ActionResult> RefreshTokenAdmin()
     {
         var userId = Guid.Parse(HttpContext.GetUserIdClaim()!.Value);
